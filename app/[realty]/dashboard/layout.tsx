@@ -1,6 +1,7 @@
 import type { Metadata } from "next"
 import { api } from "@/lib/api"
 import { realtyBySlug, requireRealtyUser } from "@/lib/realty-auth"
+import { realtyIcons } from "@/lib/realty-icon"
 import { signOutRealty } from "../login/actions"
 import { DashboardShell, type ShellCounts } from "./shell"
 
@@ -9,7 +10,7 @@ type Stats = { projects: number; offers: number; agents: number; agents_invited:
 
 export async function generateMetadata({ params }: Props): Promise<Metadata> {
   const realty = await realtyBySlug((await params).realty)
-  return { title: { default: `Dashboard · ${realty.name}`, template: `%s · ${realty.name}` }, robots: { index: false, follow: false } }
+  return { title: { default: `Dashboard · ${realty.name}`, template: `%s · ${realty.name}` }, robots: { index: false, follow: false }, icons: realtyIcons(realty.slug) }
 }
 
 /**

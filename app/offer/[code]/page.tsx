@@ -1,11 +1,13 @@
 import type { Metadata } from "next"
 import Link from "next/link"
+import { cache } from "react"
 import { ArrowUpRight, Bath, BedDouble, CalendarDays, Car, Check, Info, Layers, Mail, MapPin, Phone, Ruler, SquareDashed, Tag as TagIcon } from "lucide-react"
 import { RealtyMark } from "@/components/form"
 import { ApiError, api } from "@/lib/api"
 import { longDate, php, phpExact, sqm } from "@/lib/format"
 import { SITE_REALTY } from "@/lib/public-projects-types"
 import { realtyToken } from "@/lib/realty-auth"
+import { realtyIcons } from "@/lib/realty-icon"
 import { PrintButton, Zoomable } from "./parts"
 import { RespondSection } from "./respond"
 
@@ -42,7 +44,26 @@ type Offer = {
 
 type Props = { params: Promise<{ code: string }> }
 
-export const metadata: Metadata = { title: "Sales offer", robots: { index: false, follow: false } }
+/** One load per request, shared by the page and its metadata (each load counts as a buyer view). */
+const loadOffer = cache(async (code: string): Promise<{ offer: Offer | null; problem: string | null }> => {
+  try {
+    return { offer: await api<Offer>(`/offers/${encodeURIComponent(code)}`, { token: await realtyToken() }), problem: null }
+  } catch (e) {
+    const problem = e instanceof ApiError && (e.status === 404 || e.status === 410) ? (e.status === 404 ? "We couldn't find this offer. Please check the link with your agent." : e.message) : "We couldn't load this offer right now. Please try again in a moment."
+    return { offer: null, problem }
+  }
+})
+
+/** The realty's own tab icon, like its dashboard. */
+export async function generateMetadata({ params }: Props): Promise<Metadata> {
+  const { offer } = await loadOffer((await params).code)
+  const slug = offer?.realty.slug
+  return {
+    title: "Sales offer",
+    robots: { index: false, follow: false },
+    ...(slug ? { icons: realtyIcons(slug) } : {}),
+  }
+}
 
 const SHARE_MIN = 4 // % of the bar a tiny milestone still gets, so it stays visible
 
@@ -62,13 +83,7 @@ function Heading({ n, title, aside }: { n: string; title: string; aside?: React.
 /** jvconline.ph/offer/<code> — the buyer's sales offer. Public, unlisted, printable. */
 export default async function OfferPage({ params }: Props) {
   const { code } = await params
-  let offer: Offer | null = null
-  let problem: string | null = null
-  try {
-    offer = await api<Offer>(`/offers/${encodeURIComponent(code)}`, { token: await realtyToken() })
-  } catch (e) {
-    problem = e instanceof ApiError && (e.status === 404 || e.status === 410) ? (e.status === 404 ? "We couldn't find this offer. Please check the link with your agent." : e.message) : "We couldn't load this offer right now. Please try again in a moment."
-  }
+  const { offer, problem } = await loadOffer(code)
 
   if (!offer) {
     return (

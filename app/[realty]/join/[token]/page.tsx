@@ -3,6 +3,7 @@ import Link from "next/link"
 import { RealtyMark } from "@/components/form"
 import { ApiError, api } from "@/lib/api"
 import { type PublicRealty, realtyBySlug } from "@/lib/realty-auth"
+import { realtyIcons } from "@/lib/realty-icon"
 import { JoinForm } from "./join-form"
 
 type Props = { params: Promise<{ realty: string; token: string }> }
@@ -10,7 +11,7 @@ type Invite = { realty: PublicRealty; name: string; email: string | null }
 
 export async function generateMetadata({ params }: Props): Promise<Metadata> {
   const realty = await realtyBySlug((await params).realty)
-  return { title: `Join ${realty.name}`, robots: { index: false, follow: false } }
+  return { title: `Join ${realty.name}`, robots: { index: false, follow: false }, icons: realtyIcons(realty.slug) }
 }
 
 /** jvconline.ph/<realty>/join/<token> — an invited agent picks their password. */
