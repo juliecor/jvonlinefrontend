@@ -1,5 +1,8 @@
 /** Shapes of Johndorf's public project pages as the API returns them. Safe to import from client components. */
 
+/** The realty whose site jvconline.ph is (its landing is at /). */
+export const SITE_REALTY = "johndorf"
+
 export type PublicProjectCard = {
   slug: string
   name: string

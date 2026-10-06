@@ -6,7 +6,8 @@ import { ApiError, api } from "./api"
  * so the realty is fixed here; the admin's other realties don't have public
  * pages on this domain.
  */
-export const SITE_REALTY = "johndorf"
+import { SITE_REALTY } from "./public-projects-types"
+export { SITE_REALTY }
 
 export type { PublicProject, PublicProjectCard, PublicSpecs, PublicUnitType, PublicUpdate } from "./public-projects-types"
 export { SPEC_LABELS } from "./public-projects-types"
