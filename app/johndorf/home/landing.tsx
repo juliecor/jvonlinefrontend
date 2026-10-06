@@ -17,6 +17,7 @@ const NAV = [
   { href: "#story", label: "Story" },
   { href: "#flagships", label: "Flagships" },
   { href: "#portfolio", label: "Portfolio" },
+  { href: "/projects", label: "Projects" },
   { href: "#recognition", label: "Awards" },
   { href: "#people", label: "People" },
   { href: "#news", label: "News" },

@@ -3,9 +3,9 @@
 import { useEffect, useRef, useState } from "react"
 import { motion, useInView, useMotionValue, useSpring, type MotionValue, useTransform } from "framer-motion"
 
-export const ease = [0.22, 1, 0.36, 1] as const
-export const serif = "font-[family-name:var(--font-jd-serif)]"
-export const INK = "#160c0a"
+import { INK, ease, serif } from "../tokens"
+
+export { INK, ease, serif }
 
 /** Fades and lifts its children in when they scroll into view. */
 export function Reveal({ children, delay = 0, y = 28, className }: { children: React.ReactNode; delay?: number; y?: number; className?: string }) {

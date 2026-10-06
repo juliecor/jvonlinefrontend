@@ -183,8 +183,11 @@ export function ProjectDetail({ project, detail, onClose }: { project: Card; det
                 <Compass className="h-4 w-4" /> Open interactive site plan
               </Link>
             )}
+            <Link href={`/projects/${detail.slug}`} className="inline-flex items-center gap-2 rounded-full bg-[#2a1d1b] px-6 py-3 text-[12px] font-semibold uppercase tracking-[0.14em] text-white transition hover:bg-[#b4241c]">
+              Full project page <ArrowUpRight className="h-4 w-4" />
+            </Link>
             <a href={detail.officialUrl} target="_blank" rel="noopener noreferrer" className="inline-flex items-center gap-2 rounded-full border border-[#2a1d1b]/15 bg-white px-6 py-3 text-[12px] font-semibold uppercase tracking-[0.14em] text-[#2a1d1b] transition hover:border-[#2a1d1b]/40">
-              Official project page <ArrowUpRight className="h-4 w-4" />
+              johndorfventures.com <ArrowUpRight className="h-4 w-4" />
             </a>
           </div>
           <p className="mt-6 text-[11px] text-[#a8968f]">Details and photos from Johndorf&apos;s project page.</p>
