@@ -1,32 +1,31 @@
 import { ExternalLink, MapPin } from "lucide-react"
 
 /**
- * The project's location on the buyer's page. With a Google Maps key (and the
- * Maps Embed API switched on for it) it shows an embedded map; without one it
- * still gives an "Open in Google Maps" link. Coordinates win over the text.
+ * The project's location on the buyer's page: a Google Static Map (prints
+ * like the rest of the page) that opens Google Maps when clicked. Needs
+ * NEXT_PUBLIC_GOOGLE_MAPS_API_KEY with the Maps Static API; without a key the
+ * link alone is shown. Coordinates win over the text.
  */
 export function LocationMap({ name, location, lat, lng }: { name: string; location: string | null; lat: number | null; lng: number | null }) {
   const key = process.env.NEXT_PUBLIC_GOOGLE_MAPS_API_KEY
   const hasPin = lat !== null && lng !== null
-  const query = hasPin ? `${lat},${lng}` : [name, location, "Philippines"].filter(Boolean).join(", ")
   if (!hasPin && !location) return null
 
-  const open = hasPin ? `https://www.google.com/maps/search/?api=1&query=${lat},${lng}` : `https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(query)}`
-  const embed = key ? (hasPin ? `https://www.google.com/maps/embed/v1/place?key=${key}&q=${lat},${lng}&zoom=15` : `https://www.google.com/maps/embed/v1/place?key=${key}&q=${encodeURIComponent(query)}`) : null
+  const spot = hasPin ? `${lat},${lng}` : [name, location, "Philippines"].filter(Boolean).join(", ")
+  const open = `https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(spot)}`
+  const img = key
+    ? `https://maps.googleapis.com/maps/api/staticmap?size=640x320&scale=2&zoom=${hasPin ? 15 : 13}&maptype=roadmap&markers=color:0xb4241c%7C${encodeURIComponent(spot)}&key=${key}`
+    : null
 
   return (
     <section className="mt-10 break-inside-avoid">
       <h2 className="text-[11px] font-semibold uppercase tracking-[0.22em] text-slate-400">Location</h2>
       <div className="mt-4 overflow-hidden rounded-2xl border border-slate-200">
-        {embed && (
-          <iframe
-            title={`Map of ${name}`}
-            src={embed}
-            className="block h-[320px] w-full print:hidden"
-            loading="lazy"
-            referrerPolicy="no-referrer-when-downgrade"
-            allowFullScreen
-          />
+        {img && (
+          <a href={open} target="_blank" rel="noreferrer" aria-label={`Open ${name} in Google Maps`} className="block">
+            {/* eslint-disable-next-line @next/next/no-img-element */}
+            <img src={img} alt={`Map of ${name}${location ? `, ${location}` : ""}`} width={640} height={320} className="aspect-[2/1] w-full object-cover" loading="lazy" />
+          </a>
         )}
         <div className="flex flex-wrap items-center justify-between gap-3 px-4 py-3 text-sm">
           <p className="flex items-center gap-2 text-slate-600">
