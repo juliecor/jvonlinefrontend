@@ -25,6 +25,9 @@ const refresh = (slug: string) => revalidatePath(`/${slug}/dashboard`, "layout")
 
 export async function createProject(slug: string, _: FormState, formData: FormData): Promise<FormState> {
   const token = await staff(slug)
+  // Site plans are saved with the project's page, right after the project exists.
+  const plans = formData.getAll("site_plans").filter((f): f is File => f instanceof File && f.size > 0)
+  formData.delete("site_plans")
   let id: number
   try {
     const p = await api<Project>("/realty/projects", { method: "POST", token, body: tidy(formData, "cover") })
@@ -32,8 +35,15 @@ export async function createProject(slug: string, _: FormState, formData: FormDa
   } catch (e) {
     return { error: errorMessage(e) }
   }
+  let planError = ""
+  if (plans.length) {
+    const media = new FormData()
+    media.append("kind", "plan")
+    for (const f of plans) media.append("files[]", f)
+    await api(`/realty/projects/${id}/page/media`, { method: "POST", token, body: media }).catch((e) => (planError = errorMessage(e)))
+  }
   refresh(slug)
-  redirect(`/${slug}/dashboard/projects/${id}`)
+  redirect(`/${slug}/dashboard/projects/${id}${planError ? `?plan_error=${encodeURIComponent(planError)}#site-plan` : ""}`)
 }
 
 export async function updateProject(slug: string, id: number, _: FormState, formData: FormData): Promise<FormState> {

@@ -56,9 +56,11 @@ export function PublicPageEditor({ slug, projectId, projectName, data }: { slug:
         <MediaGrid slug={slug} projectId={projectId} kind="hero" urls={data.hero_urls} />
       </Panel>
 
-      <Panel title={`Site development plan · ${data.site_plan_urls.length}`} aside="The drawn plan; buyers can open it full screen">
-        <MediaGrid slug={slug} projectId={projectId} kind="plan" urls={data.site_plan_urls} />
-      </Panel>
+      <div id="site-plan" className="scroll-mt-24">
+        <Panel title={`Site development plan · ${data.site_plan_urls.length}`} aside="The drawn plan; shown on every offer, and buyers can open it full screen">
+          <MediaGrid slug={slug} projectId={projectId} kind="plan" urls={data.site_plan_urls} />
+        </Panel>
+      </div>
 
       <Panel title={`House & unit models · ${data.unit_types.length}`} aside="Each model with its renders and spec sheet">
         <ul className="divide-y divide-[#e6e2db]">
