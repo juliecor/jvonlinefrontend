@@ -21,6 +21,8 @@ async function staff(slug: string) {
   return session.token
 }
 
+const refresh = (slug: string) => revalidatePath(`/${slug}/dashboard`, "layout")
+
 export async function createProject(slug: string, _: FormState, formData: FormData): Promise<FormState> {
   const token = await staff(slug)
   let id: number
@@ -30,7 +32,7 @@ export async function createProject(slug: string, _: FormState, formData: FormDa
   } catch (e) {
     return { error: errorMessage(e) }
   }
-  revalidatePath(`/${slug}/dashboard`, "layout")
+  refresh(slug)
   redirect(`/${slug}/dashboard/projects/${id}`)
 }
 
@@ -41,9 +43,11 @@ export async function updateProject(slug: string, id: number, _: FormState, form
   } catch (e) {
     return { error: errorMessage(e) }
   }
-  revalidatePath(`/${slug}/dashboard`, "layout")
+  refresh(slug)
   return { ok: "Project saved." }
 }
+
+/* ─── Units ─── */
 
 export async function createUnit(slug: string, projectId: number, _: FormState, formData: FormData): Promise<FormState> {
   const token = await staff(slug)
@@ -52,34 +56,79 @@ export async function createUnit(slug: string, projectId: number, _: FormState, 
   } catch (e) {
     return { error: errorMessage(e) }
   }
-  revalidatePath(`/${slug}/dashboard`, "layout")
+  refresh(slug)
   return { ok: `Unit "${formData.get("name")}" added.` }
 }
 
-/** The status dropdown on a unit row. Sends the row's current values along, since the API wants the full unit. */
-export async function setUnitStatus(slug: string, unitId: number, formData: FormData): Promise<void> {
+export async function updateUnit(slug: string, unitId: number, _: FormState, formData: FormData): Promise<FormState> {
   const token = await staff(slug)
-  await api(`/realty/units/${unitId}`, { method: "POST", token, body: formData }).catch(() => {})
-  revalidatePath(`/${slug}/dashboard`, "layout")
+  try {
+    await api(`/realty/units/${unitId}`, { method: "POST", token, body: tidy(formData, "floor_plan") })
+  } catch (e) {
+    return { error: errorMessage(e) }
+  }
+  refresh(slug)
+  return { ok: "Unit saved." }
+}
+
+export async function deleteUnit(slug: string, unitId: number): Promise<FormState> {
+  const token = await staff(slug)
+  try {
+    await api(`/realty/units/${unitId}`, { method: "DELETE", token })
+  } catch (e) {
+    return { error: errorMessage(e) }
+  }
+  refresh(slug)
+  return { ok: "Unit deleted." }
+}
+
+/* ─── Payment plans ─── */
+
+/** Milestone rows come as label[], percent[], days[]. */
+function milestonesFrom(formData: FormData) {
+  const labels = formData.getAll("label").map(String)
+  const percents = formData.getAll("percent").map(String)
+  const days = formData.getAll("days").map(String)
+  return labels
+    .map((label, i) => ({ label: label.trim(), percent: Number(percents[i]), days: days[i]?.trim() === "" ? null : Number(days[i]) }))
+    .filter((m) => m.label || m.percent)
 }
 
 export async function createPlan(slug: string, projectId: number, _: FormState, formData: FormData): Promise<FormState> {
   const token = await staff(slug)
   const name = String(formData.get("name") ?? "").trim()
-  // Milestone rows come as label[], percent[], days[].
-  const labels = formData.getAll("label").map(String)
-  const percents = formData.getAll("percent").map(String)
-  const days = formData.getAll("days").map(String)
-  const milestones = labels
-    .map((label, i) => ({ label: label.trim(), percent: Number(percents[i]), days: days[i]?.trim() === "" ? null : Number(days[i]) }))
-    .filter((m) => m.label || m.percent)
+  const milestones = milestonesFrom(formData)
   if (!name || milestones.length === 0) return { error: "Give the plan a name and at least one milestone." }
-
   try {
     await api(`/realty/projects/${projectId}/plans`, { method: "POST", token, body: { name, milestones } })
   } catch (e) {
     return { error: errorMessage(e) }
   }
-  revalidatePath(`/${slug}/dashboard`, "layout")
+  refresh(slug)
   return { ok: `Plan "${name}" added.` }
+}
+
+export async function updatePlan(slug: string, planId: number, _: FormState, formData: FormData): Promise<FormState> {
+  const token = await staff(slug)
+  const name = String(formData.get("name") ?? "").trim()
+  const milestones = milestonesFrom(formData)
+  if (!name || milestones.length === 0) return { error: "Give the plan a name and at least one milestone." }
+  try {
+    await api(`/realty/plans/${planId}`, { method: "POST", token, body: { name, milestones } })
+  } catch (e) {
+    return { error: errorMessage(e) }
+  }
+  refresh(slug)
+  return { ok: "Plan saved." }
+}
+
+export async function deletePlan(slug: string, planId: number): Promise<FormState> {
+  const token = await staff(slug)
+  try {
+    await api(`/realty/plans/${planId}`, { method: "DELETE", token })
+  } catch (e) {
+    return { error: errorMessage(e) }
+  }
+  refresh(slug)
+  return { ok: "Plan deleted." }
 }
