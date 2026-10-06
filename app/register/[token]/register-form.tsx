@@ -34,7 +34,7 @@ export function RegisterForm({ token, realtyName, email }: { token: string; real
 
       <fieldset className="space-y-5">
         <legend className="text-base font-semibold">Your login</legend>
-        <p className="-mt-3 text-sm text-slate-500">This is the account that manages your realty on jvonline. You can invite agents from it.</p>
+        <p className="-mt-3 text-sm text-slate-500">This is the account that manages your realty on jvconline. You can invite agents from it.</p>
         <label className="block">
           <Label>Your name</Label>
           <input name="contact_name" required defaultValue={v?.contact_name} autoComplete="name" className={fieldClass} />

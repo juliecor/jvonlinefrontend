@@ -13,7 +13,7 @@ const geistMono = Geist_Mono({
 });
 
 export const metadata: Metadata = {
-  title: "jvonline",
+  title: "jvconline",
   description: "Realty companies across the Philippines.",
 };
 

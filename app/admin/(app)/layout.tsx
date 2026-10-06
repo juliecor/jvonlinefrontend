@@ -3,7 +3,7 @@ import { requireAdmin } from "@/lib/admin-auth"
 import { signOutAdmin } from "../login/actions"
 import { AdminNav } from "./nav"
 
-export const metadata: Metadata = { title: { default: "Admin · jvonline", template: "%s · jvonline admin" }, robots: { index: false, follow: false } }
+export const metadata: Metadata = { title: { default: "Admin · jvconline", template: "%s · jvconline admin" }, robots: { index: false, follow: false } }
 
 /** Everything under /admin except the login: checks the session, draws the shell. */
 export default async function AdminLayout({ children }: { children: React.ReactNode }) {
@@ -13,7 +13,7 @@ export default async function AdminLayout({ children }: { children: React.ReactN
     <div className="min-h-screen bg-slate-100 text-slate-900 lg:grid lg:grid-cols-[240px_1fr]">
       <aside className="flex items-center justify-between gap-4 border-b border-slate-800 bg-slate-950 px-4 py-3 text-white lg:sticky lg:top-0 lg:h-screen lg:flex-col lg:items-stretch lg:justify-start lg:border-b-0 lg:border-r lg:px-5 lg:py-6">
         <div className="flex items-center gap-3 lg:mb-8">
-          <span className="text-lg font-semibold tracking-tight">jvonline</span>
+          <span className="text-lg font-semibold tracking-tight">jvconline</span>
           <span className="rounded-full bg-white/10 px-2 py-0.5 text-[10px] font-semibold uppercase tracking-[0.14em] text-white/70">Admin</span>
         </div>
         <AdminNav />

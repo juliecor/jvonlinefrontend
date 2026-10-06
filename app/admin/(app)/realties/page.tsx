@@ -45,7 +45,7 @@ export default async function AdminRealtiesPage() {
               <li key={r.id} className="flex flex-col gap-3 px-5 py-4 sm:flex-row sm:items-center sm:justify-between sm:px-6">
                 <div className="min-w-0">
                   <div className="flex flex-wrap items-center gap-2">
-                    <p className="font-semibold">{r.name}</p>
+                    <Link href={`/admin/realties/${r.id}`} className="font-semibold hover:underline">{r.name}</Link>
                     {r.status === "active" ? (
                       <span className="rounded-full bg-emerald-50 px-2 py-0.5 text-[10px] font-semibold uppercase tracking-[0.14em] text-emerald-700">Active</span>
                     ) : expired ? (
@@ -61,6 +61,9 @@ export default async function AdminRealtiesPage() {
                   </p>
                 </div>
                 <div className="flex shrink-0 items-center gap-2">
+                  <Link href={`/admin/realties/${r.id}`} className="inline-flex items-center rounded-md border border-slate-300 px-2.5 py-1.5 text-xs font-semibold text-slate-700 transition hover:border-slate-900 hover:text-slate-900">
+                    Details
+                  </Link>
                   {r.status === "active" ? (
                     <Link href={`/${r.slug}`} target="_blank" className="inline-flex items-center gap-1.5 rounded-md border border-slate-300 px-2.5 py-1.5 text-xs font-semibold text-slate-700 transition hover:border-slate-900 hover:text-slate-900">
                       Open page <ExternalLink className="h-3.5 w-3.5" />

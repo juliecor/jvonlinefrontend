@@ -1,5 +1,5 @@
 /**
- * The Philippines as a dot grid for the jvonline home page and Johndorf's footprint map — land
+ * The Philippines as a dot grid for the jvconline home page and Johndorf's footprint map — land
  * cells of a 0.13° grid, rasterised from Natural Earth's 1:50m country
  * outlines (public domain). Generated once; [col, row] pairs, flattened.
  * col → longitude = LON0 + col × STEP, row → latitude = LAT1 − row × STEP.

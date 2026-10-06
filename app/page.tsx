@@ -5,12 +5,12 @@ import { Home, type PublicRealty } from "./home/home"
 
 const serif = Instrument_Serif({ subsets: ["latin"], weight: "400", style: ["normal", "italic"], variable: "--font-jv-serif", display: "swap" })
 
-const description = "jvonline gives realty companies across the Philippines their own page, their own dashboard, and their agents a simple way to send buyers a sales offer."
+const description = "jvconline gives realty companies across the Philippines their own page, their own dashboard, and their agents a simple way to send buyers a sales offer."
 
 export const metadata: Metadata = {
-  title: "jvonline — Realties of the Philippines, online",
+  title: "jvconline — Realties of the Philippines, online",
   description,
-  openGraph: { title: "jvonline", description, siteName: "jvonline" },
+  openGraph: { title: "jvconline", description, siteName: "jvconline" },
 }
 
 /** jvconline.ph — the platform's front door. Lists the realties that are live; "Sign in" leads to the logins. */

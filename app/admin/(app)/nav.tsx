@@ -2,11 +2,13 @@
 
 import Link from "next/link"
 import { usePathname } from "next/navigation"
-import { Building2, LayoutDashboard } from "lucide-react"
+import { Building2, FileText, LayoutDashboard, Users } from "lucide-react"
 
 const ITEMS = [
   { href: "/admin", label: "Dashboard", icon: LayoutDashboard, exact: true },
   { href: "/admin/realties", label: "Realties", icon: Building2 },
+  { href: "/admin/people", label: "People", icon: Users },
+  { href: "/admin/offers", label: "Offers", icon: FileText },
 ]
 
 export function AdminNav() {

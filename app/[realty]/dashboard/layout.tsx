@@ -45,7 +45,7 @@ export default async function RealtyDashboardLayout({ children, params }: Props)
       </header>
       <main className="mx-auto max-w-6xl px-4 py-8 sm:px-8 sm:py-10">{children}</main>
       <p className="pb-8 text-center text-xs text-slate-400">
-        Powered by <Link href="/" className="font-medium text-slate-500 hover:text-slate-900">jvonline</Link>
+        Powered by <Link href="/" className="font-medium text-slate-500 hover:text-slate-900">jvconline</Link>
       </p>
     </div>
   )

@@ -4,7 +4,7 @@ import { ApiError, api } from "@/lib/api"
 import type { PublicRealty } from "@/lib/realty-auth"
 import { RegisterForm } from "./register-form"
 
-export const metadata: Metadata = { title: "Register your realty · jvonline", robots: { index: false, follow: false } }
+export const metadata: Metadata = { title: "Register your realty · jvconline", robots: { index: false, follow: false } }
 
 type Invite = { realty: PublicRealty; email: string }
 
@@ -24,7 +24,7 @@ export default async function RegisterPage({ params }: { params: Promise<{ token
     <main className="min-h-screen bg-slate-100 px-4 py-10 text-slate-900 sm:py-16">
       <div className="mx-auto max-w-2xl">
         <p className="text-sm font-semibold tracking-tight">
-          jvonline<span className="text-slate-400">.ph</span>
+          jvconline<span className="text-slate-400">.ph</span>
         </p>
 
         {invite ? (
@@ -42,7 +42,7 @@ export default async function RegisterPage({ params }: { params: Promise<{ token
             <h1 className="text-2xl font-semibold tracking-tight">This link doesn&apos;t work</h1>
             <p className="mt-3 text-slate-600">{problem}</p>
             <Link href="/" className="mt-6 inline-block text-sm font-semibold text-slate-900 underline-offset-4 hover:underline">
-              Back to jvonline
+              Back to jvconline
             </Link>
           </div>
         )}

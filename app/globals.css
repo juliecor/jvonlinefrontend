@@ -25,7 +25,7 @@ body {
   font-family: var(--font-geist-sans), Arial, Helvetica, sans-serif;
 }
 
-/* jvonline home (app/page.tsx): the dotted Philippines glows in a slow wave, row by row. */
+/* jvconline home (app/page.tsx): the dotted Philippines glows in a slow wave, row by row. */
 @keyframes jv-dot {
   0%,
   100% {

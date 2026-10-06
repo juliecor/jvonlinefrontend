@@ -11,7 +11,7 @@ const ease = [0.22, 1, 0.36, 1] as const
 const serif = "font-[family-name:var(--font-jv-serif)]"
 
 const STEPS = [
-  { icon: Building2, title: "A realty is invited", body: "jvonline sets up the realty's address and sends a registration form. The realty fills in who they are and gets its own page." },
+  { icon: Building2, title: "A realty is invited", body: "jvconline sets up the realty's address and sends a registration form. The realty fills in who they are and gets its own page." },
   { icon: UserPlus, title: "The realty brings its team", body: "From its own dashboard, each realty signs in with its own branding and invites its agents." },
   { icon: Send, title: "Agents send buyers an offer", body: "An agent picks a unit and sends the buyer a link: the property, the payment plan and the floor plan, on one clean page." },
 ]
@@ -30,7 +30,7 @@ export function Home({ realties }: { realties: PublicRealty[] }) {
       <header className="fixed inset-x-0 top-0 z-50 bg-[#05070d]/60 backdrop-blur-md">
         <div className="mx-auto flex max-w-[1280px] items-center justify-between px-5 py-5 sm:px-8">
           <Link href="/" className="flex items-baseline gap-0.5 text-lg font-semibold tracking-tight">
-            jvonline<span className="text-[#7dd3fc]">.ph</span>
+            jvconline<span className="text-[#7dd3fc]">.ph</span>
           </Link>
           <nav className="hidden items-center gap-8 text-sm text-white/70 md:flex">
             <a href="#realties" className="transition hover:text-white">Realties</a>
@@ -65,7 +65,7 @@ export function Home({ realties }: { realties: PublicRealty[] }) {
               <span className="italic text-[#bae6fd]">online.</span>
             </motion.h1>
             <motion.p {...rise(0.35)} className="mt-8 max-w-lg text-base leading-relaxed text-white/70 sm:text-lg">
-              jvonline gives realty companies their own page and their own dashboard, and gives their agents a simple way to send buyers a sales offer.
+              jvconline gives realty companies their own page and their own dashboard, and gives their agents a simple way to send buyers a sales offer.
             </motion.p>
             <motion.div {...rise(0.5)} className="mt-10 flex flex-wrap gap-3">
               <a href="#realties" className="group inline-flex items-center gap-2.5 rounded-full bg-white px-6 py-3.5 text-sm font-semibold text-[#05070d] transition hover:bg-[#dbeafe]">
@@ -94,7 +94,7 @@ export function Home({ realties }: { realties: PublicRealty[] }) {
         <div className="mx-auto max-w-[1280px] px-5 py-20 sm:px-8 sm:py-28">
           <div className="flex flex-wrap items-end justify-between gap-4">
             <div>
-              <p className="text-[11px] font-semibold uppercase tracking-[0.28em] text-[#7dd3fc]">On jvonline</p>
+              <p className="text-[11px] font-semibold uppercase tracking-[0.28em] text-[#7dd3fc]">On jvconline</p>
               <h2 className={`${serif} mt-3 text-4xl tracking-tight sm:text-5xl`}>The realties</h2>
             </div>
             <p className="max-w-sm text-sm text-white/55">Each one has its own page here, built for it.</p>
@@ -161,7 +161,7 @@ export function Home({ realties }: { realties: PublicRealty[] }) {
       <footer className="border-t border-white/10">
         <div className="mx-auto flex max-w-[1280px] flex-col gap-4 px-5 py-10 text-sm text-white/45 sm:flex-row sm:items-center sm:justify-between sm:px-8">
           <p>
-            <span className="font-semibold text-white/80">jvonline</span>
+            <span className="font-semibold text-white/80">jvconline</span>
             <span className="text-[#7dd3fc]">.ph</span> · © {new Date().getFullYear()}
           </p>
           <div className="flex gap-6">
