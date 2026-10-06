@@ -1,21 +1,11 @@
 import type { Metadata } from "next"
-import { Instrument_Serif } from "next/font/google"
 import { api } from "@/lib/api"
 import { realtyBySlug, requireRealtyUser } from "@/lib/realty-auth"
 import { signOutRealty } from "../login/actions"
 import { DashboardShell, type ShellCounts } from "./shell"
 
-const displayFont = Instrument_Serif({ subsets: ["latin"], weight: "400", variable: "--font-display", display: "swap" })
-
 type Props = { children: React.ReactNode; params: Promise<{ realty: string }> }
 type Stats = { projects: number; offers: number; agents: number; agents_invited: number; public_projects: number }
-
-/** Relative luminance of a #rrggbb colour (WCAG). */
-function luminance(hex: string): number {
-  const c = hex.replace("#", "").match(/../g)?.map((h) => parseInt(h, 16) / 255) ?? [0, 0, 0]
-  const [r, g, b] = c.map((v) => (v <= 0.03928 ? v / 12.92 : ((v + 0.055) / 1.055) ** 2.4))
-  return 0.2126 * r + 0.7152 * g + 0.0722 * b
-}
 
 export async function generateMetadata({ params }: Props): Promise<Metadata> {
   const realty = await realtyBySlug((await params).realty)
@@ -36,15 +26,7 @@ export default async function RealtyDashboardLayout({ children, params }: Props)
     .catch(() => null)
 
   return (
-    <div
-      className={displayFont.variable}
-      style={{
-        ["--accent" as string]: accent,
-        // On the dark sidebar a near-black brand colour would disappear, so it uses a light stand-in there.
-        ["--side-accent" as string]: luminance(accent) < 0.05 ? "#ece8e1" : accent,
-        ["--side-accent-fg" as string]: luminance(accent) < 0.05 ? "#17150f" : "#ffffff",
-      }}
-    >
+    <div style={{ ["--accent" as string]: accent }}>
       <DashboardShell slug={slug} user={user} counts={counts} signOutAction={signOutRealty.bind(null, slug)}>
         {children}
       </DashboardShell>

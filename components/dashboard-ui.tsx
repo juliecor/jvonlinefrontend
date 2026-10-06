@@ -6,15 +6,16 @@ import Link from "next/link"
  * a grid of identical cards.
  */
 
-export const display = "font-[family-name:var(--font-display)]"
+/** Headline type for the dashboard: the site sans, bold — no serif, no italics. */
+export const display = "font-sans font-bold"
 
 export function PageHeader({ eyebrow, title, lede, action }: { eyebrow?: string; title: string; lede?: string; action?: React.ReactNode }) {
   return (
     <header className="flex flex-wrap items-end justify-between gap-x-8 gap-y-4 border-b border-[#e6e2db] pb-6">
       <div>
-        {eyebrow && <p className="text-[11px] font-semibold uppercase tracking-[0.24em] text-[var(--accent)]">{eyebrow}</p>}
-        <h1 className={`${display} mt-1 text-4xl tracking-tight text-[#17150f] sm:text-5xl`}>{title}</h1>
-        {lede && <p className="mt-2 max-w-2xl text-sm text-[#6b665d]">{lede}</p>}
+        {eyebrow && <p className="text-xs font-bold uppercase tracking-[0.2em] text-[var(--accent)]">{eyebrow}</p>}
+        <h1 className={`${display} mt-2 text-3xl tracking-tight text-[#17150f] sm:text-4xl`}>{title}</h1>
+        {lede && <p className="mt-2 max-w-2xl text-[15px] text-[#5a554d]">{lede}</p>}
       </div>
       {action && <div className="flex shrink-0 flex-wrap gap-2">{action}</div>}
     </header>
@@ -28,9 +29,9 @@ export function Ledger({ items }: { items: { label: string; value: string | numb
       {items.map((it) => {
         const body = (
           <>
-            <dt className="text-[11px] font-semibold uppercase tracking-[0.18em] text-[#8a847a]">{it.label}</dt>
-            <dd className={`${display} mt-2 text-4xl tabular-nums tracking-tight text-[#17150f] sm:text-5xl`}>{typeof it.value === "number" ? it.value.toLocaleString("en-PH") : it.value}</dd>
-            {it.note && <dd className="mt-1 text-xs text-[#8a847a]">{it.note}</dd>}
+            <dt className="text-xs font-bold uppercase tracking-[0.16em] text-[#6b665d]">{it.label}</dt>
+            <dd className={`${display} mt-2 text-4xl tabular-nums tracking-tight text-[#17150f] sm:text-[2.75rem]`}>{typeof it.value === "number" ? it.value.toLocaleString("en-PH") : it.value}</dd>
+            {it.note && <dd className="mt-1 text-sm text-[#6b665d]">{it.note}</dd>}
           </>
         )
         const cls = "py-6 pr-6 sm:flex-1 sm:px-6 sm:first:pl-0 sm:last:pr-0"
@@ -53,7 +54,7 @@ export function Panel({ title, aside, children, className = "" }: { title: strin
   return (
     <section className={`mt-10 ${className}`}>
       <div className="flex flex-wrap items-center justify-between gap-3 border-b border-[#17150f] pb-2">
-        <h2 className="text-[11px] font-semibold uppercase tracking-[0.2em] text-[#17150f]">{title}</h2>
+        <h2 className="text-xs font-bold uppercase tracking-[0.16em] text-[#17150f]">{title}</h2>
         {aside && <div className="text-xs text-[#8a847a]">{aside}</div>}
       </div>
       {children}
@@ -86,7 +87,7 @@ export function Tag({ tone = "neutral", children }: { tone?: "neutral" | "good" 
 }
 
 export const btn = {
-  primary: "inline-flex items-center justify-center gap-2 rounded-md bg-[var(--accent)] px-4 py-2.5 text-sm font-semibold text-white transition hover:brightness-110 disabled:opacity-60",
+  primary: "inline-flex items-center justify-center gap-2 bg-[var(--accent)] px-5 py-3 text-[15px] font-bold text-white transition hover:brightness-110 disabled:opacity-60",
   ghost: "inline-flex items-center justify-center gap-1.5 rounded-md border border-[#d9d4cb] bg-white px-3 py-2 text-xs font-semibold text-[#17150f] transition hover:border-[#17150f] disabled:opacity-60",
 }
 
