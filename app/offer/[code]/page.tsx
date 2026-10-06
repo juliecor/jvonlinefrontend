@@ -4,6 +4,7 @@ import { Mail, MapPin, Phone } from "lucide-react"
 import { RealtyMark } from "@/components/form"
 import { ApiError, api } from "@/lib/api"
 import { longDate, phpExact, sqm } from "@/lib/format"
+import { LocationMap } from "./location-map"
 import { PrintButton } from "./print-button"
 
 type Offer = {
@@ -15,7 +16,7 @@ type Offer = {
   fee_notes: string | null
   created_at: string
   realty: { name: string; slug: string; logo_url: string | null; phone: string | null; email: string | null; address: string | null }
-  project: { name: string; location: string | null; description: string | null; cover_url: string | null; completion_date: string | null }
+  project: { name: string; location: string | null; lat: number | null; lng: number | null; description: string | null; cover_url: string | null; completion_date: string | null }
   unit: { name: string; unit_type: string | null; category: string; floor: string | null; area_sqm: number | null; floor_plan_url: string | null; notes: string | null }
   agent: { name: string; email: string } | null
 }
@@ -141,6 +142,8 @@ export default async function OfferPage({ params }: Props) {
             </table>
             {offer.fee_notes && <p className="mt-4 whitespace-pre-line text-xs leading-relaxed text-slate-500">{offer.fee_notes}</p>}
           </section>
+
+          <LocationMap name={project.name} location={project.location} lat={project.lat} lng={project.lng} />
 
           {/* Floor plan */}
           {unit.floor_plan_url && (

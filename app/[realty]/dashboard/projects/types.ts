@@ -19,6 +19,8 @@ export type Project = {
   id: number
   name: string
   location: string | null
+  lat: number | null
+  lng: number | null
   description: string | null
   cover_url: string | null
   fee_notes: string | null

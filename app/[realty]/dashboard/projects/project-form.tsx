@@ -26,6 +26,17 @@ export function ProjectForm({ slug, project }: { slug: string; project?: Project
         <input name="completion_date" type="date" defaultValue={project?.completion_date ?? ""} className={fieldClass} />
         <span className="mt-1 block text-xs text-slate-500">Used for &quot;on completion&quot; payments.</span>
       </label>
+      <div className="grid grid-cols-2 gap-5 sm:col-span-2 sm:max-w-md">
+        <label className="block">
+          <Label>Map pin — latitude</Label>
+          <input name="lat" type="number" step="any" min="-90" max="90" defaultValue={project?.lat ?? ""} placeholder="8.4292355" className={fieldClass} />
+        </label>
+        <label className="block">
+          <Label>Longitude</Label>
+          <input name="lng" type="number" step="any" min="-180" max="180" defaultValue={project?.lng ?? ""} placeholder="124.6203083" className={fieldClass} />
+        </label>
+        <span className="col-span-2 -mt-3 text-xs text-slate-500">Right-click the spot in Google Maps and copy the two numbers. Shown as a map on every offer.</span>
+      </div>
       <label className="block sm:col-span-2">
         <Label>Description (optional)</Label>
         <textarea name="description" rows={3} defaultValue={project?.description ?? ""} placeholder="What buyers should know about the project." className={fieldClass} />
