@@ -13,6 +13,7 @@ export type Unit = {
   status: "available" | "reserved" | "sold"
   floor_plan_url: string | null
   notes: string | null
+  buyer_notes: string | null
 }
 
 export type PaymentPlan = { id: number; name: string; milestones: Milestone[] }

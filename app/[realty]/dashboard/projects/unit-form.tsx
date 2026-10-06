@@ -64,8 +64,12 @@ export function UnitForm({ slug, projectId, unit, onDone }: { slug: string; proj
         <input name="floor_plan" type="file" accept="image/*" className={fileInput} />
       </label>
       <label className="block sm:col-span-3">
-        <Label>Notes (optional)</Label>
-        <input name="notes" defaultValue={unit?.notes ?? ""} placeholder="Corner unit, lagoon view… / where the price comes from" className={field} />
+        <Label>Notes for buyers — printed on the sales offer (optional)</Label>
+        <input name="buyer_notes" defaultValue={unit?.buyer_notes ?? ""} placeholder="Corner lot, facing the park · Ready for occupancy" className={field} />
+      </label>
+      <label className="block sm:col-span-3">
+        <Label>Internal notes — staff and agents only (optional)</Label>
+        <input name="notes" defaultValue={unit?.notes ?? ""} placeholder="Where the price comes from, reminders for the team…" className={field} />
       </label>
       {state.error && <div className="sm:col-span-3"><Alert kind="error">{state.error}</Alert></div>}
       {state.ok && !unit && <div className="sm:col-span-3"><Alert kind="success">{state.ok}</Alert></div>}

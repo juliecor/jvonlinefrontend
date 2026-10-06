@@ -33,7 +33,7 @@ type Offer = {
     page_slug: string | null
     completion_date: string | null
   }
-  unit: { name: string; unit_type: string | null; category: string; floor: string | null; area_sqm: number | null; floor_plan_url: string | null; notes: string | null }
+  unit: { name: string; unit_type: string | null; category: string; floor: string | null; area_sqm: number | null; floor_plan_url: string | null; highlights: string | null }
   model: { name: string; specs: Specs | null; images: string[] } | null
   agent: { name: string; email: string } | null
 }
@@ -235,6 +235,9 @@ export default async function OfferPage({ params }: Props) {
                       </div>
                     ))}
                 </dl>
+                {unit.highlights && (
+                  <p className="mt-4 border-l-4 border-[var(--accent)] bg-[#faf8f5] px-4 py-3 text-[15px] font-semibold leading-relaxed text-[#17150f]">{unit.highlights}</p>
+                )}
                 {asterisk && <p className="mt-3 text-xs text-[#8a847a]">* As indicated by the developer.</p>}
               </div>
             </div>

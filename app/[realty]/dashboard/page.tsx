@@ -2,6 +2,7 @@ import Link from "next/link"
 import { ArrowRight } from "lucide-react"
 import { Ledger, PageHeader, Panel, btn, display } from "@/components/dashboard-ui"
 import { api } from "@/lib/api"
+import { SITE_REALTY } from "@/lib/public-projects-types"
 import { requireRealtyUser } from "@/lib/realty-auth"
 
 export const metadata = { title: "Overview" }
@@ -49,7 +50,9 @@ export default async function RealtyOverviewPage({ params }: { params: Promise<{
         <Panel title="Company" className="!mt-0">
           <dl className="divide-y divide-[#e6e2db] text-sm">
             {[
-              ["Page", <Link key="p" href={`/${slug}`} className="font-medium hover:text-[var(--accent)]">jvconline.ph/{slug}</Link>],
+              slug === SITE_REALTY
+                ? ["Website", <Link key="p" href="/" target="_blank" className="font-medium hover:text-[var(--accent)]">jvconline.ph</Link>]
+                : ["Sign-in page", <Link key="p" href={`/${slug}/login`} target="_blank" className="font-medium hover:text-[var(--accent)]">jvconline.ph/{slug}/login</Link>],
               ["Contact", realty.contact_name ?? "—"],
               ["Email", realty.email ?? "—"],
               ["Phone", realty.phone ?? "—"],

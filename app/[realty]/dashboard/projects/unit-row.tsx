@@ -41,7 +41,8 @@ export function UnitRow({ slug, projectId, unit, staff }: { slug: string; projec
           <p className="mt-0.5 text-sm text-[#6b665d]">
             {[unit.unit_type !== unit.name ? unit.unit_type : null, unit.category, unit.floor, unit.area_sqm ? sqm(unit.area_sqm) : null].filter(Boolean).join(" · ")}
           </p>
-          {unit.notes && <p className="mt-1 line-clamp-2 max-w-2xl text-xs text-[#8a847a]">{unit.notes}</p>}
+          {unit.buyer_notes && <p className="mt-1 max-w-2xl text-sm font-semibold text-[#3d3a34]">On the offer: {unit.buyer_notes}</p>}
+          {unit.notes && <p className="mt-1 line-clamp-2 max-w-2xl text-xs text-[#8a847a]">Internal: {unit.notes}</p>}
         </div>
       </div>
       <div className="flex shrink-0 items-center gap-4 sm:justify-end">
