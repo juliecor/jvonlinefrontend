@@ -2,6 +2,7 @@
 
 import { useActionState } from "react"
 import { LoaderCircle, RotateCw } from "lucide-react"
+import { CopyButton } from "@/components/copy-button"
 import { type ResendState, resendInvite } from "./actions"
 
 export function ResendButton({ id }: { id: number }) {
@@ -18,6 +19,7 @@ export function ResendButton({ id }: { id: number }) {
         Resend invite
       </button>
       {state.sent && <span className="text-xs text-emerald-700">{state.sent}</span>}
+      {state.url && <CopyButton text={state.url} label="Copy link" />}
       {state.error && <span className="text-xs text-red-700">{state.error}</span>}
     </form>
   )

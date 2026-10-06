@@ -6,7 +6,7 @@ import { type PublicRealty, realtyBySlug } from "@/lib/realty-auth"
 import { JoinForm } from "./join-form"
 
 type Props = { params: Promise<{ realty: string; token: string }> }
-type Invite = { realty: PublicRealty; name: string; email: string }
+type Invite = { realty: PublicRealty; name: string; email: string | null }
 
 export async function generateMetadata({ params }: Props): Promise<Metadata> {
   const realty = await realtyBySlug((await params).realty)
@@ -41,7 +41,7 @@ export default async function JoinPage({ params }: Props) {
           {invite ? (
             <>
               <h1 className="text-xl font-semibold tracking-tight">Welcome, {invite.name.split(" ")[0]}.</h1>
-              <p className="mt-2 mb-6 text-sm text-slate-600">{realty.name} added you as an agent. Set a password and you&apos;re in.</p>
+              <p className="mt-2 mb-6 text-sm text-slate-600">{realty.name} added you as an agent. Choose your login and you&apos;re in.</p>
               <JoinForm token={token} name={invite.name} email={invite.email} />
             </>
           ) : (

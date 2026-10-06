@@ -1,6 +1,7 @@
 import Link from "next/link"
 import { notFound } from "next/navigation"
-import { ArrowLeft, CalendarDays, MapPin } from "lucide-react"
+import { ArrowLeft } from "lucide-react"
+import { PageHeader, btn } from "@/components/dashboard-ui"
 import { ApiError, api } from "@/lib/api"
 import { longDate, php, sqm } from "@/lib/format"
 import { requireRealtyUser } from "@/lib/realty-auth"
@@ -37,17 +38,17 @@ export default async function ProjectPage({ params }: Props) {
       <Link href={`/${slug}/dashboard/projects`} className="inline-flex items-center gap-1.5 text-sm text-slate-500 hover:text-slate-900">
         <ArrowLeft className="h-4 w-4" /> Projects
       </Link>
-      <div className="mt-3 flex flex-wrap items-end justify-between gap-4">
-        <div>
-          <h1 className="text-2xl font-semibold tracking-tight sm:text-3xl">{project.name}</h1>
-          <p className="mt-1 flex flex-wrap gap-x-4 gap-y-1 text-sm text-slate-500">
-            {project.location && <span className="inline-flex items-center gap-1"><MapPin className="h-3.5 w-3.5" /> {project.location}</span>}
-            {project.completion_date && <span className="inline-flex items-center gap-1"><CalendarDays className="h-3.5 w-3.5" /> Completion {longDate(project.completion_date)}</span>}
-          </p>
-        </div>
-        <Link href={`/${slug}/dashboard/offers/new?project=${project.id}`} className="rounded-lg bg-slate-900 px-4 py-2.5 text-sm font-semibold text-white hover:bg-slate-700">
-          New offer for this project
-        </Link>
+      <div className="mt-3">
+        <PageHeader
+          eyebrow="Project"
+          title={project.name}
+          lede={[project.location, project.completion_date ? `Completion ${longDate(project.completion_date)}` : null].filter(Boolean).join(" · ") || undefined}
+          action={
+            <Link href={`/${slug}/dashboard/offers/new?project=${project.id}`} className={btn.primary}>
+              New offer for this project
+            </Link>
+          }
+        />
       </div>
 
       {/* Units */}

@@ -4,7 +4,7 @@ import { revalidatePath } from "next/cache"
 import { api, errorMessage } from "@/lib/api"
 import { requireAdmin } from "@/lib/admin-auth"
 
-export type InviteState = { error?: string; sent?: string }
+export type InviteState = { error?: string; sent?: string; url?: string }
 
 /** Create a realty and email it the registration link. */
 export async function inviteRealty(_: InviteState, formData: FormData): Promise<InviteState> {
@@ -14,17 +14,19 @@ export async function inviteRealty(_: InviteState, formData: FormData): Promise<
   const email = String(formData.get("email") ?? "").trim()
   if (!name || !email) return { error: "Name and email are needed." }
 
+  let url: string | undefined
   try {
-    await api("/admin/realties", { method: "POST", token, body: { name, email, slug: slug || undefined } })
+    const r = await api<{ registration_url?: string }>("/admin/realties", { method: "POST", token, body: { name, email, slug: slug || undefined } })
+    url = r.registration_url
   } catch (e) {
     return { error: errorMessage(e) }
   }
   revalidatePath("/admin/realties")
   revalidatePath("/admin")
-  return { sent: `Invite sent to ${email}.` }
+  return { sent: `Invite emailed to ${email}. You can also send them this link yourself:`, url }
 }
 
-export type ResendState = { error?: string; sent?: string }
+export type ResendState = { error?: string; sent?: string; url?: string }
 
 /** A fresh link for a realty that hasn't registered yet. */
 export async function resendInvite(_: ResendState, formData: FormData): Promise<ResendState> {
@@ -32,9 +34,9 @@ export async function resendInvite(_: ResendState, formData: FormData): Promise<
   const id = Number(formData.get("id"))
   if (!id) return { error: "Unknown realty." }
   try {
-    const realty = await api<{ email: string }>(`/admin/realties/${id}/invite`, { method: "POST", token })
+    const realty = await api<{ email: string; registration_url?: string }>(`/admin/realties/${id}/invite`, { method: "POST", token })
     revalidatePath("/admin/realties")
-    return { sent: `Sent again to ${realty.email}.` }
+    return { sent: `Sent again to ${realty.email}.`, url: realty.registration_url }
   } catch (e) {
     return { error: errorMessage(e) }
   }

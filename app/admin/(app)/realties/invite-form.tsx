@@ -2,6 +2,7 @@
 
 import { useActionState, useEffect, useRef } from "react"
 import { LoaderCircle, Send } from "lucide-react"
+import { CopyButton } from "@/components/copy-button"
 import { type InviteState, inviteRealty } from "./actions"
 
 const field = "mt-1.5 block w-full rounded-lg border border-slate-300 bg-white px-3.5 py-2.5 text-[15px] text-slate-900 outline-none transition focus:border-slate-900 focus:ring-2 focus:ring-slate-900/10"
@@ -44,9 +45,15 @@ export function InviteRealtyForm() {
         </p>
       )}
       {state.sent && (
-        <p role="status" className="rounded-lg border border-emerald-200 bg-emerald-50 px-3.5 py-2.5 text-sm text-emerald-800 sm:col-span-4">
+        <div role="status" className="rounded-lg border border-emerald-200 bg-emerald-50 px-3.5 py-2.5 text-sm text-emerald-800 sm:col-span-4">
           {state.sent}
-        </p>
+          {state.url && (
+            <div className="mt-2 flex flex-wrap items-center gap-2">
+              <code className="break-all rounded bg-white px-2 py-1 text-xs text-slate-800">{state.url}</code>
+              <CopyButton text={state.url} className="bg-white" />
+            </div>
+          )}
+        </div>
       )}
     </form>
   )

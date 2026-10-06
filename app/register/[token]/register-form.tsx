@@ -23,6 +23,13 @@ export function RegisterForm({ token, realtyName, email }: { token: string; real
           <input name="logo" type="file" accept="image/*" className="mt-1.5 block w-full text-sm text-slate-600 file:mr-3 file:rounded-md file:border-0 file:bg-slate-900 file:px-3 file:py-2 file:text-sm file:font-semibold file:text-white hover:file:bg-slate-700" />
         </label>
         <label className="block">
+          <Label>Brand colour</Label>
+          <span className="mt-1.5 flex items-center gap-3">
+            <input name="accent_color" type="color" defaultValue="#1f2937" className="h-10 w-14 cursor-pointer rounded-md border border-slate-300 bg-white p-1" />
+            <span className="text-xs text-slate-500">Used on your dashboard and login page. Pick the colour from your logo.</span>
+          </span>
+        </label>
+        <label className="block">
           <Label>Office address</Label>
           <input name="address" defaultValue={v?.address} placeholder="Street, city, province" className={fieldClass} />
         </label>

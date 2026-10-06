@@ -13,7 +13,7 @@ import { ApiError, api } from "./api"
 export const REALTY_COOKIE = "jv_realty"
 export const REALTY_SESSION_SECONDS = 12 * 60 * 60
 
-export type PublicRealty = { id: number; name: string; slug: string; logo_url: string | null; status: "invited" | "active" }
+export type PublicRealty = { id: number; name: string; slug: string; logo_url: string | null; accent_color: string | null; status: "invited" | "active" }
 
 export type RealtyUser = AuthUser & { role: "realty" | "agent"; realty: PublicRealty }
 

@@ -1,5 +1,6 @@
 import Link from "next/link"
 import { ArrowRight, MapPin } from "lucide-react"
+import { PageHeader } from "@/components/dashboard-ui"
 import { api } from "@/lib/api"
 import { requireRealtyUser } from "@/lib/realty-auth"
 import { ProjectForm } from "./project-form"
@@ -16,8 +17,7 @@ export default async function ProjectsPage({ params }: { params: Promise<{ realt
 
   return (
     <div>
-      <h1 className="text-2xl font-semibold tracking-tight sm:text-3xl">Projects</h1>
-      <p className="mt-1 text-sm text-slate-500">Each project holds the units you sell and the payment plans you offer.</p>
+      <PageHeader eyebrow="Sales" title="Projects" lede="Each project holds the units you sell and the payment plans you offer." />
 
       <ul className="mt-8 grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
         {projects.map((p) => (

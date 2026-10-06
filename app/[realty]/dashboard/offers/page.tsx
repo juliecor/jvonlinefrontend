@@ -1,6 +1,7 @@
 import Link from "next/link"
 import { Eye, ExternalLink, Plus } from "lucide-react"
 import { CopyButton } from "@/components/copy-button"
+import { Empty, PageHeader, Panel, Row, Rows, Tag, btn } from "@/components/dashboard-ui"
 import { api } from "@/lib/api"
 import { php, shortDate } from "@/lib/format"
 import { requireRealtyUser } from "@/lib/realty-auth"
@@ -33,50 +34,51 @@ export default async function OffersPage({ params }: { params: Promise<{ realty:
 
   return (
     <div>
-      <div className="flex flex-wrap items-end justify-between gap-4">
-        <div>
-          <h1 className="text-2xl font-semibold tracking-tight sm:text-3xl">Sales offers</h1>
-          <p className="mt-1 text-sm text-slate-500">{staff ? "Every offer your agents have sent." : "The offers you've sent to buyers."}</p>
-        </div>
-        <Link href={`/${slug}/dashboard/offers/new`} className="inline-flex items-center gap-2 rounded-lg bg-slate-900 px-4 py-2.5 text-sm font-semibold text-white hover:bg-slate-700">
-          <Plus className="h-4 w-4" /> New offer
-        </Link>
-      </div>
+      <PageHeader
+        eyebrow="Sales"
+        title="Sales offers"
+        lede={staff ? "Every offer your agents have sent." : "The offers you've sent to buyers."}
+        action={
+          <Link href={`/${slug}/dashboard/offers/new`} className={btn.primary}>
+            <Plus className="h-4 w-4" /> New offer
+          </Link>
+        }
+      />
 
-      <section className="mt-8 overflow-hidden rounded-2xl border border-slate-200 bg-white">
-        <ul className="divide-y divide-slate-100">
+      <Panel title={`Offers · ${offers.length}`}>
+        <Rows>
           {offers.map((o) => (
-            <li key={o.id} className={`flex flex-col gap-3 px-5 py-4 sm:flex-row sm:items-center sm:justify-between sm:px-6 ${o.status === "void" ? "opacity-60" : ""}`}>
+            <Row key={o.id} muted={o.status === "void"}>
               <div className="min-w-0">
                 <div className="flex flex-wrap items-center gap-2">
                   <p className="font-semibold">{o.buyer_name}</p>
-                  <span className="font-mono text-xs text-slate-400">{o.code}</span>
-                  {o.status === "void" && <span className="rounded-full bg-slate-200 px-2 py-0.5 text-[10px] font-semibold uppercase tracking-[0.14em] text-slate-600">Void</span>}
+                  <span className="font-mono text-xs text-[#a39d92]">{o.code}</span>
+                  {o.status === "void" && <Tag>Void</Tag>}
                 </div>
-                <p className="mt-0.5 text-sm text-slate-500">
+                <p className="mt-0.5 text-sm text-[#6b665d]">
                   {o.project} · {o.unit} · {php(o.price)}
                   {staff && o.agent && <> · by {o.agent}</>}
                 </p>
-                <p className="mt-0.5 flex items-center gap-1 text-xs text-slate-400">
+                <p className="mt-0.5 flex items-center gap-1 text-xs text-[#a39d92]">
                   {shortDate(o.created_at)} · <Eye className="h-3 w-3" /> {o.views} view{o.views === 1 ? "" : "s"}
                 </p>
               </div>
               {o.status === "active" && (
                 <div className="flex shrink-0 flex-wrap items-center gap-2">
                   <CopyButton text={o.url} />
-                  <a href={o.url} target="_blank" rel="noreferrer" className="inline-flex items-center gap-1.5 rounded-md border border-slate-300 px-2.5 py-1.5 text-xs font-semibold text-slate-700 hover:border-slate-900">
+                  <a href={o.url} target="_blank" rel="noreferrer" className={btn.ghost}>
                     Open <ExternalLink className="h-3.5 w-3.5" />
                   </a>
                   <form action={voidOffer.bind(null, slug, o.id)}>
-                    <button type="submit" className="rounded-md px-2.5 py-1.5 text-xs font-semibold text-slate-500 hover:text-red-700">Void</button>
+                    <button type="submit" className="px-2 py-1.5 text-xs font-semibold text-[#8a847a] hover:text-red-700">Void</button>
                   </form>
                 </div>
               )}
-            </li>
+            </Row>
           ))}
-          {offers.length === 0 && <li className="px-6 py-10 text-center text-sm text-slate-500">No offers yet.</li>}
-        </ul>
-      </section>
+          {offers.length === 0 && <li><Empty>No offers yet.</Empty></li>}
+        </Rows>
+      </Panel>
     </div>
   )
 }

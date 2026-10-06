@@ -1,5 +1,6 @@
 import Link from "next/link"
-import { ArrowRight, Building2, FileText, Users } from "lucide-react"
+import { ArrowRight } from "lucide-react"
+import { Ledger, PageHeader, Panel, btn, display } from "@/components/dashboard-ui"
 import { api } from "@/lib/api"
 import { requireRealtyUser } from "@/lib/realty-auth"
 
@@ -10,54 +11,57 @@ type Overview = {
   stats: { agents: number; agents_invited: number; staff: number; projects: number; units: number; offers: number }
 }
 
-/** The realty dashboard's first page. */
+const greeting = () => {
+  const h = Number(new Date().toLocaleString("en-PH", { hour: "numeric", hour12: false, timeZone: "Asia/Manila" }))
+  return h < 12 ? "Good morning" : h < 18 ? "Good afternoon" : "Good evening"
+}
+
+/** The realty dashboard's first page: the numbers, and the two things people come here to do. */
 export default async function RealtyOverviewPage({ params }: { params: Promise<{ realty: string }> }) {
   const { realty: slug } = await params
   const { user, token } = await requireRealtyUser(slug)
   const { realty, stats } = await api<Overview>("/realty/overview", { token })
   const staff = user.role === "realty"
 
-  const tiles = [
-    { icon: Building2, value: stats.projects, label: "Projects", note: `${stats.units} unit${stats.units === 1 ? "" : "s"} listed`, href: `/${slug}/dashboard/projects` },
-    { icon: FileText, value: stats.offers, label: staff ? "Active offers" : "Your active offers", note: "sent to buyers", href: `/${slug}/dashboard/offers` },
-    ...(staff ? [{ icon: Users, value: stats.agents, label: "Agents", note: stats.agents_invited ? `${stats.agents_invited} invite${stats.agents_invited === 1 ? "" : "s"} open` : "signed up", href: `/${slug}/dashboard/agents` }] : []),
-  ]
-
   return (
     <div>
-      <p className="text-sm text-slate-500">Hello, {user.name.split(" ")[0]}.</p>
-      <h1 className="mt-1 text-2xl font-semibold tracking-tight sm:text-3xl">{realty.name}</h1>
+      <PageHeader eyebrow={realty.name} title={`${greeting()}, ${user.name.split(" ")[0]}.`} lede={staff ? "Here's where your realty stands today." : "Here's where your sales stand today."} />
 
-      <div className="mt-8 grid gap-4 sm:grid-cols-3">
-        {tiles.map(({ icon: Icon, value, label, note, href }) => (
-          <Link key={label} href={href} className="rounded-2xl border border-slate-200 bg-white p-5 transition hover:border-slate-400">
-            <Icon className="h-5 w-5 text-slate-400" />
-            <p className="mt-4 text-3xl font-semibold tabular-nums tracking-tight">{value}</p>
-            <p className="mt-1 text-sm font-medium">{label}</p>
-            <p className="text-xs text-slate-500">{note}</p>
-          </Link>
-        ))}
-      </div>
+      <Ledger
+        items={[
+          { label: "Projects", value: stats.projects, note: `${stats.units} unit${stats.units === 1 ? "" : "s"} listed`, href: `/${slug}/dashboard/projects` },
+          { label: staff ? "Active offers" : "Your offers", value: stats.offers, note: "links sent to buyers", href: `/${slug}/dashboard/offers` },
+          ...(staff
+            ? [{ label: "Agents", value: stats.agents, note: stats.agents_invited ? `${stats.agents_invited} invite${stats.agents_invited === 1 ? "" : "s"} open` : "on your team", href: `/${slug}/dashboard/agents` }]
+            : []),
+        ]}
+      />
 
-      <div className="mt-8 grid gap-4 lg:grid-cols-2">
-        <div className="rounded-2xl border border-slate-200 bg-white p-5 sm:p-6">
-          <h2 className="font-semibold">Send a buyer an offer</h2>
-          <p className="mt-1 text-sm text-slate-500">Pick a unit and a payment plan, enter the buyer&apos;s name, and you get a link to send them.</p>
-          <Link href={`/${slug}/dashboard/offers/new`} className="mt-4 inline-flex items-center gap-2 rounded-lg bg-slate-900 px-4 py-2.5 text-sm font-semibold text-white hover:bg-slate-700">
+      <div className="mt-10 grid gap-10 lg:grid-cols-[1.2fr_1fr]">
+        <section>
+          <h2 className={`${display} text-3xl tracking-tight`}>Send a buyer an offer</h2>
+          <p className="mt-2 max-w-md text-sm text-[#6b665d]">Pick a unit and a payment plan, type the buyer&apos;s name, and you get a link with the price, the schedule and your contact details.</p>
+          <Link href={`/${slug}/dashboard/offers/new`} className={`${btn.primary} mt-5`}>
             New offer <ArrowRight className="h-4 w-4" />
           </Link>
-          {stats.units === 0 && staff && <p className="mt-3 text-xs text-amber-700">Add a project with at least one unit first.</p>}
-        </div>
-        <div className="rounded-2xl border border-slate-200 bg-white p-5 sm:p-6">
-          <h2 className="font-semibold">Company details</h2>
-          <dl className="mt-3 space-y-2 text-sm">
-            <div className="flex gap-3"><dt className="w-20 shrink-0 text-slate-400">Page</dt><dd><Link href={`/${slug}`} className="font-medium text-slate-900 hover:underline">jvconline.ph/{slug}</Link></dd></div>
-            <div className="flex gap-3"><dt className="w-20 shrink-0 text-slate-400">Contact</dt><dd>{realty.contact_name ?? "—"}</dd></div>
-            <div className="flex gap-3"><dt className="w-20 shrink-0 text-slate-400">Email</dt><dd>{realty.email ?? "—"}</dd></div>
-            <div className="flex gap-3"><dt className="w-20 shrink-0 text-slate-400">Phone</dt><dd>{realty.phone ?? "—"}</dd></div>
-            <div className="flex gap-3"><dt className="w-20 shrink-0 text-slate-400">Address</dt><dd>{realty.address ?? "—"}</dd></div>
+          {stats.units === 0 && <p className="mt-4 text-xs text-amber-700">{staff ? "Add a project with at least one unit first." : "Your realty hasn't listed any units yet."}</p>}
+        </section>
+        <Panel title="Company" className="!mt-0">
+          <dl className="divide-y divide-[#e6e2db] text-sm">
+            {[
+              ["Page", <Link key="p" href={`/${slug}`} className="font-medium hover:text-[var(--accent)]">jvconline.ph/{slug}</Link>],
+              ["Contact", realty.contact_name ?? "—"],
+              ["Email", realty.email ?? "—"],
+              ["Phone", realty.phone ?? "—"],
+              ["Address", realty.address ?? "—"],
+            ].map(([k, v]) => (
+              <div key={String(k)} className="flex justify-between gap-4 py-2.5">
+                <dt className="text-[#8a847a]">{k}</dt>
+                <dd className="text-right">{v}</dd>
+              </div>
+            ))}
           </dl>
-        </div>
+        </Panel>
       </div>
     </div>
   )
