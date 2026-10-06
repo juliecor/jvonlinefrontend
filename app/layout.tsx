@@ -13,6 +13,7 @@ const geistMono = Geist_Mono({
 });
 
 export const metadata: Metadata = {
+  metadataBase: new URL(process.env.NEXT_PUBLIC_SITE_URL ?? "https://jvconline.ph"),
   title: "jvconline",
   description: "Realty companies across the Philippines.",
 };

@@ -21,8 +21,8 @@ export const johndorfMetadata: Metadata = {
     images: [{ url: "/johndorf/logo.png", width: 391, height: 186, alt: "Johndorf Ventures Corporation" }],
   },
   twitter: { card: "summary", title: "Johndorf Ventures Corporation", images: ["/johndorf/logo.png"] },
-  // Kept out of search results until Johndorf says the site is official. Flip this to index when it is.
-  robots: { index: false, follow: false, googleBot: { index: false, follow: false } },
+  // Official site since 2026-10-06: indexable. Pages that shouldn't be (dashboards, logins, the demo map) opt out themselves.
+  robots: { index: true, follow: true },
 }
 
 export function JohndorfShell({ children }: { children: React.ReactNode }) {

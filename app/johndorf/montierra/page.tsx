@@ -3,7 +3,7 @@ import Link from "next/link"
 import { ArrowLeft } from "lucide-react"
 import { MontierraMap } from "./montierra-map"
 
-export const metadata = { title: "Montierra" }
+export const metadata = { title: "Montierra", robots: { index: false, follow: true } } // demo bookings on the map
 
 /** jvconline.ph/johndorf/montierra — Montierra's subdivision plan, block by block (lib/johndorf/montierra.ts). Public: the old sign-in was dropped when the site moved off FHI. */
 export default function JohndorfMontierraPage() {
