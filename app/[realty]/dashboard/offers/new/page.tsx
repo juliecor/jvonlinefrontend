@@ -19,7 +19,7 @@ export default async function NewOfferPage({ params, searchParams }: Props) {
 
   // Every active project with its units and plans, so the form can switch between them without round trips.
   const list = (await api<Project[]>("/realty/projects", { token })).filter((p) => p.status === "active")
-  const projects = (await Promise.all(list.map((p) => api<ProjectDetail>(`/realty/projects/${p.id}`, { token })))).filter((p) => p.units.length > 0)
+  const projects = (await Promise.all(list.map((p) => api<ProjectDetail>(`/realty/projects/${p.id}`, { token })))).filter((p) => p.units.some((u) => u.price !== null))
 
   return (
     <div>

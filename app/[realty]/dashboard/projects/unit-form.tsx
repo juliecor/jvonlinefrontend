@@ -38,8 +38,8 @@ export function UnitForm({ slug, projectId }: { slug: string; projectId: number 
         <input name="area_sqm" type="number" step="0.01" min="0" placeholder="67.15" className={fieldClass} />
       </label>
       <label className="block">
-        <Label>Price (₱)</Label>
-        <input name="price" type="number" step="1" min="0" required placeholder="4850000" className={fieldClass} />
+        <Label>Price (₱) — leave blank for &quot;price on request&quot;</Label>
+        <input name="price" type="number" step="1" min="0" placeholder="4850000" className={fieldClass} />
       </label>
       <label className="block sm:col-span-2">
         <Label>Floor plan image (optional)</Label>

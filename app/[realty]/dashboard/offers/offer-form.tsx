@@ -20,7 +20,8 @@ export function OfferForm({ slug, projects, initialProject, today }: { slug: str
   const [state, submit, pending] = useActionState<OfferState, FormData>(createOffer.bind(null, slug), {})
   const [projectId, setProjectId] = useState<number>(initialProject ?? projects[0]?.id ?? 0)
   const project = projects.find((p) => p.id === projectId)
-  const units = useMemo(() => (project?.units ?? []).filter((u) => u.status === "available"), [project])
+  // Only what can actually be offered: available, and with a price.
+  const units = useMemo(() => (project?.units ?? []).filter((u) => u.status === "available" && u.price !== null), [project])
   const [unitId, setUnitId] = useState<number>(0)
   const unit = units.find((u) => u.id === unitId) ?? units[0]
   const [planId, setPlanId] = useState<number | "">("")
@@ -75,10 +76,10 @@ export function OfferForm({ slug, projects, initialProject, today }: { slug: str
             </select>
           </label>
           <label className="block">
-            <Label>Unit (available only)</Label>
+            <Label>Unit (available, with a price)</Label>
             <select name="unit_id" value={unit?.id ?? ""} onChange={(e) => setUnitId(Number(e.target.value))} required className={fieldClass}>
-              {units.length === 0 && <option value="">No available units</option>}
-              {units.map((u) => <option key={u.id} value={u.id}>{u.name}{u.unit_type ? ` · ${u.unit_type}` : ""} · {php(u.price)}</option>)}
+              {units.length === 0 && <option value="">No available priced units</option>}
+              {units.map((u) => <option key={u.id} value={u.id}>{u.name}{u.unit_type && u.unit_type !== u.name ? ` · ${u.unit_type}` : ""} · {php(u.price)}</option>)}
             </select>
           </label>
         </div>
@@ -115,7 +116,7 @@ export function OfferForm({ slug, projects, initialProject, today }: { slug: str
         {unit ? (
           <>
             <p className="mt-3 text-lg font-semibold">{unit.name}</p>
-            <p className="text-sm text-slate-500">{[project?.name, unit.unit_type, unit.floor, unit.area_sqm ? sqm(unit.area_sqm) : null].filter(Boolean).join(" · ")}</p>
+            <p className="text-sm text-slate-500">{[project?.name, unit.unit_type !== unit.name ? unit.unit_type : null, unit.floor, unit.area_sqm ? sqm(unit.area_sqm) : null].filter(Boolean).join(" · ")}</p>
             <p className="mt-3 text-2xl font-semibold tabular-nums">{php(unit.price)}</p>
             <table className="mt-4 w-full text-sm">
               <tbody className="divide-y divide-slate-200">

@@ -52,7 +52,7 @@ export default async function OfferPage({ params }: Props) {
     ["Project", project.name],
     ["Location", project.location],
     ["Unit", unit.name],
-    ["Type", unit.unit_type],
+    ["Type", unit.unit_type !== unit.name ? unit.unit_type : null],
     ["Category", unit.category],
     ["Floor / phase", unit.floor],
     ["Area", unit.area_sqm !== null ? sqm(unit.area_sqm) : null],

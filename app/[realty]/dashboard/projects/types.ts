@@ -7,7 +7,7 @@ export type Unit = {
   category: string
   floor: string | null
   area_sqm: string | null
-  price: string
+  price: string | null
   status: "available" | "reserved" | "sold"
   floor_plan_url: string | null
   notes: string | null

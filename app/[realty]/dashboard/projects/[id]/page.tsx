@@ -70,12 +70,12 @@ export default async function ProjectPage({ params }: Props) {
                     <span className={`rounded-full px-2 py-0.5 text-[10px] font-semibold uppercase tracking-[0.14em] ${STATUS_STYLE[u.status]}`}>{u.status}</span>
                   </div>
                   <p className="mt-0.5 text-sm text-slate-500">
-                    {[u.unit_type, u.category, u.floor, u.area_sqm ? sqm(u.area_sqm) : null].filter(Boolean).join(" · ")}
+                    {[u.unit_type !== u.name ? u.unit_type : null, u.category, u.floor, u.area_sqm ? sqm(u.area_sqm) : null].filter(Boolean).join(" · ")}
                   </p>
                 </div>
               </div>
               <div className="flex items-center gap-4 sm:justify-end">
-                <p className="text-base font-semibold tabular-nums">{php(u.price)}</p>
+                <p className="text-base font-semibold tabular-nums">{u.price === null ? <span className="text-sm font-medium text-slate-400">Price on request</span> : php(u.price)}</p>
                 {staff && (
                   <form key={u.status} action={setUnitStatus.bind(null, slug, u.id)}>
                     {/* Keyed on the status so the dropdown shows the saved value after the refresh. The API updates the whole unit, so the unchanged fields ride along. */}
@@ -84,7 +84,7 @@ export default async function ProjectPage({ params }: Props) {
                     <input type="hidden" name="category" value={u.category} />
                     <input type="hidden" name="floor" value={u.floor ?? ""} />
                     <input type="hidden" name="area_sqm" value={u.area_sqm ?? ""} />
-                    <input type="hidden" name="price" value={u.price} />
+                    <input type="hidden" name="price" value={u.price ?? ""} />
                     <input type="hidden" name="notes" value={u.notes ?? ""} />
                     <select name="status" defaultValue={u.status} className="rounded-md border border-slate-300 bg-white px-2 py-1.5 text-xs font-semibold text-slate-700" aria-label={`Status of ${u.name}`}>
                       <option value="available">Available</option>
