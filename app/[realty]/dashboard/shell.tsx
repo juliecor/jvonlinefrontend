@@ -8,9 +8,9 @@ import { RealtyMark } from "@/components/form"
 import { SITE_REALTY } from "@/lib/public-projects-types"
 import type { RealtyUser } from "@/lib/realty-auth"
 
-export type ShellCounts = { projects: number; offers: number; agents: number; agentsInvited: number; publicProjects: number }
+export type ShellCounts = { projects: number; offers: number; agents: number; agentsInvited: number; publicProjects: number; newResponses: number }
 
-type Item = { href: string; label: string; icon: typeof LayoutDashboard; exact?: boolean; count?: number; note?: string }
+type Item = { href: string; label: string; icon: typeof LayoutDashboard; exact?: boolean; count?: number; note?: string; alert?: string }
 
 const initials = (name: string) =>
   name
@@ -41,7 +41,7 @@ export function DashboardShell({ slug, user, counts, signOutAction, children }: 
       title: "Sales",
       items: [
         { href: `/${slug}/dashboard/projects`, label: "Projects", icon: Building2, count: counts?.projects },
-        { href: `/${slug}/dashboard/offers`, label: staff ? "Offers" : "My offers", icon: FileText, count: counts?.offers },
+        { href: `/${slug}/dashboard/offers`, label: staff ? "Offers" : "My offers", icon: FileText, count: counts?.offers, alert: counts?.newResponses ? `${counts.newResponses} new` : undefined },
       ],
     },
     ...(staff
@@ -81,7 +81,7 @@ export function DashboardShell({ slug, user, counts, signOutAction, children }: 
           <div key={g.title}>
             <p className="px-6 text-xs font-bold uppercase tracking-[0.16em] text-[#8a847a]">{g.title}</p>
             <ul className="mt-2 space-y-0.5 px-3">
-              {g.items.map(({ href, label, icon: Icon, exact, count, note }) => {
+              {g.items.map(({ href, label, icon: Icon, exact, count, note, alert }) => {
                 const active = exact ? path === href : path.startsWith(href)
                 return (
                   <li key={href}>
@@ -97,6 +97,7 @@ export function DashboardShell({ slug, user, counts, signOutAction, children }: 
                       <span className="min-w-0 flex-1 truncate">
                         {label}
                         {note && <span className="ml-2 text-xs font-semibold text-[#8a847a]">{note}</span>}
+                        {alert && <span className="ml-2 bg-[var(--accent)] px-1.5 py-0.5 align-middle text-[11px] font-bold uppercase tracking-[0.08em] text-white">{alert}</span>}
                       </span>
                       {count !== undefined && (
                         <span className={`min-w-[2rem] px-2 py-0.5 text-center text-sm font-bold tabular-nums ${active ? "bg-[var(--accent)] text-white" : "bg-[#f1eee9] text-[#3d3a34]"}`}>{count}</span>
@@ -163,8 +164,9 @@ export function DashboardShell({ slug, user, counts, signOutAction, children }: 
             <Link href={`/${slug}/dashboard/offers/new`} className="flex items-center gap-1.5 bg-[var(--accent)] px-3 py-2 text-sm font-bold text-white">
               <Plus className="h-4 w-4" strokeWidth={2.5} /> Offer
             </Link>
-            <button type="button" onClick={() => setOpen(true)} aria-label="Open menu" className="p-2 text-[#17150f]">
+            <button type="button" onClick={() => setOpen(true)} aria-label={counts?.newResponses ? `Open menu, ${counts.newResponses} new buyer responses` : "Open menu"} className="relative p-2 text-[#17150f]">
               <Menu className="h-6 w-6" />
+              {!!counts?.newResponses && <span aria-hidden className="absolute right-1 top-1 h-2.5 w-2.5 border-2 border-white bg-[var(--accent)]" />}
             </button>
           </div>
         </div>

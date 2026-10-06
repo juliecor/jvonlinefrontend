@@ -30,7 +30,7 @@ export function Ledger({ items }: { items: { label: string; value: string | numb
         const body = (
           <>
             <dt className="text-xs font-bold uppercase tracking-[0.16em] text-[#6b665d]">{it.label}</dt>
-            <dd className={`${display} mt-2 text-4xl tabular-nums tracking-tight text-[#17150f] sm:text-[2.75rem]`}>{typeof it.value === "number" ? it.value.toLocaleString("en-PH") : it.value}</dd>
+            <dd className={`${display} mt-2 tabular-nums tracking-tight text-[#17150f] ${String(it.value).length > 8 ? "text-3xl sm:text-4xl" : "text-4xl sm:text-[2.75rem]"}`}>{typeof it.value === "number" ? it.value.toLocaleString("en-PH") : it.value}</dd>
             {it.note && <dd className="mt-1 text-sm text-[#6b665d]">{it.note}</dd>}
           </>
         )

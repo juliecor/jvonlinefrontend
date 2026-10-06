@@ -1,7 +1,9 @@
 import Link from "next/link"
 import { ArrowRight } from "lucide-react"
-import { Ledger, PageHeader, Panel, btn, display } from "@/components/dashboard-ui"
+import { Ledger, PageHeader, Panel, Row, Rows, btn, display } from "@/components/dashboard-ui"
+import { ContactButtons, LeadTag, NewTag, type Lead } from "@/components/leads"
 import { api } from "@/lib/api"
+import { timeAgo } from "@/lib/format"
 import { SITE_REALTY } from "@/lib/public-projects-types"
 import { requireRealtyUser } from "@/lib/realty-auth"
 
@@ -9,8 +11,10 @@ export const metadata = { title: "Overview" }
 
 type Overview = {
   realty: { name: string; slug: string; email: string | null; contact_name: string | null; phone: string | null; address: string | null; about: string | null; registered_at: string | null }
-  stats: { agents: number; agents_invited: number; staff: number; projects: number; units: number; offers: number }
+  stats: { agents: number; agents_invited: number; staff: number; projects: number; units: number; offers: number; new_responses: number }
 }
+
+type RecentLead = Lead & { offer_id: number; offer_code: string | null; unit: string | null; project: string | null }
 
 const greeting = () => {
   const h = Number(new Date().toLocaleString("en-PH", { hour: "numeric", hour12: false, timeZone: "Asia/Manila" }))
@@ -21,7 +25,10 @@ const greeting = () => {
 export default async function RealtyOverviewPage({ params }: { params: Promise<{ realty: string }> }) {
   const { realty: slug } = await params
   const { user, token } = await requireRealtyUser(slug)
-  const { realty, stats } = await api<Overview>("/realty/overview", { token })
+  const [{ realty, stats }, leads] = await Promise.all([
+    api<Overview>("/realty/overview", { token }),
+    api<RecentLead[]>("/realty/offers/responses?limit=6", { token }).catch(() => [] as RecentLead[]),
+  ])
   const staff = user.role === "realty"
 
   return (
@@ -32,11 +39,36 @@ export default async function RealtyOverviewPage({ params }: { params: Promise<{
         items={[
           { label: "Projects", value: stats.projects, note: `${stats.units} unit${stats.units === 1 ? "" : "s"} listed`, href: `/${slug}/dashboard/projects` },
           { label: staff ? "Active offers" : "Your offers", value: stats.offers, note: "links sent to buyers", href: `/${slug}/dashboard/offers` },
+          { label: "New responses", value: stats.new_responses, note: stats.new_responses ? "buyers waiting for a reply" : "all caught up", href: `/${slug}/dashboard/offers` },
           ...(staff
             ? [{ label: "Agents", value: stats.agents, note: stats.agents_invited ? `${stats.agents_invited} invite${stats.agents_invited === 1 ? "" : "s"} open` : "on your team", href: `/${slug}/dashboard/agents` }]
             : []),
         ]}
       />
+
+      {leads.length > 0 && (
+        <Panel title="Latest buyer responses" aside={<Link href={`/${slug}/dashboard/offers`} className="font-semibold hover:text-[#17150f]">All offers →</Link>}>
+          <Rows>
+            {leads.map((l) => (
+              <Row key={l.id}>
+                <div className="min-w-0">
+                  <div className="flex flex-wrap items-center gap-2">
+                    <Link href={`/${slug}/dashboard/offers/${l.offer_id}`} className="text-lg font-bold hover:text-[var(--accent)]">{l.name}</Link>
+                    <LeadTag kind={l.kind} label={l.label} />
+                    {l.new && <NewTag />}
+                  </div>
+                  <p className="mt-0.5 text-sm text-[#6b665d]">{[l.project, l.unit].filter(Boolean).join(" · ")} · {timeAgo(l.created_at)}</p>
+                  {l.message && <p className="mt-1.5 line-clamp-2 max-w-2xl text-[15px] text-[#3d3a34]">&ldquo;{l.message}&rdquo;</p>}
+                </div>
+                <div className="flex shrink-0 flex-wrap items-center gap-2">
+                  {l.kind !== "not_interested" && <ContactButtons phone={l.phone} email={l.email} via={l.contact_via} limit={1} />}
+                  <Link href={`/${slug}/dashboard/offers/${l.offer_id}`} className="inline-flex items-center border border-[#d9d4cb] bg-white px-3.5 py-2.5 text-sm font-bold text-[#17150f] transition hover:border-[#17150f]">View</Link>
+                </div>
+              </Row>
+            ))}
+          </Rows>
+        </Panel>
+      )}
 
       <div className="mt-10 grid gap-10 lg:grid-cols-[1.2fr_1fr]">
         <section>
