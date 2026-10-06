@@ -4,7 +4,7 @@ import { useEffect, useRef, useState } from "react"
 import Image from "next/image"
 import Link from "next/link"
 import { AnimatePresence, motion, useMotionValue, useMotionValueEvent, useReducedMotion, useScroll, useSpring, useTransform } from "framer-motion"
-import { ArrowRight, ArrowUpRight, MapPin, Sparkles } from "lucide-react"
+import { ArrowRight, ArrowUpRight, Compass, MapPin, Sparkles } from "lucide-react"
 import { FLAGSHIPS, PROJECTS } from "@/lib/johndorf/company"
 import { BLOCKS, TOTALS } from "@/lib/johndorf/montierra"
 import { PROJECT_DETAILS } from "@/lib/johndorf/projects"
@@ -227,7 +227,7 @@ export function MontierraSpotlight() {
   const rx = useSpring(0, { stiffness: 120, damping: 18 })
   const ry = useSpring(0, { stiffness: 120, damping: 18 })
   return (
-    <section className="relative overflow-hidden bg-[#2a1d1b] px-5 py-24 text-white sm:px-8 sm:py-32">
+    <section id="montierra" className="relative scroll-mt-20 overflow-hidden bg-[#2a1d1b] px-5 py-24 text-white sm:px-8 sm:py-32">
       <div className="absolute -right-40 -top-40 h-[560px] w-[560px] rounded-full bg-[#b4241c]/30 blur-[130px]" />
       <div className="absolute -bottom-40 -left-40 h-[420px] w-[420px] rounded-full bg-[#b4241c]/15 blur-[120px]" />
       <div className="relative mx-auto grid max-w-[1400px] items-center gap-14 lg:grid-cols-[1fr_1.3fr]">
@@ -257,8 +257,8 @@ export function MontierraSpotlight() {
           <Reveal delay={0.22}>
             <div className="mt-10">
               <Magnetic>
-                <Link href="/johndorf/montierra" data-cursor="Open" className="group inline-flex items-center gap-2.5 rounded-full bg-white px-7 py-4 text-[13px] font-semibold uppercase tracking-[0.14em] text-[#2a1d1b]">
-                  Open the site plan <ArrowRight className="h-4 w-4 text-[#b4241c] transition-transform group-hover:translate-x-1" />
+                <Link href="/johndorf/montierra" data-cursor="Open" className="group inline-flex items-center gap-2.5 rounded-full bg-[#b4241c] px-7 py-4 text-[13px] font-semibold uppercase tracking-[0.14em] text-white shadow-[0_18px_40px_-14px_rgba(180,36,28,0.9)] transition-colors hover:bg-[#941414]">
+                  <Compass className="h-4 w-4" /> Montierra map <ArrowRight className="h-4 w-4 transition-transform group-hover:translate-x-1" />
                 </Link>
               </Magnetic>
             </div>

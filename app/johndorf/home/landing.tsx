@@ -4,7 +4,7 @@ import { useCallback, useEffect, useState } from "react"
 import Image from "next/image"
 import Link from "next/link"
 import { AnimatePresence, motion, useMotionValue, useMotionValueEvent, useReducedMotion, useScroll, useSpring } from "framer-motion"
-import { Compass, LogIn, Menu, X } from "lucide-react"
+import { LogIn, Menu, X } from "lucide-react"
 import { COMPANY } from "@/lib/johndorf/company"
 import type { PublicProjectCard } from "@/lib/public-projects-types"
 import { Buying, Footer, News } from "./closing"
@@ -150,12 +150,6 @@ function TopBar() {
           </nav>
           <div className="flex items-center gap-2">
             <Link
-              href="/johndorf/montierra"
-              className="hidden items-center gap-2 rounded-full bg-[#b4241c] px-4 py-2 text-[12px] font-semibold uppercase tracking-[0.12em] text-white shadow-[0_10px_24px_-10px_rgba(180,36,28,0.8)] transition-all hover:-translate-y-0.5 hover:bg-[#941414] sm:inline-flex"
-            >
-              <Compass className="h-4 w-4" /> Montierra map
-            </Link>
-            <Link
               href="/johndorf/login"
               className={`hidden items-center gap-2 rounded-full border px-4 py-2 text-[12px] font-semibold uppercase tracking-[0.12em] transition-colors sm:inline-flex ${solid ? "border-[#2a1d1b]/20 text-[#2a1d1b] hover:border-[#b4241c] hover:text-[#b4241c]" : "border-white/30 text-white hover:bg-white/10"}`}
             >
@@ -195,10 +189,7 @@ function TopBar() {
                   {n.label}
                 </motion.a>
               ))}
-              <Link href="/johndorf/montierra" className="mt-4 inline-flex items-center gap-2 rounded-full bg-[#b4241c] px-6 py-3 text-sm font-semibold uppercase tracking-[0.12em] text-white">
-                <Compass className="h-4 w-4" /> Montierra map
-              </Link>
-              <Link href="/johndorf/login" onClick={() => setOpen(false)} className="inline-flex items-center gap-2 rounded-full border border-white/30 px-6 py-3 text-sm font-semibold uppercase tracking-[0.12em] text-white">
+              <Link href="/johndorf/login" onClick={() => setOpen(false)} className="mt-4 inline-flex items-center gap-2 rounded-full border border-white/30 px-6 py-3 text-sm font-semibold uppercase tracking-[0.12em] text-white">
                 <LogIn className="h-4 w-4" /> Sign in
               </Link>
             </nav>
