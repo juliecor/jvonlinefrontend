@@ -14,10 +14,10 @@ export function UnitTypes({ units, sections }: { units: JdUnitType[]; sections: 
   const [view, setView] = useState<{ photos: string[]; index: number; name: string } | null>(null)
   return (
     <>
-      <div className={`mt-12 grid gap-px bg-[#2a1d1b]/10 ${units.length > 1 ? "lg:grid-cols-2" : ""}`}>
+      <div className={`mt-12 grid gap-6 ${units.length > 1 ? "lg:grid-cols-2" : ""}`}>
         {units.map((u, n) => (
           <Reveal key={u.name} delay={n * 0.08}>
-            <article className={`bg-white ${units.length === 1 ? "lg:grid lg:grid-cols-[1.35fr_1fr]" : ""}`}>
+            <article className={`border border-[#2a1d1b]/10 bg-white ${units.length === 1 ? "lg:grid lg:grid-cols-[1.35fr_1fr]" : ""}`}>
               {u.images[0] && (
                 <button type="button" onClick={() => setView({ photos: u.images, index: 0, name: u.name })} className="group relative block w-full overflow-hidden" aria-label={`View renders of ${u.name}`}>
                   {/* eslint-disable-next-line @next/next/no-img-element */}

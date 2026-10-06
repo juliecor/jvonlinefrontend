@@ -62,7 +62,6 @@ export default function ProjectsIndexPage() {
         const items = withPage.filter((p) => p.region === region)
         if (!items.length) return null
         const others = withoutPage.filter((p) => p.region === region)
-        const fillers = (3 - (items.length % 3)) % 3
         return (
           <section key={region} id={region.toLowerCase().replace(/\s+/g, "-")} className="scroll-mt-20 px-5 py-14 sm:px-8">
             <div className="mx-auto max-w-[1400px]">
@@ -72,30 +71,34 @@ export default function ProjectsIndexPage() {
                   <p className="text-[11px] font-semibold uppercase tracking-[0.18em] text-[#a8968f]">{items.length} project{items.length === 1 ? "" : "s"}</p>
                 </div>
               </Reveal>
-              {/* Hairline grid: cards touch, nothing floats. */}
-              <ul className="mt-px grid gap-px bg-[#2a1d1b]/10 sm:grid-cols-2 lg:grid-cols-3">
+              <ul className="mt-8 grid gap-6 sm:grid-cols-2">
                 {items.map((p, n) => {
                   const site = SITE_PROJECTS[p.slug!]
                   const photos = site.updates.reduce((s, m) => s + m.photos.length, 0)
+                  const feature = n === 0
                   return (
-                    <li key={p.slug} className="bg-white">
-                      <Reveal delay={(n % 3) * 0.06} className="h-full">
-                        <Link href={`/projects/${p.slug}`} className="group flex h-full flex-col">
-                          <div className="relative overflow-hidden">
-                            {/* eslint-disable-next-line @next/next/no-img-element */}
-                            <img src={site.hero[0] ?? p.image} alt={p.name} className="aspect-[4/3] w-full object-cover transition duration-700 group-hover:scale-[1.04]" />
-                            {p.status && <span className="absolute left-0 top-0 bg-[#2a1d1b] px-2.5 py-1 text-[10px] font-semibold uppercase tracking-[0.16em] text-white">{p.status}</span>}
-                          </div>
-                          <div className="flex flex-1 flex-col p-5">
-                            <div className="flex items-start justify-between gap-3">
-                              <h3 className={`${serif} text-2xl font-semibold tracking-tight`}>{p.name}</h3>
-                              <ArrowRight className="mt-1.5 h-4 w-4 shrink-0 text-[#b4241c] transition-transform group-hover:translate-x-1" />
+                    <li key={p.slug} className={feature ? "sm:col-span-2" : ""}>
+                      <Reveal delay={(n % 2) * 0.07}>
+                        <Link href={`/projects/${p.slug}`} className={`group relative block overflow-hidden bg-[#160c0a] text-white ${feature ? "aspect-[4/3] sm:aspect-[21/9]" : "aspect-[4/3] sm:aspect-[16/10]"}`}>
+                          {/* eslint-disable-next-line @next/next/no-img-element */}
+                          <img src={site.hero[0] ?? p.image} alt={p.name} className="h-full w-full object-cover transition duration-[1200ms] group-hover:scale-105" />
+                          <div aria-hidden className="absolute inset-0 bg-gradient-to-t from-[#160c0a]/90 via-[#160c0a]/20 to-transparent" />
+                          {p.status && <span className="absolute left-0 top-0 bg-white px-3 py-1.5 text-[10px] font-semibold uppercase tracking-[0.16em] text-[#2a1d1b]">{p.status}</span>}
+                          <span className="absolute right-6 top-6 flex h-11 w-11 items-center justify-center bg-white/10 text-white backdrop-blur transition group-hover:bg-[#b4241c]">
+                            <ArrowRight className="h-4 w-4 transition-transform group-hover:translate-x-0.5" />
+                          </span>
+                          <div className={`absolute inset-x-0 bottom-0 flex flex-col gap-4 p-6 sm:p-8 ${feature ? "lg:flex-row lg:items-end lg:justify-between" : ""}`}>
+                            <div>
+                              <h3 className={`${serif} font-semibold leading-[1.02] tracking-tight ${feature ? "text-4xl sm:text-6xl" : "text-3xl sm:text-4xl"}`}>{p.name}</h3>
+                              <p className="mt-2 inline-flex items-center gap-1.5 text-sm text-white/80 sm:text-base"><MapPin className="h-4 w-4 text-[#f0b6b1]" /> {p.place}</p>
                             </div>
-                            <p className="mt-1 inline-flex items-center gap-1.5 text-sm text-[#6b5a56]"><MapPin className="h-3.5 w-3.5 text-[#b4241c]" /> {p.place}</p>
-                            <dl className="mt-4 grid grid-cols-3 gap-3 border-t border-[#2a1d1b]/10 pt-3 text-[11px] uppercase tracking-[0.12em] text-[#a8968f]">
-                              <div><dd className="text-base font-semibold normal-case tracking-normal text-[#2a1d1b]">{site.unitTypes.length}</dd><dt>Model{site.unitTypes.length === 1 ? "" : "s"}</dt></div>
-                              <div><dd className="text-base font-semibold normal-case tracking-normal text-[#2a1d1b]">{site.amenities.length}</dd><dt>Amenities</dt></div>
-                              <div><dd className="text-base font-semibold normal-case tracking-normal text-[#2a1d1b]">{photos || "—"}</dd><dt>Photos</dt></div>
+                            <dl className="flex gap-6 text-white">
+                              {[[site.unitTypes.length, site.unitTypes.length === 1 ? "Model" : "Models"], [site.amenities.length, "Amenities"], [photos || "—", "Photos"]].map(([v, l]) => (
+                                <div key={String(l)}>
+                                  <dd className={`${serif} text-2xl font-semibold sm:text-3xl`}>{v}</dd>
+                                  <dt className="text-[10px] font-semibold uppercase tracking-[0.16em] text-white/60">{l}</dt>
+                                </div>
+                              ))}
                             </dl>
                           </div>
                         </Link>
@@ -103,27 +106,12 @@ export default function ProjectsIndexPage() {
                     </li>
                   )
                 })}
-                {/* Keep the grid rectangular: the region's other projects fill the last row instead of a gap. */}
-                {Array.from({ length: fillers }).map((_, i) => (
-                  <li key={`fill-${i}`} className="hidden bg-[#f3ece9] p-5 lg:block">
-                    {i === 0 && others.length > 0 ? (
-                      <>
-                        <p className="text-[11px] font-semibold uppercase tracking-[0.18em] text-[#a8968f]">Also in {region}</p>
-                        <ul className="mt-3 space-y-3">
-                          {others.map((o) => (
-                            <li key={o.name}>
-                              <p className={`${serif} text-xl font-semibold`}>{o.name}</p>
-                              <p className="text-xs text-[#6b5a56]">{o.place} · project page coming</p>
-                            </li>
-                          ))}
-                        </ul>
-                      </>
-                    ) : (
-                      <p className="text-[11px] font-semibold uppercase tracking-[0.18em] text-[#a8968f]">Johndorf · {region}</p>
-                    )}
-                  </li>
-                ))}
               </ul>
+              {others.length > 0 && (
+                <p className="mt-6 text-sm text-[#6b5a56]">
+                  <span className="font-semibold text-[#2a1d1b]">Also in {region}:</span> {others.map((o) => `${o.name} (${o.place})`).join(" · ")} — project pages coming.
+                </p>
+              )}
             </div>
           </section>
         )

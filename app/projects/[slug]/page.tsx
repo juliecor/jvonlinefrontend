@@ -185,7 +185,7 @@ export default async function ProjectPage({ params }: Props) {
                   </Link>
                 </div>
               </div>
-              <div className="grid grid-cols-2 gap-3">
+              <div className="grid grid-cols-2 gap-6">
                 {[prev, next].map((p, n) => (
                   <Link key={p.slug} href={`/projects/${p.slug}`} className="group relative overflow-hidden bg-[#160c0a] text-white">
                     {/* eslint-disable-next-line @next/next/no-img-element */}

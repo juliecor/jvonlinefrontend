@@ -27,12 +27,12 @@ export function Amenities({ items, project }: { items: string[]; project: string
   const fill = (4 - (items.length % 4)) % 4
   const span = { 1: "lg:col-span-1", 2: "lg:col-span-2", 3: "lg:col-span-3" }[fill]
   return (
-    <ul className="mt-12 grid grid-cols-2 gap-px bg-[#2a1d1b]/10 sm:grid-cols-3 lg:grid-cols-4">
+    <ul className="mt-12 grid grid-cols-2 gap-3 sm:grid-cols-3 lg:grid-cols-4">
       {items.map((a, n) => {
         const Icon = iconFor(a)
         return (
           <Reveal key={a} delay={(n % 4) * 0.05}>
-            <li className="flex h-full items-start gap-4 bg-[#fbf8f6] p-5">
+            <li className="flex h-full items-start gap-4 border border-[#2a1d1b]/10 bg-white p-5">
               <span className="flex h-10 w-10 shrink-0 items-center justify-center rounded-none bg-[#b4241c] text-white">
                 <Icon className="h-5 w-5" />
               </span>
