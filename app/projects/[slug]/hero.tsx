@@ -39,9 +39,9 @@ export function ProjectHero({ name, place, status, photos, interactive }: { name
         </motion.h1>
         <motion.div initial={reduce ? false : { opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.9, delay: 0.3, ease }} className="mt-6 flex flex-wrap items-center gap-x-6 gap-y-3">
           <p className="inline-flex items-center gap-2 text-base text-white/85 sm:text-lg"><MapPin className="h-4 w-4 text-[#f0b6b1]" /> {place}</p>
-          {status && <span className="rounded-full border border-white/30 px-3 py-1 text-[11px] font-semibold uppercase tracking-[0.16em] text-white/85">{status}</span>}
+          {status && <span className="rounded-sm border border-white/30 px-3 py-1 text-[11px] font-semibold uppercase tracking-[0.16em] text-white/85">{status}</span>}
           {interactive && (
-            <Link href="/johndorf/montierra" className="rounded-full bg-[#b4241c] px-4 py-1.5 text-[11px] font-semibold uppercase tracking-[0.16em] text-white hover:bg-[#941414]">
+            <Link href="/johndorf/montierra" className="rounded-sm bg-[#b4241c] px-4 py-1.5 text-[11px] font-semibold uppercase tracking-[0.16em] text-white hover:bg-[#941414]">
               Open the interactive site plan
             </Link>
           )}
@@ -53,7 +53,7 @@ export function ProjectHero({ name, place, status, photos, interactive }: { name
           {photos.length > 1 && (
             <div className="flex gap-1.5">
               {photos.map((_, n) => (
-                <button key={n} type="button" aria-label={`Photo ${n + 1}`} onClick={() => setI(n)} className={`h-1 rounded-full transition-all ${n === i ? "w-8 bg-white" : "w-3 bg-white/40 hover:bg-white/70"}`} />
+                <button key={n} type="button" aria-label={`Photo ${n + 1}`} onClick={() => setI(n)} className={`h-1 rounded-sm transition-all ${n === i ? "w-8 bg-white" : "w-3 bg-white/40 hover:bg-white/70"}`} />
               ))}
             </div>
           )}

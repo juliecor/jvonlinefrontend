@@ -7,6 +7,7 @@ import { AnimatePresence, motion, useMotionValue, useMotionValueEvent, useReduce
 import { Compass, LogIn, Menu, X } from "lucide-react"
 import { COMPANY } from "@/lib/johndorf/company"
 import { Buying, Footer, News } from "./closing"
+import { FeaturedProjects } from "./featured-projects"
 import { Hero } from "./hero"
 import { Family, Quotes, Recognition, ValuesMarquee } from "./people"
 import { Flagships, MontierraSpotlight, Portfolio } from "./showcase"
@@ -40,6 +41,7 @@ export function JohndorfLanding() {
       <div aria-hidden className="jd-grain pointer-events-none fixed z-[70]" />
       <TopBar />
       <Hero ready={!showIntro} />
+      <FeaturedProjects />
       <Manifesto />
       <Footprint />
       <Timeline />

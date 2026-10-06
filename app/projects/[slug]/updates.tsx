@@ -24,7 +24,7 @@ export function Updates({ months }: { months: JdUpdateMonth[] }) {
               key={m.key}
               type="button"
               onClick={() => setKey(m.key)}
-              className={`shrink-0 rounded-full px-4 py-2 text-[12px] font-semibold tracking-wide transition ${m.key === current.key ? "bg-[#2a1d1b] text-white" : "border border-[#2a1d1b]/15 bg-white text-[#4b3b37] hover:border-[#b4241c] hover:text-[#b4241c]"}`}
+              className={`shrink-0 rounded-sm px-4 py-2 text-[12px] font-semibold tracking-wide transition ${m.key === current.key ? "bg-[#2a1d1b] text-white" : "border border-[#2a1d1b]/15 bg-white text-[#4b3b37] hover:border-[#b4241c] hover:text-[#b4241c]"}`}
             >
               {m.label}
               <span className={`ml-2 text-[10px] ${m.key === current.key ? "text-white/60" : "text-[#a8968f]"}`}>{m.photos.length}</span>
@@ -40,7 +40,7 @@ export function Updates({ months }: { months: JdUpdateMonth[] }) {
           </p>
           <div className="grid grid-cols-2 gap-3 sm:grid-cols-3 lg:grid-cols-4">
             {current.photos.map((p, n) => (
-              <button key={p} type="button" onClick={() => setI(n)} className="group relative overflow-hidden rounded-2xl bg-[#ece5e2]" aria-label={`Photo ${n + 1}, ${current.label}`}>
+              <button key={p} type="button" onClick={() => setI(n)} className="group relative overflow-hidden rounded-none bg-[#ece5e2]" aria-label={`Photo ${n + 1}, ${current.label}`}>
                 {/* eslint-disable-next-line @next/next/no-img-element */}
                 <img src={p} alt="" loading="lazy" className="aspect-video w-full object-cover transition duration-700 group-hover:scale-[1.04]" />
               </button>

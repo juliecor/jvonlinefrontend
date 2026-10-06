@@ -23,22 +23,31 @@ function iconFor(name: string): LucideIcon {
   return Check
 }
 
-export function Amenities({ items }: { items: string[] }) {
+export function Amenities({ items, project }: { items: string[]; project: string }) {
+  const fill = (4 - (items.length % 4)) % 4
+  const span = { 1: "lg:col-span-1", 2: "lg:col-span-2", 3: "lg:col-span-3" }[fill]
   return (
-    <ul className="mt-12 grid grid-cols-2 gap-x-6 gap-y-8 sm:grid-cols-3 lg:grid-cols-4">
+    <ul className="mt-12 grid grid-cols-2 gap-px bg-[#2a1d1b]/10 sm:grid-cols-3 lg:grid-cols-4">
       {items.map((a, n) => {
         const Icon = iconFor(a)
         return (
           <Reveal key={a} delay={(n % 4) * 0.05}>
-            <li className="flex items-start gap-4">
-              <span className="flex h-11 w-11 shrink-0 items-center justify-center rounded-full border border-[#b4241c]/25 bg-white text-[#b4241c]">
+            <li className="flex h-full items-start gap-4 bg-[#fbf8f6] p-5">
+              <span className="flex h-10 w-10 shrink-0 items-center justify-center rounded-none bg-[#b4241c] text-white">
                 <Icon className="h-5 w-5" />
               </span>
-              <p className="pt-2.5 text-[15px] font-medium leading-snug text-[#2a1d1b]">{a}</p>
+              <p className="pt-2 text-[15px] font-medium leading-snug text-[#2a1d1b]">{a}</p>
             </li>
           </Reveal>
         )
       })}
+      {fill > 0 && (
+        <li className={`hidden items-center bg-[#2a1d1b] p-5 text-white lg:flex ${span}`}>
+          <p className="text-sm leading-snug text-white/80">
+            <span className="font-semibold text-white">{items.length} amenities and facilities</span> at {project}, as listed on Johndorf&apos;s project page.
+          </p>
+        </li>
+      )}
     </ul>
   )
 }
