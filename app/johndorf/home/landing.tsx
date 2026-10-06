@@ -6,6 +6,7 @@ import Link from "next/link"
 import { AnimatePresence, motion, useMotionValue, useMotionValueEvent, useReducedMotion, useScroll, useSpring } from "framer-motion"
 import { Compass, LogIn, Menu, X } from "lucide-react"
 import { COMPANY } from "@/lib/johndorf/company"
+import type { PublicProjectCard } from "@/lib/public-projects-types"
 import { Buying, Footer, News } from "./closing"
 import { FeaturedProjects } from "./featured-projects"
 import { Hero } from "./hero"
@@ -27,7 +28,7 @@ const NAV = [
 /** The intro plays once per visit — coming back from the Montierra map skips it. */
 const intro = { played: false }
 
-export function JohndorfLanding() {
+export function JohndorfLanding({ projects }: { projects: PublicProjectCard[] }) {
   const [showIntro, setShowIntro] = useState(() => !intro.played)
   const finish = useCallback(() => {
     intro.played = true
@@ -41,7 +42,7 @@ export function JohndorfLanding() {
       <div aria-hidden className="jd-grain pointer-events-none fixed z-[70]" />
       <TopBar />
       <Hero ready={!showIntro} />
-      <FeaturedProjects />
+      <FeaturedProjects projects={projects} />
       <Manifesto />
       <Footprint />
       <Timeline />

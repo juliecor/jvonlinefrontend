@@ -8,6 +8,7 @@ import { requireRealtyUser } from "@/lib/realty-auth"
 import { PlanCard } from "../plan-card"
 import { PlanForm } from "../plan-form"
 import { ProjectForm } from "../project-form"
+import { PublicPageEditor } from "../public-page"
 import type { ProjectDetail } from "../types"
 import { UnitForm } from "../unit-form"
 import { UnitRow } from "../unit-row"
@@ -87,6 +88,26 @@ export default async function ProjectPage({ params }: Props) {
           </div>
         )}
       </Panel>
+
+      {staff && (
+        <PublicPageEditor
+          slug={slug}
+          projectId={project.id}
+          projectName={project.name}
+          data={{
+            slug: project.slug,
+            region: project.region,
+            stage: project.stage,
+            is_public: project.is_public,
+            official_url: project.official_url,
+            amenities: project.amenities,
+            hero_urls: project.hero_urls,
+            site_plan_urls: project.site_plan_urls,
+            unit_types: project.unit_types,
+            updates: project.updates,
+          }}
+        />
+      )}
 
       {staff && (
         <Panel title="Project details" aside="Fee notes appear on every offer for this project">

@@ -1,3 +1,5 @@
+import type { PublicUnitType, PublicUpdate } from "@/lib/public-projects-types"
+
 export type Milestone = { label: string; percent: number; days: number | null }
 
 export type Unit = {
@@ -26,9 +28,23 @@ export type Project = {
   fee_notes: string | null
   completion_date: string | null
   status: "active" | "archived"
+  is_public?: boolean
   units_count?: number
   payment_plans_count?: number
   offers_count?: number
 }
 
-export type ProjectDetail = Project & { units: Unit[]; payment_plans: PaymentPlan[] }
+export type ProjectDetail = Project & {
+  units: Unit[]
+  payment_plans: PaymentPlan[]
+  slug: string | null
+  region: string | null
+  stage: string | null
+  is_public: boolean
+  official_url: string | null
+  amenities: string[] | null
+  hero_urls: string[]
+  site_plan_urls: string[]
+  unit_types: PublicUnitType[]
+  updates: PublicUpdate[]
+}

@@ -32,7 +32,7 @@ export default async function ProjectsPage({ params }: { params: Promise<{ realt
               <div className="flex flex-1 flex-col p-5">
                 <div className="flex items-start justify-between gap-3">
                   <p className="font-semibold">{p.name}</p>
-                  {p.status === "archived" && <Tag>Archived</Tag>}
+                  <span className="flex gap-1.5">{p.is_public && <Tag tone="accent">Public</Tag>}{p.status === "archived" && <Tag>Archived</Tag>}</span>
                 </div>
                 {p.location && <p className="mt-1 inline-flex items-center gap-1 text-sm text-[#6b665d]"><MapPin className="h-3.5 w-3.5" /> {p.location}</p>}
                 <p className="mt-4 text-xs text-[#8a847a]">

@@ -4,15 +4,15 @@ import { useState } from "react"
 import { AnimatePresence, motion } from "framer-motion"
 import { Camera } from "lucide-react"
 import { ease } from "../../johndorf/home/ui"
-import type { JdUpdateMonth } from "@/lib/johndorf/site-projects"
+import type { PublicUpdate } from "@/lib/public-projects-types"
 import { Lightbox } from "./lightbox"
 
 /** Construction progress month by month — Johndorf's own photos, newest first. */
-export function Updates({ months }: { months: JdUpdateMonth[] }) {
+export function Updates({ months }: { months: PublicUpdate[] }) {
   const ordered = [...months].reverse()
-  const [key, setKey] = useState(ordered[0]?.key)
+  const [key, setKey] = useState(ordered[0]?.month)
   const [i, setI] = useState<number | null>(null)
-  const current = ordered.find((m) => m.key === key) ?? ordered[0]
+  const current = ordered.find((m) => m.month === key) ?? ordered[0]
   if (!current) return null
 
   return (
@@ -21,20 +21,20 @@ export function Updates({ months }: { months: JdUpdateMonth[] }) {
         <div className="flex gap-2">
           {ordered.map((m) => (
             <button
-              key={m.key}
+              key={m.month}
               type="button"
-              onClick={() => setKey(m.key)}
-              className={`shrink-0 rounded-sm px-4 py-2 text-[12px] font-semibold tracking-wide transition ${m.key === current.key ? "bg-[#2a1d1b] text-white" : "border border-[#2a1d1b]/15 bg-white text-[#4b3b37] hover:border-[#b4241c] hover:text-[#b4241c]"}`}
+              onClick={() => setKey(m.month)}
+              className={`shrink-0 rounded-sm px-4 py-2 text-[12px] font-semibold tracking-wide transition ${m.month === current.month ? "bg-[#2a1d1b] text-white" : "border border-[#2a1d1b]/15 bg-white text-[#4b3b37] hover:border-[#b4241c] hover:text-[#b4241c]"}`}
             >
               {m.label}
-              <span className={`ml-2 text-[10px] ${m.key === current.key ? "text-white/60" : "text-[#a8968f]"}`}>{m.photos.length}</span>
+              <span className={`ml-2 text-[10px] ${m.month === current.month ? "text-white/60" : "text-[#a8968f]"}`}>{m.photos.length}</span>
             </button>
           ))}
         </div>
       </div>
 
       <AnimatePresence mode="wait">
-        <motion.div key={current.key} initial={{ opacity: 0, y: 16 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0, y: -8 }} transition={{ duration: 0.45, ease }} className="mt-8">
+        <motion.div key={current.month} initial={{ opacity: 0, y: 16 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0, y: -8 }} transition={{ duration: 0.45, ease }} className="mt-8">
           <p className="mb-5 inline-flex items-center gap-2 text-sm text-[#6b5a56]">
             <Camera className="h-4 w-4 text-[#b4241c]" /> {current.photos.length} photo{current.photos.length === 1 ? "" : "s"} from {current.label}
           </p>

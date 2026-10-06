@@ -3,14 +3,14 @@
 import { useState } from "react"
 import { Bath, BedDouble, Car, Layers, Ruler, SquareDashed } from "lucide-react"
 import { Reveal, serif } from "../../johndorf/home/ui"
-import { type JdUnitType, SPEC_LABELS } from "@/lib/johndorf/site-projects"
+import { type PublicUnitType, SPEC_LABELS } from "@/lib/public-projects-types"
 import { Lightbox } from "./lightbox"
 
 const ICON = { usable_floor_area: Ruler, typical_floor_area: SquareDashed, bedrooms: BedDouble, baths: Bath, floors: Layers, parking: Car } as const
 const UNIT = { usable_floor_area: " sqm", typical_floor_area: " sqm", bedrooms: "", baths: "", floors: "", parking: "" } as const
 
 /** The house or unit models, each with its renders and Johndorf's own spec sheet. */
-export function UnitTypes({ units, sections }: { units: JdUnitType[]; sections: { href: string; label: string }[] }) {
+export function UnitTypes({ units, sections }: { units: PublicUnitType[]; sections: { href: string; label: string }[] }) {
   const [view, setView] = useState<{ photos: string[]; index: number; name: string } | null>(null)
   return (
     <>
