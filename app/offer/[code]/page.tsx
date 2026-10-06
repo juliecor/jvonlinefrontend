@@ -1,11 +1,15 @@
 import type { Metadata } from "next"
 import Link from "next/link"
+import { cache } from "react"
 import { ArrowUpRight, Bath, BedDouble, CalendarDays, Car, Check, Info, Layers, Mail, MapPin, Phone, Ruler, SquareDashed, Tag as TagIcon } from "lucide-react"
 import { RealtyMark } from "@/components/form"
 import { ApiError, api } from "@/lib/api"
 import { longDate, php, phpExact, sqm } from "@/lib/format"
 import { SITE_REALTY } from "@/lib/public-projects-types"
+import { realtyToken } from "@/lib/realty-auth"
+import { realtyIcons } from "@/lib/realty-icon"
 import { PrintButton, Zoomable } from "./parts"
+import { RespondSection } from "./respond"
 
 type Milestone = { label: string; percent: number; date: string | null; amount: number }
 type Specs = { usable_floor_area: string | null; typical_floor_area: string | null; bedrooms: string | null; baths: string | null; floors: string | null; parking: string | null }
@@ -40,7 +44,26 @@ type Offer = {
 
 type Props = { params: Promise<{ code: string }> }
 
-export const metadata: Metadata = { title: "Sales offer", robots: { index: false, follow: false } }
+/** One load per request, shared by the page and its metadata (each load counts as a buyer view). */
+const loadOffer = cache(async (code: string): Promise<{ offer: Offer | null; problem: string | null }> => {
+  try {
+    return { offer: await api<Offer>(`/offers/${encodeURIComponent(code)}`, { token: await realtyToken() }), problem: null }
+  } catch (e) {
+    const problem = e instanceof ApiError && (e.status === 404 || e.status === 410) ? (e.status === 404 ? "We couldn't find this offer. Please check the link with your agent." : e.message) : "We couldn't load this offer right now. Please try again in a moment."
+    return { offer: null, problem }
+  }
+})
+
+/** The realty's own tab icon, like its dashboard. */
+export async function generateMetadata({ params }: Props): Promise<Metadata> {
+  const { offer } = await loadOffer((await params).code)
+  const slug = offer?.realty.slug
+  return {
+    title: "Sales offer",
+    robots: { index: false, follow: false },
+    ...(slug ? { icons: realtyIcons(slug) } : {}),
+  }
+}
 
 const SHARE_MIN = 4 // % of the bar a tiny milestone still gets, so it stays visible
 
@@ -60,13 +83,7 @@ function Heading({ n, title, aside }: { n: string; title: string; aside?: React.
 /** jvconline.ph/offer/<code> — the buyer's sales offer. Public, unlisted, printable. */
 export default async function OfferPage({ params }: Props) {
   const { code } = await params
-  let offer: Offer | null = null
-  let problem: string | null = null
-  try {
-    offer = await api<Offer>(`/offers/${encodeURIComponent(code)}`)
-  } catch (e) {
-    problem = e instanceof ApiError && (e.status === 404 || e.status === 410) ? (e.status === 404 ? "We couldn't find this offer. Please check the link with your agent." : e.message) : "We couldn't load this offer right now. Please try again in a moment."
-  }
+  const { offer, problem } = await loadOffer(code)
 
   if (!offer) {
     return (
@@ -125,7 +142,10 @@ export default async function OfferPage({ params }: Props) {
                 <Phone className="h-4 w-4" /> Call
               </a>
             )}
-            <PrintButton className="bg-[var(--accent)] px-3.5 py-2 text-white hover:brightness-110" />
+            <a href="#respond" className="inline-flex items-center gap-2 bg-[var(--accent)] px-3.5 py-2 text-sm font-bold text-white hover:brightness-110">
+              Respond
+            </a>
+            <PrintButton className="border border-[#d9d4cb] px-3.5 py-2 text-[#17150f] hover:border-[#17150f]" />
           </div>
         </div>
       </div>
@@ -369,6 +389,16 @@ export default async function OfferPage({ params }: Props) {
 
           <LocationBlock n={String(++section).padStart(2, "0")} name={project.name} location={project.location} lat={project.lat} lng={project.lng} />
         </div>
+
+        {/* Buyer's answer */}
+        <section id="respond" className="scroll-mt-20 border-t border-[#ebe7e1] bg-[#f6f4f0] px-6 py-10 print:hidden sm:px-10 sm:py-12">
+          <p className="text-xs font-bold uppercase tracking-[0.16em] text-[var(--accent)]">Your response</p>
+          <h2 className="mt-2 text-3xl font-bold tracking-tight">What would you like to do?</h2>
+          <p className="mt-2 max-w-2xl text-[15px] text-[#5a554d]">Choose one and {agent?.name ?? realty.name} will get back to you. It takes less than a minute.</p>
+          <div className="mt-6">
+            <RespondSection code={offer.code} buyerName={offer.buyer_name} agentName={agent?.name ?? realty.name} />
+          </div>
+        </section>
 
         {/* Contact */}
         <section className="break-inside-avoid bg-[#17150f] px-6 py-10 text-white sm:px-10">

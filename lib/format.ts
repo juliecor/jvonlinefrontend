@@ -16,3 +16,17 @@ export const sqm = (n: number | string | null | undefined) => (n === null || n =
 
 /** Today's date as YYYY-MM-DD in Manila, for date inputs. */
 export const todayManila = () => new Date().toLocaleDateString("en-CA", { timeZone: "Asia/Manila" })
+
+/** "just now", "5 min ago", "3 hours ago", "yesterday", "4 days ago", then the short date — for leads and views. */
+export const timeAgo = (iso: string | null | undefined) => {
+  if (!iso) return "—"
+  const mins = Math.round((Date.now() - new Date(iso).getTime()) / 60000)
+  if (mins < 1) return "just now"
+  if (mins < 60) return `${mins} min ago`
+  const hours = Math.round(mins / 60)
+  if (hours < 24) return `${hours} hour${hours === 1 ? "" : "s"} ago`
+  const days = Math.round(hours / 24)
+  if (days === 1) return "yesterday"
+  if (days < 7) return `${days} days ago`
+  return shortDate(iso)
+}

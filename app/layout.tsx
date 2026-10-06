@@ -16,6 +16,8 @@ export const metadata: Metadata = {
   metadataBase: new URL(process.env.NEXT_PUBLIC_SITE_URL ?? "https://jvconline.ph"),
   title: "jvconline",
   description: "Realty companies across the Philippines.",
+  // Johndorf's pages and each realty's pages set their own.
+  icons: { icon: "/jvconline-icon.png" },
 };
 
 export default function RootLayout({ children }: LayoutProps<"/">) {

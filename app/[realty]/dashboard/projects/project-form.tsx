@@ -50,6 +50,13 @@ export function ProjectForm({ slug, project }: { slug: string; project?: Project
         <Label>Cover photo{project?.cover_url ? " (replace)" : ""}</Label>
         <input name="cover" type="file" accept="image/*" className="mt-1.5 block w-full text-sm text-[#6b665d] file:mr-3 file:rounded-md file:border-0 file:bg-[var(--accent)] file:px-3 file:py-2 file:text-sm file:font-semibold file:text-white" />
       </label>
+      {!project && (
+        <label className="block">
+          <Label>Site plan image (optional)</Label>
+          <input name="site_plans" type="file" accept="image/*" multiple className="mt-1.5 block w-full text-sm text-[#6b665d] file:mr-3 file:rounded-md file:border-0 file:bg-[var(--accent)] file:px-3 file:py-2 file:text-sm file:font-semibold file:text-white" />
+          <span className="mt-1 block text-xs text-[#8a847a]">The drawn layout of lots and roads. Shown on every offer; you can add more later.</span>
+        </label>
+      )}
       {project && (
         <label className="block">
           <Label>Status</Label>

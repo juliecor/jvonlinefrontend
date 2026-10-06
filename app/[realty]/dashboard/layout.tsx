@@ -1,15 +1,16 @@
 import type { Metadata } from "next"
 import { api } from "@/lib/api"
 import { realtyBySlug, requireRealtyUser } from "@/lib/realty-auth"
+import { realtyIcons } from "@/lib/realty-icon"
 import { signOutRealty } from "../login/actions"
 import { DashboardShell, type ShellCounts } from "./shell"
 
 type Props = { children: React.ReactNode; params: Promise<{ realty: string }> }
-type Stats = { projects: number; offers: number; agents: number; agents_invited: number; public_projects: number }
+type Stats = { projects: number; offers: number; agents: number; agents_invited: number; public_projects: number; new_responses: number }
 
 export async function generateMetadata({ params }: Props): Promise<Metadata> {
   const realty = await realtyBySlug((await params).realty)
-  return { title: { default: `Dashboard · ${realty.name}`, template: `%s · ${realty.name}` }, robots: { index: false, follow: false } }
+  return { title: { default: `Dashboard · ${realty.name}`, template: `%s · ${realty.name}` }, robots: { index: false, follow: false }, icons: realtyIcons(realty.slug) }
 }
 
 /**
@@ -22,7 +23,7 @@ export default async function RealtyDashboardLayout({ children, params }: Props)
   const accent = user.realty.accent_color ?? "#1f2937"
   // The sidebar's counts; the dashboard still works if they can't be read.
   const counts: ShellCounts | null = await api<{ stats: Stats }>("/realty/overview", { token })
-    .then(({ stats: s }) => ({ projects: s.projects, offers: s.offers, agents: s.agents, agentsInvited: s.agents_invited, publicProjects: s.public_projects }))
+    .then(({ stats: s }) => ({ projects: s.projects, offers: s.offers, agents: s.agents, agentsInvited: s.agents_invited, publicProjects: s.public_projects, newResponses: s.new_responses }))
     .catch(() => null)
 
   return (

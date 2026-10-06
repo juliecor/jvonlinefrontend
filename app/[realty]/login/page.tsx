@@ -3,13 +3,14 @@ import Link from "next/link"
 import { redirect } from "next/navigation"
 import { Alert, RealtyMark } from "@/components/form"
 import { currentRealtyUser, realtyBySlug } from "@/lib/realty-auth"
+import { realtyIcons } from "@/lib/realty-icon"
 import { RealtyLoginForm } from "./login-form"
 
 type Props = { params: Promise<{ realty: string }>; searchParams: Promise<{ registered?: string; joined?: string }> }
 
 export async function generateMetadata({ params }: Props): Promise<Metadata> {
   const realty = await realtyBySlug((await params).realty)
-  return { title: `Sign in · ${realty.name}`, robots: { index: false, follow: false } }
+  return { title: `Sign in · ${realty.name}`, robots: { index: false, follow: false }, icons: realtyIcons(realty.slug) }
 }
 
 /** jvconline.ph/<realty>/login — the realty's own door, with its logo. Staff and agents both sign in here. */

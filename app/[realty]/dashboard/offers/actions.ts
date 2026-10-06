@@ -34,3 +34,9 @@ export async function voidOffer(slug: string, id: number): Promise<void> {
   await api(`/realty/offers/${id}/void`, { method: "POST", token }).catch(() => {})
   revalidatePath(`/${slug}/dashboard`, "layout")
 }
+
+/** Re-reads the dashboard (sidebar counts included) after responses were marked as seen. */
+export async function refreshCounts(slug: string): Promise<void> {
+  await requireRealtyUser(slug)
+  revalidatePath(`/${slug}/dashboard`, "layout")
+}

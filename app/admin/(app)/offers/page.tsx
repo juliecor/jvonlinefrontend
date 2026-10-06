@@ -9,8 +9,11 @@ export const metadata = { title: "Offers" }
 type Offer = {
   id: number; code: string; status: "active" | "void"; buyer_name: string; price: number; views: number; created_at: string
   realty: { id: number; name: string; slug: string } | null; project: string | null; unit: string | null; agent: string | null; url: string
+  responses_count: number; latest_response: { kind: "interested" | "question" | "not_interested"; label: string } | null
 }
 type Realty = { id: number; name: string }
+
+const RESPONSE_TONE = { interested: "bg-emerald-50 text-emerald-700", question: "bg-amber-50 text-amber-700", not_interested: "bg-slate-100 text-slate-600" } as const
 
 /** jvconline.ph/admin/offers — every offer on the platform, filterable by realty. */
 export default async function AdminOffersPage({ searchParams }: { searchParams: Promise<{ realty?: string }> }) {
@@ -47,6 +50,12 @@ export default async function AdminOffersPage({ searchParams }: { searchParams: 
                   <p className="font-semibold">{o.buyer_name}</p>
                   <span className="font-mono text-xs text-slate-400">{o.code}</span>
                   {o.status === "void" && <span className="rounded-full bg-slate-200 px-2 py-0.5 text-[10px] font-semibold uppercase tracking-[0.14em] text-slate-600">Void</span>}
+                  {o.latest_response && (
+                    <span className={`rounded-full px-2 py-0.5 text-[10px] font-semibold uppercase tracking-[0.14em] ${RESPONSE_TONE[o.latest_response.kind]}`}>
+                      {o.latest_response.label}
+                      {o.responses_count > 1 && ` · ${o.responses_count}`}
+                    </span>
+                  )}
                 </div>
                 <p className="mt-0.5 text-sm text-slate-500">
                   {o.realty && <Link href={`/admin/realties/${o.realty.id}`} className="font-medium text-slate-700 hover:underline">{o.realty.name}</Link>} · {o.project} · {o.unit} · {php(o.price)}{o.agent && <> · by {o.agent}</>}

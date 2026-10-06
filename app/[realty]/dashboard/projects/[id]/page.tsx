@@ -2,6 +2,7 @@ import Link from "next/link"
 import { notFound } from "next/navigation"
 import { ArrowLeft } from "lucide-react"
 import { Empty, PageHeader, Panel, btn } from "@/components/dashboard-ui"
+import { Alert } from "@/components/form"
 import { ApiError, api } from "@/lib/api"
 import { longDate } from "@/lib/format"
 import { requireRealtyUser } from "@/lib/realty-auth"
@@ -13,15 +14,16 @@ import type { ProjectDetail } from "../types"
 import { UnitForm } from "../unit-form"
 import { UnitRow } from "../unit-row"
 
-type Props = { params: Promise<{ realty: string; id: string }> }
+type Props = { params: Promise<{ realty: string; id: string }>; searchParams: Promise<{ plan_error?: string }> }
 
 export async function generateMetadata({ params }: Props) {
   return { title: `Project ${(await params).id}` }
 }
 
 /** One project: its units and payment plans; staff add, edit and delete everything here. */
-export default async function ProjectPage({ params }: Props) {
+export default async function ProjectPage({ params, searchParams }: Props) {
   const { realty: slug, id } = await params
+  const { plan_error: planError } = await searchParams
   const { user, token } = await requireRealtyUser(slug)
   const staff = user.role === "realty"
 
@@ -53,6 +55,12 @@ export default async function ProjectPage({ params }: Props) {
           }
         />
       </div>
+
+      {planError && (
+        <div className="mt-6">
+          <Alert kind="error">The project was created, but the site plan didn&apos;t upload: {planError} Try again in Site development plan below.</Alert>
+        </div>
+      )}
 
       {project.cover_url && (
         // eslint-disable-next-line @next/next/no-img-element
