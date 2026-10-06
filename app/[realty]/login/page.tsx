@@ -42,7 +42,7 @@ export default async function RealtyLoginPage({ params, searchParams }: Props) {
           <RealtyLoginForm slug={slug} />
         </div>
         <p className="mt-6 text-center text-xs text-slate-400">
-          Powered by <Link href="/" className="font-medium text-slate-500 hover:text-slate-900">jvconline</Link>
+          Powered by <Link href="/platform" className="font-medium text-slate-500 hover:text-slate-900">jvconline</Link>
         </p>
       </div>
     </main>

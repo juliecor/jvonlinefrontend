@@ -41,7 +41,7 @@ export default async function RegisterPage({ params }: { params: Promise<{ token
           <div className="mt-8 rounded-2xl border border-slate-200 bg-white p-8">
             <h1 className="text-2xl font-semibold tracking-tight">This link doesn&apos;t work</h1>
             <p className="mt-3 text-slate-600">{problem}</p>
-            <Link href="/" className="mt-6 inline-block text-sm font-semibold text-slate-900 underline-offset-4 hover:underline">
+            <Link href="/platform" className="mt-6 inline-block text-sm font-semibold text-slate-900 underline-offset-4 hover:underline">
               Back to jvconline
             </Link>
           </div>

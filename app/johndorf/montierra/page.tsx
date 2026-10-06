@@ -13,7 +13,7 @@ export default function JohndorfMontierraPage() {
         <div className="h-1 bg-[#b4241c]" />
         <div className="mx-auto flex max-w-[1500px] items-center justify-between gap-4 px-4 py-2.5 sm:px-6">
           <div className="flex items-center gap-4">
-            <Link href="/johndorf" aria-label="Back to the Johndorf home page" title="Johndorf home" className="-ml-1 rounded-full p-2 text-[#6b5a56] transition-colors hover:bg-[#f3ece9] hover:text-[#b4241c]">
+            <Link href="/" aria-label="Back to the Johndorf home page" title="Johndorf home" className="-ml-1 rounded-full p-2 text-[#6b5a56] transition-colors hover:bg-[#f3ece9] hover:text-[#b4241c]">
               <ArrowLeft className="h-4 w-4" />
             </Link>
             <Image src="/johndorf/logo.png" alt="Johndorf Ventures Corporation" width={391} height={186} className="h-auto w-[96px]" unoptimized />

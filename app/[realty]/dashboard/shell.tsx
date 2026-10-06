@@ -114,7 +114,7 @@ export function DashboardShell({ slug, user, signOut, children }: { slug: string
       <main className="min-w-0 px-5 py-8 sm:px-10 sm:py-12">
         <div className="mx-auto max-w-5xl">{children}</div>
         <p className="mt-16 text-center text-xs text-[#a39d92]">
-          Powered by <Link href="/" className="font-medium text-[#8a847a] hover:text-[#17150f]">jvconline</Link>
+          Powered by <Link href="/platform" className="font-medium text-[#8a847a] hover:text-[#17150f]">jvconline</Link>
         </p>
       </main>
     </div>

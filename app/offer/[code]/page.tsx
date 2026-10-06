@@ -42,7 +42,7 @@ export default async function OfferPage({ params }: Props) {
         <div className="max-w-md rounded-2xl border border-slate-200 bg-white p-8 text-center">
           <h1 className="text-xl font-semibold">Offer unavailable</h1>
           <p className="mt-3 text-sm text-slate-600">{problem}</p>
-          <Link href="/" className="mt-6 inline-block text-sm font-semibold underline-offset-4 hover:underline">jvconline</Link>
+          <Link href="/platform" className="mt-6 inline-block text-sm font-semibold underline-offset-4 hover:underline">jvconline</Link>
         </div>
       </main>
     )
@@ -181,7 +181,7 @@ export default async function OfferPage({ params }: Props) {
           <footer className="mt-10 flex flex-wrap items-center justify-between gap-3 text-xs text-slate-400">
             <p>Prices and availability may change until a reservation is made.</p>
             <p>
-              Powered by <Link href="/" className="font-medium text-slate-500 hover:text-slate-900">jvconline</Link>
+              Powered by <Link href="/platform" className="font-medium text-slate-500 hover:text-slate-900">jvconline</Link>
             </p>
           </footer>
         </div>

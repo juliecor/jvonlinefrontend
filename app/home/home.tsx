@@ -29,7 +29,7 @@ export function Home({ realties }: { realties: PublicRealty[] }) {
       {/* ─── Header ─── */}
       <header className="fixed inset-x-0 top-0 z-50 bg-[#05070d]/60 backdrop-blur-md">
         <div className="mx-auto flex max-w-[1280px] items-center justify-between px-5 py-5 sm:px-8">
-          <Link href="/" className="flex items-baseline gap-0.5 text-lg font-semibold tracking-tight">
+          <Link href="/platform" className="flex items-baseline gap-0.5 text-lg font-semibold tracking-tight">
             jvconline<span className="text-[#7dd3fc]">.ph</span>
           </Link>
           <nav className="hidden items-center gap-8 text-sm text-white/70 md:flex">

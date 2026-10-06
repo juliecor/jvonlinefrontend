@@ -1,25 +1,24 @@
 import type { Metadata } from "next"
-import { Instrument_Serif } from "next/font/google"
-import { api } from "@/lib/api"
-import { Home, type PublicRealty } from "./home/home"
+import { JohndorfLanding } from "./johndorf/home/landing"
+import { JohndorfShell, johndorfMetadata } from "./johndorf/shell"
 
-const serif = Instrument_Serif({ subsets: ["latin"], weight: "400", style: ["normal", "italic"], variable: "--font-jv-serif", display: "swap" })
+const description = "Homes and communities for every Filipino family — across Cebu, Cagayan de Oro, Davao, Iligan and Butuan, since 1986."
+const image = { url: "/johndorf/site/palmava.jpg", width: 1440, height: 810, alt: "Palmava by Johndorf" }
 
-const description = "jvconline gives realty companies across the Philippines their own page, their own dashboard, and their agents a simple way to send buyers a sales offer."
-
+// Shared by link, so it carries its own preview.
 export const metadata: Metadata = {
-  title: "jvconline — Realties of the Philippines, online",
+  ...johndorfMetadata,
+  title: { absolute: "Johndorf Ventures Corporation — Always there." },
   description,
-  openGraph: { title: "jvconline", description, siteName: "jvconline" },
+  openGraph: { title: "Johndorf Ventures Corporation — Always there.", description, siteName: "Johndorf Ventures Corporation", images: [image] },
+  twitter: { card: "summary_large_image", title: "Johndorf Ventures Corporation — Always there.", description, images: [image.url] },
 }
 
-/** jvconline.ph — the platform's front door. Lists the realties that are live; "Sign in" leads to the logins. */
-export default async function HomePage() {
-  // The home page must render even when Laravel is down — then it just shows no realties.
-  const realties = await api<PublicRealty[]>("/realties").catch(() => [] as PublicRealty[])
+/** jvconline.ph — Johndorf's site. The landing page (lib/johndorf/company.ts); the Montierra map, login and dashboard live under /johndorf. */
+export default function HomePage() {
   return (
-    <div className={serif.variable}>
-      <Home realties={realties} />
-    </div>
+    <JohndorfShell>
+      <JohndorfLanding />
+    </JohndorfShell>
   )
 }
