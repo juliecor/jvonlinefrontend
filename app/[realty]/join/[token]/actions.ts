@@ -18,6 +18,7 @@ export async function joinRealty(token: string, _: JoinState, formData: FormData
   const keep = { name, email, phone }
   const resume = formData.get("resume")
   if (!name || !email || !phone) return { error: "Enter your name, email and contact number.", ...keep }
+  if (!/^09\d{9}$/.test(phone)) return { error: "Enter an 11-digit mobile number starting with 09, numbers only, like 09171234567.", ...keep }
   // An empty file input still sends a File; the picked file is cleared after any error, so say so.
   if (!(resume instanceof File) || resume.size === 0) return { error: "Attach your resume (PDF).", ...keep }
   if (String(formData.get("password") ?? "") !== String(formData.get("password_confirmation") ?? "")) {

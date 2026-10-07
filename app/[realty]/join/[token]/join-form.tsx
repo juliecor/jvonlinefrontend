@@ -14,6 +14,7 @@ export function JoinForm({ token, name, email }: { token: string; name: string; 
   const [show, setShow] = useState(false)
   const [pw, setPw] = useState("")
   const [pw2, setPw2] = useState("")
+  const [phone, setPhone] = useState(state.phone ?? "")
   const [resume, setResume] = useState<File | null>(null)
   // The form action clears the file input after each try, so forget the picked file with it.
   const [seen, setSeen] = useState(state)
@@ -24,6 +25,10 @@ export function JoinForm({ token, name, email }: { token: string; name: string; 
   const rules = [
     { ok: pw.length >= 8, text: "At least 8 characters" },
     { ok: pw.length > 0 && pw === pw2, text: "Both passwords match" },
+  ]
+  const phoneRules = [
+    { ok: phone.startsWith("09"), text: "Starts with 09" },
+    { ok: phone.length === 11, text: "11 digits" },
   ]
 
   return (
@@ -40,8 +45,23 @@ export function JoinForm({ token, name, email }: { token: string; name: string; 
       </label>
       <label className="block">
         <span className={label}>Contact number</span>
-        <input name="phone" type="tel" required maxLength={40} defaultValue={state.phone ?? ""} autoComplete="tel" placeholder="09XX XXX XXXX" className={field} />
-        <span className="mt-1 block text-xs text-[#8a847a]">Your mobile number, so the team can reach you.</span>
+        <input
+          name="phone"
+          type="tel"
+          inputMode="numeric"
+          required
+          maxLength={11}
+          pattern="09[0-9]{9}"
+          title="11-digit mobile number starting with 09, like 09171234567"
+          autoComplete="tel-national"
+          placeholder="09171234567"
+          value={phone}
+          // Numbers only: anything else (spaces, dashes, +63) is dropped as they type or paste.
+          onChange={(e) => setPhone(e.target.value.replace(/\D/g, "").slice(0, 11))}
+          className={field}
+        />
+        <span className="mt-1 block text-xs text-[#8a847a]">Your Philippine mobile number, so the team can reach you.</span>
+        <Checklist rules={phoneRules} className="mt-2" />
       </label>
       <div>
         <span className={label}>Resume</span>
@@ -98,14 +118,7 @@ export function JoinForm({ token, name, email }: { token: string; name: string; 
           className={field}
         />
       </label>
-      <ul className="flex flex-wrap gap-x-5 gap-y-1.5">
-        {rules.map((r) => (
-          <li key={r.text} className={`flex items-center gap-1.5 text-sm font-semibold transition ${r.ok ? "text-emerald-700" : "text-[#a39d92]"}`}>
-            <span className={`flex h-4 w-4 items-center justify-center ${r.ok ? "bg-emerald-600 text-white" : "border border-[#cfc9bf]"}`}>{r.ok && <Check className="h-3 w-3" strokeWidth={3} />}</span>
-            {r.text}
-          </li>
-        ))}
-      </ul>
+      <Checklist rules={rules} />
       {state.error && (
         <p role="alert" className="border border-red-200 bg-red-50 px-4 py-3 text-sm font-semibold text-red-700">
           {state.error}
@@ -121,5 +134,19 @@ export function JoinForm({ token, name, email }: { token: string; name: string; 
         {!pending && <ArrowRight className="h-5 w-5" />}
       </button>
     </form>
+  )
+}
+
+/** Rules that tick green as they're met (contact number, password). */
+function Checklist({ rules, className = "" }: { rules: { ok: boolean; text: string }[]; className?: string }) {
+  return (
+    <ul className={`flex flex-wrap gap-x-5 gap-y-1.5 ${className}`}>
+      {rules.map((r) => (
+        <li key={r.text} className={`flex items-center gap-1.5 text-sm font-semibold transition ${r.ok ? "text-emerald-700" : "text-[#a39d92]"}`}>
+          <span className={`flex h-4 w-4 items-center justify-center ${r.ok ? "bg-emerald-600 text-white" : "border border-[#cfc9bf]"}`}>{r.ok && <Check className="h-3 w-3" strokeWidth={3} />}</span>
+          {r.text}
+        </li>
+      ))}
+    </ul>
   )
 }
