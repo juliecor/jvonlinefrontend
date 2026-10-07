@@ -95,10 +95,7 @@ function SettingsForm({ slug, projectId, projectName, data }: { slug: string; pr
   const suggested = projectName.toLowerCase().replace(/[^a-z0-9]+/g, "-").replace(/(^-|-$)/g, "")
   return (
     <form action={action} className="grid gap-5 sm:grid-cols-2">
-      <label className="flex items-center gap-3 sm:col-span-2">
-        <input name="is_public" type="checkbox" defaultChecked={data.is_public} className="h-4 w-4 accent-[var(--accent)]" />
-        <span className="text-sm font-semibold">Published — show this project on the public site</span>
-      </label>
+      <p className="text-sm text-[#5a554d] sm:col-span-2">Show or hide this page, and set the project&apos;s stage, in <a href="#status" className="font-semibold text-[var(--accent)] hover:underline">Status</a> at the top.</p>
       <label className="block">
         <Label>Page address</Label>
         <div className="mt-1.5 flex items-center rounded-md border border-[#d9d4cb] bg-white focus-within:border-[var(--accent)]">
@@ -109,10 +106,6 @@ function SettingsForm({ slug, projectId, projectName, data }: { slug: string; pr
       <label className="block">
         <Label>Region</Label>
         <input name="region" defaultValue={data.region ?? ""} placeholder="Cebu · Cagayan de Oro · Davao · Iligan" className={field} />
-      </label>
-      <label className="block">
-        <Label>Stage</Label>
-        <input name="stage" defaultValue={data.stage ?? ""} placeholder="Ongoing · Completed · Pre-selling" className={field} />
       </label>
       <label className="block">
         <Label>Official page link (optional)</Label>

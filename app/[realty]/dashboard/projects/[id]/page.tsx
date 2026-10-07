@@ -10,6 +10,7 @@ import { AddPlan, AddUnit } from "../add-dialog"
 import { PlanCard } from "../plan-card"
 import { ProjectForm } from "../project-form"
 import { PublicPageEditor } from "../public-page"
+import { StatusBar } from "../status-bar"
 import type { ProjectDetail } from "../types"
 import { UnitRow } from "../unit-row"
 
@@ -54,6 +55,8 @@ export default async function ProjectPage({ params, searchParams }: Props) {
           }
         />
       </div>
+
+      <StatusBar slug={slug} projectId={project.id} value={{ status: project.status, stage: project.stage, is_public: project.is_public }} pageSlug={project.slug} staff={staff} />
 
       {planError && (
         <div className="mt-6">

@@ -29,9 +29,7 @@ export async function savePageSettings(slug: string, projectId: number, _: PageS
   const body = {
     slug: String(fd.get("slug") ?? "").trim().toLowerCase() || undefined,
     region: String(fd.get("region") ?? "").trim() || null,
-    stage: String(fd.get("stage") ?? "").trim() || null,
     official_url: String(fd.get("official_url") ?? "").trim() || null,
-    is_public: fd.get("is_public") === "on",
     amenities: String(fd.get("amenities") ?? ""),
   }
   try {
@@ -40,7 +38,21 @@ export async function savePageSettings(slug: string, projectId: number, _: PageS
     return { error: errorMessage(e) }
   }
   refresh(slug)
-  return { ok: body.is_public ? "Saved. The page is live." : "Saved. The page is hidden until you publish it." }
+  return { ok: "Page settings saved." }
+}
+
+export type StatusPatch = { status?: "active" | "archived"; stage?: string | null; is_public?: boolean }
+
+/** One click in the project's status bar. The stage and website switch show on the public site too. */
+export async function setProjectStatus(slug: string, projectId: number, patch: StatusPatch): Promise<PageState> {
+  const token = await staff(slug)
+  try {
+    await api(`/realty/projects/${projectId}/status`, { method: "POST", token, body: patch })
+  } catch (e) {
+    return { error: errorMessage(e) }
+  }
+  refresh(slug)
+  return { ok: "Saved" }
 }
 
 export async function addPageMedia(slug: string, projectId: number, kind: "hero" | "plan", _: PageState, fd: FormData): Promise<PageState> {

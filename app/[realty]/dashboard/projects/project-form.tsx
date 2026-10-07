@@ -57,15 +57,6 @@ export function ProjectForm({ slug, project }: { slug: string; project?: Project
           <span className="mt-1 block text-xs text-[#8a847a]">The drawn layout of lots and roads. Shown on every offer; you can add more later.</span>
         </label>
       )}
-      {project && (
-        <label className="block">
-          <Label>Status</Label>
-          <select name="status" defaultValue={project.status} className={fieldClass}>
-            <option value="active">Active</option>
-            <option value="archived">Archived (hidden from new offers)</option>
-          </select>
-        </label>
-      )}
       {state.error && <div className="sm:col-span-2"><Alert kind="error">{state.error}</Alert></div>}
       {state.ok && <div className="sm:col-span-2"><Alert kind="success">{state.ok}</Alert></div>}
       <div className="sm:col-span-2">

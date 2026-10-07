@@ -30,10 +30,22 @@ export type Project = {
   completion_date: string | null
   status: "active" | "archived"
   is_public?: boolean
+  slug?: string | null
+  region?: string | null
+  stage?: string | null
   units_count?: number
+  /** Available units with a price: what New offer can sell. */
+  ready_units_count?: number
   payment_plans_count?: number
   offers_count?: number
 }
+
+/** Where a project is, as buyers see it (Laravel's Project::STAGES). */
+export const STAGES: readonly string[] = ["Pre-selling", "Ongoing", "Ready for occupancy", "Completed", "Sold out"]
+
+/** The Projects page filters, kept in the address (?stage=Ongoing&region=Cebu). */
+export type Filters = { q: string; status: string; stage: string; region: string; ready: string }
+export const NO_FILTERS: Filters = { q: "", status: "", stage: "", region: "", ready: "" }
 
 export type ProjectDetail = Project & {
   units: Unit[]
