@@ -25,7 +25,7 @@ export function ApplicationActions({ slug, id, name, status }: { slug: string; i
       {confirming ? (
         <div className="flex flex-wrap items-center gap-2">
           <span className="text-xs font-semibold text-[#3d3a34]">
-            {confirming === "reject" ? `Reject ${first}? They won't be able to sign in.` : `Delete ${first}'s application and resume?`}
+            {confirming === "reject" ? `Reject ${first}? They won't be able to sign in.` : `Delete ${first}'s application?`}
           </span>
           <button type="button" disabled={pending} onClick={() => act(confirming)} className="inline-flex items-center gap-1.5 bg-red-700 px-3 py-2 text-xs font-bold text-white hover:bg-red-800 disabled:opacity-60">
             {pending && <LoaderCircle className="h-3.5 w-3.5 animate-spin" />} {confirming === "reject" ? "Reject" : "Delete"}

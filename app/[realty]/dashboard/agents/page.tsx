@@ -1,11 +1,9 @@
 import { redirect } from "next/navigation"
-import { ExternalLink, FileText } from "lucide-react"
 import { Empty, PageHeader, Panel, Row, Rows, Tag } from "@/components/dashboard-ui"
 import { ContactButtons } from "@/components/leads"
 import { api } from "@/lib/api"
 import { shortDate } from "@/lib/format"
 import { requireRealtyUser } from "@/lib/realty-auth"
-import { fileSize } from "@/lib/requirements-types"
 import { ApplicationActions } from "./application-actions"
 import { InviteAgentForm } from "./invite-form"
 import { NewLinkButton } from "./resend-button"
@@ -27,9 +25,6 @@ type Application = {
   applied_at: string
   reviewed_at: string | null
   reviewed_by: string | null
-  has_resume: boolean
-  resume_name: string | null
-  resume_size: number | null
 }
 
 /** jvconline.ph/<realty>/dashboard/agents — the team, applications to review, and invite links. Staff only. */
@@ -129,7 +124,7 @@ export default async function RealtyAgentsPage({ params }: { params: Promise<{ r
   )
 }
 
-/** One application: who they are, how to reach them, their resume, and the staff's decision. */
+/** One application: who they are, how to reach them, and the staff's decision. */
 function ApplicationRow({ slug, application: a }: { slug: string; application: Application }) {
   return (
     <li className="flex flex-col gap-4 py-5 lg:flex-row lg:items-start lg:justify-between">
@@ -153,19 +148,6 @@ function ApplicationRow({ slug, application: a }: { slug: string; application: A
             {a.status === "rejected" && a.reviewed_at && <> · rejected {shortDate(a.reviewed_at)}{a.reviewed_by && <> by {a.reviewed_by}</>}</>}
           </p>
         </div>
-        {a.has_resume ? (
-          <a href={`/${slug}/dashboard/agents/${a.id}/resume`} target="_blank" rel="noreferrer" className="group inline-flex max-w-full items-center gap-3 border border-[#e6e2db] bg-white px-3 py-2.5 hover:border-[var(--accent)]">
-            <FileText className="h-5 w-5 shrink-0 text-[var(--accent)]" />
-            <span className="min-w-0">
-              <span className="flex items-center gap-1.5 text-sm font-bold group-hover:text-[var(--accent)]">
-                <span className="truncate">{a.resume_name ?? "Resume"}</span> <ExternalLink className="h-3.5 w-3.5 shrink-0" />
-              </span>
-              <span className="block text-xs text-[#8a847a]">Resume{a.resume_size ? ` · ${fileSize(a.resume_size)}` : ""}</span>
-            </span>
-          </a>
-        ) : (
-          <p className="text-xs text-[#8a847a]">No resume on file.</p>
-        )}
         {a.status === "pending" && <ContactButtons phone={a.phone} email={a.email} via={null} />}
       </div>
       <ApplicationActions slug={slug} id={a.id} name={a.name} status={a.status} />

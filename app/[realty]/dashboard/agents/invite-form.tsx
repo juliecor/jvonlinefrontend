@@ -22,7 +22,7 @@ function InviteForm({ slug, onAnother }: { slug: string; onAnother: () => void }
     return (
       <div className="rounded-md border border-[var(--accent)]/40 bg-white p-5">
         <p className="text-[11px] font-semibold uppercase tracking-[0.18em] text-[var(--accent)]">Link ready for {state.name}</p>
-        <p className="mt-2 text-sm text-[#6b665d]">Send it however you talk to them. It opens a short form where they add their details and resume and choose a password; you approve them here. It works for 7 days.</p>
+        <p className="mt-2 text-sm text-[#6b665d]">Send it however you talk to them. It opens a short form where they add their details and choose a password; you approve them here. It works for 7 days.</p>
         <p className="mt-3 break-all rounded-md border border-[#e6e2db] bg-[#f6f4f0] px-3.5 py-2.5 font-mono text-sm">{state.url}</p>
         <div className="mt-3 flex flex-wrap gap-2">
           <CopyButton text={state.url} className="bg-white" />
