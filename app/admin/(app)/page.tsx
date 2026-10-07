@@ -4,7 +4,7 @@ import { Empty, Ledger, PageHeader, Panel, Row, Rows, Tag, btn } from "@/compone
 import { api } from "@/lib/api"
 import { requireAdmin } from "@/lib/admin-auth"
 import { greeting, shortDate } from "@/lib/format"
-import { OpenDashboard } from "./open-dashboard"
+import { OpenDashboard } from "@/components/platform/open-dashboard"
 
 export const metadata = { title: "Dashboard" }
 
@@ -71,7 +71,7 @@ export default async function AdminDashboardPage() {
                 </p>
               </div>
               <div className="flex shrink-0 flex-wrap items-center gap-2">
-                {user.is_superadmin && r.status === "active" && <OpenDashboard slug={r.slug} />}
+                {user.is_superadmin && r.status === "active" && <OpenDashboard slug={r.slug} from="admin" />}
                 <Link href={`/admin/realties/${r.id}`} className={btn.outline}>
                   Details
                 </Link>

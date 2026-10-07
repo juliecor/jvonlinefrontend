@@ -6,7 +6,7 @@ import { LeadTag } from "@/components/leads"
 import { api } from "@/lib/api"
 import { requireAdmin } from "@/lib/admin-auth"
 import { php, shortDate } from "@/lib/format"
-import { RealtyFilter } from "../realty-filter"
+import { RealtyFilter } from "@/components/platform/realty-filter"
 
 export const metadata = { title: "Offers" }
 

@@ -1,12 +1,16 @@
 "use client"
 
-import { useState } from "react"
+import { useEffect, useRef, useState } from "react"
 import Link from "next/link"
 import { usePathname } from "next/navigation"
-import { ArrowUpRight, BadgeCheck, Building2, ClipboardCheck, FileText, Globe, LayoutDashboard, LogOut, Menu, Plus, Users, X } from "lucide-react"
+import { ArrowUpRight, BadgeCheck, Building2, ChevronDown, ClipboardCheck, FileText, Globe, Landmark, LayoutDashboard, LogOut, Menu, Plus, UsersRound, Users, X } from "lucide-react"
 import { RealtyMark } from "@/components/form"
+import { type ViewRealty, RoleSwitch } from "@/components/role-switch"
 import { SITE_REALTY } from "@/lib/public-projects-types"
 import type { RealtyUser } from "@/lib/realty-auth"
+
+/** What a super admin gets on top of the realty's own dashboard: the platform's realties and people, and View as. */
+export type SuperAdminNav = { realties: ViewRealty[]; realtyCount: number | null; peopleCount: number | null }
 
 export type ShellCounts = { projects: number; offers: number; agents: number; agentsInvited: number; agentsPending: number; publicProjects: number; newResponses: number; toApprove: number }
 
@@ -28,7 +32,7 @@ const tint = (pct: number) => `color-mix(in srgb, var(--accent) ${pct}%, white)`
  * with the realty's logo, its brand colour as the accent, counts beside each
  * section, a "New offer" shortcut and the account at the foot.
  */
-export function DashboardShell({ slug, user, counts, signOutAction, children }: { slug: string; user: RealtyUser; counts: ShellCounts | null; signOutAction: () => Promise<void>; children: React.ReactNode }) {
+export function DashboardShell({ slug, user, counts, superAdmin, signOutAction, children }: { slug: string; user: RealtyUser; counts: ShellCounts | null; superAdmin: SuperAdminNav | null; signOutAction: () => Promise<void>; children: React.ReactNode }) {
   const path = usePathname()
   const [open, setOpen] = useState(false)
   const realty = user.realty
@@ -52,6 +56,17 @@ export function DashboardShell({ slug, user, counts, signOutAction, children }: 
       ? [
           { title: "Team", items: [{ href: `/${slug}/dashboard/agents`, label: "Agents", icon: Users, count: counts?.agents, note: counts?.agentsInvited ? `+${counts.agentsInvited} invited` : undefined, alert: counts?.agentsPending ? `${counts.agentsPending} to approve` : undefined }] },
           { title: "Setup", items: [{ href: `/${slug}/dashboard/requirements`, label: "Buyer requirements", icon: ClipboardCheck }] },
+        ]
+      : []),
+    ...(superAdmin
+      ? [
+          {
+            title: "Super admin",
+            items: [
+              { href: `/${slug}/dashboard/platform/realties`, label: "Realties", icon: Landmark, count: superAdmin.realtyCount ?? undefined },
+              { href: `/${slug}/dashboard/platform/people`, label: "People", icon: UsersRound, count: superAdmin.peopleCount ?? undefined },
+            ],
+          },
         ]
       : []),
   ]
@@ -83,7 +98,7 @@ export function DashboardShell({ slug, user, counts, signOutAction, children }: 
       </div>
 
       {/* Navigation */}
-      <nav className="mt-6 flex-1 space-y-6 overflow-y-auto">
+      <ScrollNav>
         {groups.map((g) => (
           <div key={g.title}>
             <p className="px-6 text-xs font-bold uppercase tracking-[0.16em] text-[#8a847a]">{g.title}</p>
@@ -116,7 +131,14 @@ export function DashboardShell({ slug, user, counts, signOutAction, children }: 
             </ul>
           </div>
         ))}
-      </nav>
+
+        {superAdmin && (
+          <div className="px-5 pb-2">
+            <p className="text-xs font-bold uppercase tracking-[0.16em] text-[#8a847a]">View as</p>
+            <RoleSwitch from="realty" current={`${slug}:${user.role}`} realties={superAdmin.realties} tone="light" className="mt-2" />
+          </div>
+        )}
+      </ScrollNav>
 
       {/* Public site */}
       <div className="px-5 pb-5">
@@ -196,6 +218,41 @@ export function DashboardShell({ slug, user, counts, signOutAction, children }: 
           Powered by <Link href="/platform" className="font-medium text-[#8a847a] hover:text-[#17150f]">jvconline</Link>
         </p>
       </main>
+    </div>
+  )
+}
+
+/** The sidebar's sections. On a short screen they scroll, and a "More" fade says there's more below. */
+function ScrollNav({ children }: { children: React.ReactNode }) {
+  const ref = useRef<HTMLElement>(null)
+  const [more, setMore] = useState(false)
+  useEffect(() => {
+    const el = ref.current
+    if (!el) return
+    const check = () => setMore(el.scrollHeight - el.scrollTop - el.clientHeight > 8)
+    const resize = new ResizeObserver(check)
+    resize.observe(el)
+    el.addEventListener("scroll", check, { passive: true })
+    return () => {
+      resize.disconnect()
+      el.removeEventListener("scroll", check)
+    }
+  }, [])
+
+  return (
+    <div className="relative mt-6 flex min-h-0 flex-1 flex-col">
+      <nav ref={ref} className="flex-1 space-y-6 overflow-y-auto pb-3">
+        {children}
+      </nav>
+      {more && (
+        <button
+          type="button"
+          onClick={() => ref.current?.scrollBy({ top: 280, behavior: "smooth" })}
+          className="absolute inset-x-0 bottom-0 flex h-14 items-end justify-center gap-1 bg-gradient-to-t from-white via-white/95 to-transparent pb-1.5 text-xs font-bold uppercase tracking-[0.14em] text-[#6b665d] transition hover:text-[var(--accent)]"
+        >
+          More <ChevronDown className="h-4 w-4" />
+        </button>
+      )}
     </div>
   )
 }
