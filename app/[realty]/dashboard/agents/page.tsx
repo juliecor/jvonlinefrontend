@@ -13,7 +13,7 @@ import { NewLinkButton } from "./resend-button"
 export const metadata = { title: "Agents" }
 
 type Agents = {
-  agents: { id: number; name: string; email: string; joined_at: string; offers_count: number }[]
+  agents: { id: number; name: string; email: string; phone: string | null; joined_at: string; offers_count: number }[]
   applications: Application[]
   invitations: { id: number; name: string; email: string | null; invited_at: string; expires_at: string; expired: boolean }[]
 }
@@ -86,7 +86,17 @@ export default async function RealtyAgentsPage({ params }: { params: Promise<{ r
             <Row key={a.id}>
               <div className="min-w-0">
                 <p className="font-semibold">{a.name}</p>
-                <p className="mt-0.5 truncate text-sm text-[#8a847a]">{a.email}</p>
+                <p className="mt-0.5 truncate text-sm text-[#8a847a]">
+                  {a.email}
+                  {a.phone && (
+                    <>
+                      {" · "}
+                      <a href={`tel:${a.phone}`} className="hover:text-[#17150f] hover:underline">
+                        {a.phone}
+                      </a>
+                    </>
+                  )}
+                </p>
               </div>
               <p className="text-xs text-[#8a847a]">{a.offers_count} active offer{a.offers_count === 1 ? "" : "s"} · joined {shortDate(a.joined_at)}</p>
             </Row>
