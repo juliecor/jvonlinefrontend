@@ -1,4 +1,5 @@
 import type { Metadata } from "next"
+import { type ViewRealty, PreviewBar } from "@/components/role-switch"
 import { api } from "@/lib/api"
 import { realtyBySlug, requireRealtyUser } from "@/lib/realty-auth"
 import { realtyIcons } from "@/lib/realty-icon"
@@ -25,10 +26,13 @@ export default async function RealtyDashboardLayout({ children, params }: Props)
   const counts: ShellCounts | null = await api<{ stats: Stats }>("/realty/overview", { token })
     .then(({ stats: s }) => ({ projects: s.projects, offers: s.offers, agents: s.agents, agentsInvited: s.agents_invited, agentsPending: s.agents_pending ?? 0, publicProjects: s.public_projects, newResponses: s.new_responses + s.docs_to_review + s.sent_back, toApprove: s.to_approve }))
     .catch(() => null)
+  // A super admin previewing this dashboard gets a strip to switch role or go back.
+  const realties = user.is_superadmin ? await api<{ realties: ViewRealty[] }>("/auth/view-as", { token }).then((r) => r.realties).catch(() => []) : null
 
   return (
     <div style={{ ["--accent" as string]: accent }}>
       <DashboardShell slug={slug} user={user} counts={counts} signOutAction={signOutRealty.bind(null, slug)}>
+        {realties && <PreviewBar slug={slug} realtyName={user.realty.name} role={user.role} realties={realties} />}
         {children}
       </DashboardShell>
     </div>
