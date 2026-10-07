@@ -4,16 +4,17 @@ import { cache } from "react"
 import { ArrowUpRight, Bath, BedDouble, CalendarDays, Car, Check, Info, Layers, Mail, MapPin, Phone, Ruler, SquareDashed, Tag as TagIcon } from "lucide-react"
 import { RealtyMark } from "@/components/form"
 import { ApiError, api } from "@/lib/api"
-import { longDate, php, phpExact, sqm } from "@/lib/format"
+import { longDate, php, phpExact, shortDate, sqm } from "@/lib/format"
 import { SITE_REALTY } from "@/lib/public-projects-types"
 import type { Requirement } from "@/lib/requirements-types"
+import { type ScheduleRow, pct } from "@/lib/schedule"
 import { realtyToken } from "@/lib/realty-auth"
 import { realtyIcons } from "@/lib/realty-icon"
 import { PrintButton, Zoomable } from "./parts"
 import { RequirementsSection } from "./requirements"
 import { RespondSection } from "./respond"
 
-type Milestone = { label: string; percent: number; date: string | null; amount: number }
+type Milestone = ScheduleRow
 type Specs = { usable_floor_area: string | null; typical_floor_area: string | null; bedrooms: string | null; baths: string | null; floors: string | null; parking: string | null }
 type Offer = {
   code: string
@@ -45,6 +46,8 @@ type Offer = {
   requirements: Requirement[]
   details_submitted_at: string | null
   buyer_contact: { email: string | null; phone: string | null }
+  /** Set when one of the realty's people previews custom terms that aren't approved yet. */
+  preview: "pending" | "rejected" | null
 }
 
 type Props = { params: Promise<{ code: string }> }
@@ -54,7 +57,7 @@ const loadOffer = cache(async (code: string): Promise<{ offer: Offer | null; pro
   try {
     return { offer: await api<Offer>(`/offers/${encodeURIComponent(code)}`, { token: await realtyToken() }), problem: null }
   } catch (e) {
-    const problem = e instanceof ApiError && (e.status === 404 || e.status === 410) ? (e.status === 404 ? "We couldn't find this offer. Please check the link with your agent." : e.message) : "We couldn't load this offer right now. Please try again in a moment."
+    const problem = e instanceof ApiError && [404, 410, 423].includes(e.status) ? (e.status === 404 ? "We couldn't find this offer. Please check the link with your agent." : e.message) : "We couldn't load this offer right now. Please try again in a moment."
     return { offer: null, problem }
   }
 })
@@ -133,6 +136,11 @@ export default async function OfferPage({ params }: Props) {
 
   return (
     <main className="min-h-screen bg-[#ece9e4] pb-16 text-[#17150f] [print-color-adjust:exact] print:bg-white print:pb-0" style={{ ["--accent" as string]: accent }}>
+      {offer.preview && (
+        <div className="bg-amber-400 px-4 py-2.5 text-center text-sm font-bold text-[#17150f] print:hidden">
+          Preview: these custom terms {offer.preview === "pending" ? "are waiting for approval" : "were sent back"}. The buyer can&apos;t open this page yet.
+        </div>
+      )}
       {/* Action bar (screen only) */}
       <div className="sticky top-0 z-30 border-b border-[#ddd8d0] bg-white/95 backdrop-blur print:hidden">
         <div className="mx-auto flex max-w-[1040px] items-center justify-between gap-3 px-4 py-3 sm:px-6">
@@ -225,7 +233,7 @@ export default async function OfferPage({ params }: Props) {
           </div>
           <div className="border-r border-[#ebe7e1] px-6 py-6 sm:px-8">
             <p className="text-xs font-bold uppercase tracking-[0.16em] text-[#8a847a]">{first ? (dueToday(first) ? "Due on reservation" : "First payment") : "Payment"}</p>
-            <p className="mt-2 text-2xl font-bold tabular-nums tracking-tight text-[var(--accent)]">{first ? php(first.amount) : "—"}</p>
+            <p className="mt-2 text-2xl font-bold tabular-nums tracking-tight text-[var(--accent)]">{first ? (first.monthly ? `${php(first.monthly)}/mo` : php(first.amount)) : "—"}</p>
             {first && <p className="mt-1 text-xs font-semibold text-[#6b665d]">{first.label}</p>}
           </div>
           <div className="px-6 py-6 sm:px-8 lg:border-r lg:border-[#ebe7e1]">
@@ -281,14 +289,14 @@ export default async function OfferPage({ params }: Props) {
               <div className="mt-6">
                 <div className="flex h-3 w-full overflow-hidden bg-[#ebe7e1]">
                   {schedule.map((m, i) => (
-                    <div key={i} style={{ width: `${shares[i]}%`, opacity: fade(i) }} className="h-full border-r-2 border-white bg-[var(--accent)] last:border-r-0" title={`${m.label} · ${m.percent}%`} />
+                    <div key={i} style={{ width: `${shares[i]}%`, opacity: fade(i) }} className="h-full border-r-2 border-white bg-[var(--accent)] last:border-r-0" title={`${m.label} · ${pct(m.percent)}`} />
                   ))}
                 </div>
                 <div className="mt-2 flex flex-wrap gap-x-5 gap-y-1 text-xs font-semibold text-[#5a554d]">
                   {schedule.map((m, i) => (
                     <span key={i} className="inline-flex items-center gap-1.5">
                       <span className="h-2.5 w-2.5 bg-[var(--accent)]" style={{ opacity: fade(i) }} />
-                      {m.percent}% · {m.label}
+                      {pct(m.percent)} · {m.label}
                     </span>
                   ))}
                 </div>
@@ -298,18 +306,22 @@ export default async function OfferPage({ params }: Props) {
             {/* Phone: one block per milestone, amount always in view */}
             <ol className="mt-6 divide-y divide-[#ebe7e1] border-y border-[#ebe7e1] sm:hidden">
               {schedule.map((m, i) => (
-                <li key={i} className="flex items-start justify-between gap-4 py-4">
+                <li key={i} className="py-4">
+                  <div className="flex items-start justify-between gap-4">
                   <div className="min-w-0">
                     <p className="font-bold">
                       <span className="mr-2 tabular-nums text-[var(--accent)]">{String(i + 1).padStart(2, "0")}</span>
                       {m.label}
                     </p>
                     <p className="mt-1 text-sm font-semibold text-[#5a554d]">
-                      {m.date ? longDate(m.date) : "Upon completion"} · {m.percent}%
+                      {m.months && m.end_date ? `${m.months} monthly payments of ${phpExact(m.monthly ?? 0)}` : m.date ? longDate(m.date) : "Upon completion"} · {pct(m.percent)}
                     </p>
+                    {m.months && m.end_date && <p className="text-sm text-[#6b665d]">{longDate(m.date)} to {longDate(m.end_date)}</p>}
                     {dueToday(m) && <span className="mt-1.5 inline-block bg-[var(--accent)] px-1.5 py-0.5 text-[10px] font-bold uppercase tracking-[0.12em] text-white">Due on reservation</span>}
                   </div>
                   <p className="shrink-0 text-right font-bold tabular-nums">{phpExact(m.amount)}</p>
+                  </div>
+                  <Installments m={m} />
                 </li>
               ))}
               <li className="flex items-center justify-between gap-4 bg-[#17150f] px-4 py-4 text-white">
@@ -335,15 +347,17 @@ export default async function OfferPage({ params }: Props) {
                       <td className="py-4 pr-3 align-top font-bold tabular-nums text-[var(--accent)]">{String(i + 1).padStart(2, "0")}</td>
                       <td className="py-4 pr-3 align-top">
                         <p className="font-bold">{m.label}</p>
+                        {m.months && m.end_date && <p className="mt-0.5 text-sm font-semibold text-[#5a554d]">{m.months} monthly payments of {phpExact(m.monthly ?? 0)}</p>}
+                        <Installments m={m} />
                         {dueToday(m) && <span className="mt-1 inline-block bg-[var(--accent)] px-1.5 py-0.5 text-[10px] font-bold uppercase tracking-[0.12em] text-white">Due on reservation</span>}
                       </td>
                       <td className="py-4 pr-3 align-top font-semibold text-[#3d3a34]">
                         <span className="inline-flex items-center gap-1.5">
                           <CalendarDays className="h-4 w-4 text-[#8a847a]" />
-                          {m.date ? longDate(m.date) : "Upon completion"}
+                          {m.months && m.end_date ? `${longDate(m.date)} – ${longDate(m.end_date)}` : m.date ? longDate(m.date) : "Upon completion"}
                         </span>
                       </td>
-                      <td className="py-4 pr-3 text-right align-top font-semibold tabular-nums text-[#5a554d]">{m.percent}%</td>
+                      <td className="py-4 pr-3 text-right align-top font-semibold tabular-nums text-[#5a554d]">{pct(m.percent)}</td>
                       <td className="py-4 text-right align-top font-bold tabular-nums">{phpExact(m.amount)}</td>
                     </tr>
                   ))}
@@ -516,5 +530,29 @@ function LocationBlock({ n, name, location, lat, lng }: { n: string; name: strin
         )}
       </div>
     </section>
+  )
+}
+
+/** "See all 24 payments": each month's date and amount, for a milestone paid monthly. */
+function Installments({ m }: { m: Milestone }) {
+  if (!m.installments?.length) return null
+  return (
+    <details className="group mt-2 print:hidden">
+      <summary className="inline-flex cursor-pointer list-none items-center gap-1 text-sm font-bold text-[var(--accent)] hover:underline">
+        <span className="group-open:hidden">See all {m.installments.length} payments</span>
+        <span className="hidden group-open:inline">Hide the monthly payments</span>
+      </summary>
+      <ol className="mt-2 max-w-sm divide-y divide-[#ebe7e1] border border-[#ebe7e1] bg-[#faf8f5] text-sm">
+        {m.installments.map((x) => (
+          <li key={x.n} className="flex items-center justify-between gap-4 px-3 py-1.5">
+            <span className="text-[#5a554d]">
+              <span className="mr-2 inline-block w-6 tabular-nums text-[#a39d92]">{x.n}</span>
+              {shortDate(x.date)}
+            </span>
+            <span className="font-semibold tabular-nums">{phpExact(x.amount)}</span>
+          </li>
+        ))}
+      </ol>
+    </details>
   )
 }

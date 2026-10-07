@@ -11,6 +11,7 @@ type Offer = {
   realty: { id: number; name: string; slug: string } | null; project: string | null; unit: string | null; agent: string | null; url: string
   responses_count: number; latest_response: { kind: "interested" | "question" | "not_interested"; label: string } | null
   requirements: { required: number; submitted: number; approved: number; to_review: number; details: boolean }
+  custom: boolean; approval_status: "pending" | "approved" | "rejected" | null
 }
 type Realty = { id: number; name: string }
 
@@ -55,6 +56,11 @@ export default async function AdminOffersPage({ searchParams }: { searchParams: 
                     <span className={`rounded-full px-2 py-0.5 text-[10px] font-semibold uppercase tracking-[0.14em] ${RESPONSE_TONE[o.latest_response.kind]}`}>
                       {o.latest_response.label}
                       {o.responses_count > 1 && ` · ${o.responses_count}`}
+                    </span>
+                  )}
+                  {o.custom && (
+                    <span className={`rounded-full px-2 py-0.5 text-[10px] font-semibold uppercase tracking-[0.14em] ${o.approval_status === "approved" ? "bg-slate-100 text-slate-600" : o.approval_status === "rejected" ? "bg-red-50 text-red-700" : "bg-amber-50 text-amber-700"}`}>
+                      Custom terms{o.approval_status === "pending" ? " · waiting" : o.approval_status === "rejected" ? " · sent back" : ""}
                     </span>
                   )}
                   {o.requirements.required > 0 && o.status === "active" && (

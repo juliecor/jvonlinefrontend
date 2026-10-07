@@ -7,14 +7,15 @@ import { Alert, Label } from "@/components/form"
 import { type FormState, createPlan, updatePlan } from "./actions"
 import type { PaymentPlan } from "./types"
 
-type Row = { id: number; label: string; percent: string; days: string }
+type Row = { id: number; label: string; percent: string; days: string; months: string }
 let nextId = 1
-const row = (label = "", percent = "", days = ""): Row => ({ id: nextId++, label, percent, days })
+const row = (label = "", percent = "", days = "", months = ""): Row => ({ id: nextId++, label, percent, days, months })
 const fresh = () => [row("Reservation", "10", "0"), row("On completion", "90", "")]
-const fromPlan = (p: PaymentPlan) => p.milestones.map((m) => row(m.label, String(m.percent), m.days === null ? "" : String(m.days)))
+const fromPlan = (p: PaymentPlan) => p.milestones.map((m) => row(m.label, String(m.percent), m.days === null ? "" : String(m.days), m.months ? String(m.months) : ""))
 
 /**
- * Milestones: label, % and days from the purchase date (blank = on completion). Must total 100%.
+ * Milestones: label, % and days from the purchase date (blank = on completion), and optionally
+ * the number of monthly payments it is spread over (the first is due on that day). Must total 100%.
  * Add a plan (no `plan`) or edit one; `onDone` closes an inline editor after a save.
  */
 export function PlanForm({ slug, projectId, plan, onDone }: { slug: string; projectId: number; plan?: PaymentPlan; onDone?: () => void }) {
@@ -43,12 +44,13 @@ export function PlanForm({ slug, projectId, plan, onDone }: { slug: string; proj
         <input name="name" required defaultValue={plan?.name} placeholder="10 / 10 / 10 / 70 · Spot cash · 24 months" className={field} />
       </label>
       <div className="overflow-x-auto">
-        <table className="w-full min-w-[520px] text-sm">
+        <table className="w-full min-w-[640px] text-sm">
           <thead>
             <tr className="text-left text-xs font-semibold uppercase tracking-[0.12em] text-[#8a847a]">
               <th className="pb-2 pr-3">Milestone</th>
               <th className="w-24 pb-2 pr-3">%</th>
               <th className="w-40 pb-2 pr-3">Days after purchase</th>
+              <th className="w-32 pb-2 pr-3">Monthly payments</th>
               <th className="w-10 pb-2" />
             </tr>
           </thead>
@@ -58,6 +60,7 @@ export function PlanForm({ slug, projectId, plan, onDone }: { slug: string; proj
                 <td className="py-1 pr-3"><input name="label" required value={r.label} onChange={(e) => update(r.id, { label: e.target.value })} placeholder="Within 30 days" className={`${field} mt-0`} /></td>
                 <td className="py-1 pr-3"><input name="percent" type="number" step="0.01" min="0.01" max="100" required value={r.percent} onChange={(e) => update(r.id, { percent: e.target.value })} className={`${field} mt-0`} /></td>
                 <td className="py-1 pr-3"><input name="days" type="number" min="0" value={r.days} onChange={(e) => update(r.id, { days: e.target.value })} placeholder="blank = on completion" className={`${field} mt-0`} /></td>
+                <td className="py-1 pr-3"><input name="months" type="number" min="1" max="120" value={r.months} onChange={(e) => update(r.id, { months: e.target.value })} placeholder="one payment" title="Spread over this many monthly payments; the first is due on the day before" className={`${field} mt-0`} /></td>
                 <td className="py-1">
                   <button type="button" aria-label="Remove milestone" disabled={rows.length === 1} onClick={() => setRows((rs) => rs.filter((x) => x.id !== r.id))} className="rounded-md p-2 text-[#a39d92] hover:bg-[#f6f4f0] hover:text-red-600 disabled:opacity-30">
                     <Trash2 className="h-4 w-4" />

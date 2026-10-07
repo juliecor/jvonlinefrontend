@@ -3,12 +3,12 @@
 import { useState } from "react"
 import Link from "next/link"
 import { usePathname } from "next/navigation"
-import { ArrowUpRight, Building2, ClipboardCheck, FileText, Globe, LayoutDashboard, LogOut, Menu, Plus, Users, X } from "lucide-react"
+import { ArrowUpRight, BadgeCheck, Building2, ClipboardCheck, FileText, Globe, LayoutDashboard, LogOut, Menu, Plus, Users, X } from "lucide-react"
 import { RealtyMark } from "@/components/form"
 import { SITE_REALTY } from "@/lib/public-projects-types"
 import type { RealtyUser } from "@/lib/realty-auth"
 
-export type ShellCounts = { projects: number; offers: number; agents: number; agentsInvited: number; publicProjects: number; newResponses: number }
+export type ShellCounts = { projects: number; offers: number; agents: number; agentsInvited: number; publicProjects: number; newResponses: number; toApprove: number }
 
 type Item = { href: string; label: string; icon: typeof LayoutDashboard; exact?: boolean; count?: number; note?: string; alert?: string }
 
@@ -42,6 +42,7 @@ export function DashboardShell({ slug, user, counts, signOutAction, children }: 
       items: [
         { href: `/${slug}/dashboard/projects`, label: "Projects", icon: Building2, count: counts?.projects },
         { href: `/${slug}/dashboard/offers`, label: staff ? "Offers" : "My offers", icon: FileText, count: counts?.offers, alert: counts?.newResponses ? `${counts.newResponses} new` : undefined },
+        ...(staff ? [{ href: `/${slug}/dashboard/approvals`, label: "Approvals", icon: BadgeCheck, count: counts?.toApprove, alert: counts?.toApprove ? "to do" : undefined }] : []),
       ],
     },
     ...(staff
@@ -167,9 +168,9 @@ export function DashboardShell({ slug, user, counts, signOutAction, children }: 
             <Link href={`/${slug}/dashboard/offers/new`} className="flex items-center gap-1.5 bg-[var(--accent)] px-3 py-2 text-sm font-bold text-white">
               <Plus className="h-4 w-4" strokeWidth={2.5} /> Offer
             </Link>
-            <button type="button" onClick={() => setOpen(true)} aria-label={counts?.newResponses ? `Open menu, ${counts.newResponses} new buyer updates` : "Open menu"} className="relative p-2 text-[#17150f]">
+            <button type="button" onClick={() => setOpen(true)} aria-label={counts?.newResponses || counts?.toApprove ? `Open menu, ${(counts?.newResponses ?? 0) + (counts?.toApprove ?? 0)} things need you` : "Open menu"} className="relative p-2 text-[#17150f]">
               <Menu className="h-6 w-6" />
-              {!!counts?.newResponses && <span aria-hidden className="absolute right-1 top-1 h-2.5 w-2.5 border-2 border-white bg-[var(--accent)]" />}
+              {!!(counts?.newResponses || counts?.toApprove) && <span aria-hidden className="absolute right-1 top-1 h-2.5 w-2.5 border-2 border-white bg-[var(--accent)]" />}
             </button>
           </div>
         </div>

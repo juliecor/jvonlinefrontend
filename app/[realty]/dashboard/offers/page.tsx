@@ -31,6 +31,9 @@ type Offer = {
   new_responses: number
   latest_response: { kind: LeadKind; label: string; at: string } | null
   requirements: RequirementSummary
+  custom: boolean
+  approval_status: "pending" | "approved" | "rejected" | null
+  approval_note: string | null
 }
 
 /** jvconline.ph/<realty>/dashboard/offers — agents see theirs, staff see the whole realty's. */
@@ -63,6 +66,9 @@ export default async function OffersPage({ params }: { params: Promise<{ realty:
                   <Link href={`/${slug}/dashboard/offers/${o.id}`} className="text-lg font-bold hover:text-[var(--accent)]">{o.buyer_name}</Link>
                   <span className="font-mono text-xs text-[#a39d92]">{o.code}</span>
                   {o.status === "void" && <Tag>Void</Tag>}
+                  {o.status === "active" && o.approval_status === "pending" && <Tag tone="warn">Waiting for approval</Tag>}
+                  {o.status === "active" && o.approval_status === "rejected" && <Tag tone="bad">Sent back</Tag>}
+                  {o.approval_status === "approved" && <Tag>Custom terms</Tag>}
                   {o.latest_response && <LeadTag kind={o.latest_response.kind} label={o.latest_response.label} />}
                   {o.new_responses > 0 && <NewTag />}
                   {o.requirements.required > 0 && o.status === "active" && <ReqChip r={o.requirements} />}
@@ -86,7 +92,7 @@ export default async function OffersPage({ params }: { params: Promise<{ realty:
                 </p>
               </div>
               <div className="flex shrink-0 flex-wrap items-center gap-2">
-                {o.status === "active" && (
+                {o.status === "active" && !(o.approval_status === "pending" || o.approval_status === "rejected") && (
                   <>
                     <CopyButton text={o.url} />
                     <a href={o.url} target="_blank" rel="noreferrer" className={btn.ghost}>

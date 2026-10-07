@@ -49,8 +49,9 @@ export function PlanCard({ slug, projectId, plan, staff }: { slug: string; proje
             <span>
               {m.label}
               {m.days !== null && m.days > 0 ? <span className="text-[#a39d92]"> · {m.days} days</span> : m.days === null ? <span className="text-[#a39d92]"> · on completion</span> : null}
+              {m.months ? <span className="text-[#a39d92]"> · {m.months} monthly payments</span> : null}
             </span>
-            <span className="font-medium tabular-nums">{m.percent}%</span>
+            <span className="font-medium tabular-nums">{Number(m.percent.toFixed(2))}%</span>
           </li>
         ))}
       </ol>

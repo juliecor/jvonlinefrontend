@@ -1,6 +1,6 @@
 import type { PublicUnitType, PublicUpdate } from "@/lib/public-projects-types"
 
-export type Milestone = { label: string; percent: number; days: number | null }
+export type Milestone = { label: string; percent: number; days: number | null; months?: number | null }
 
 export type Unit = {
   id: number

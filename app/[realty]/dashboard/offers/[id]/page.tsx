@@ -7,8 +7,10 @@ import { ContactButtons, LeadTag, VIA_LABEL, type Lead } from "@/components/lead
 import { ApiError, api } from "@/lib/api"
 import { longDate, php, shortDate, sqm, timeAgo } from "@/lib/format"
 import { INCOME_SOURCES, type Requirement, type RequirementSummary } from "@/lib/requirements-types"
+import { type MilestoneInput, type ScheduleRow, pct } from "@/lib/schedule"
 import { requireRealtyUser } from "@/lib/realty-auth"
 import { voidOffer } from "../actions"
+import { ApprovalPanel } from "./approval-panel"
 import { FollowUp, RequirementsPanel } from "./requirements-panel"
 import { SyncCounts } from "./sync"
 
@@ -32,7 +34,7 @@ type OfferDetail = {
   last_viewed_at: string | null
   responses_count: number
   new_responses: number
-  schedule: { label: string; percent: number; date: string | null; amount: number }[]
+  schedule: ScheduleRow[]
   fee_notes: string | null
   unit_detail: { name: string | null; unit_type: string | null; area_sqm: number | null; status: string | null }
   responses: Lead[]
@@ -45,6 +47,16 @@ type OfferDetail = {
   last_reminded_at: string | null
   reminders_sent: number
   buyer_email_for_mail: string | null
+  agent_id: number | null
+  custom: boolean
+  custom_milestones: MilestoneInput[] | null
+  approval_status: "pending" | "approved" | "rejected" | null
+  approval_reason: string | null
+  approval_note: string | null
+  approved_by: string | null
+  approved_at: string | null
+  plan_name: string | null
+  official_plans: { name: string; schedule: ScheduleRow[] }[]
 }
 
 /** The buyer information form, grouped the way the buyer filled it in. */
@@ -77,6 +89,8 @@ export default async function OfferDetailPage({ params }: { params: Promise<{ re
   }
   const staff = user.role === "realty"
   const hadNew = o.responses.some((r) => r.new)
+  const awaiting = o.approval_status === "pending" || o.approval_status === "rejected"
+  const live = o.status === "active" && !awaiting
   const latest = o.responses[0]
 
   // What happened, newest first: responses, views, the offer being sent.
@@ -107,7 +121,11 @@ export default async function OfferDetailPage({ params }: { params: Promise<{ re
         title={o.buyer_name}
         lede={[o.project, o.unit, staff && o.agent ? `by ${o.agent}` : null].filter(Boolean).join(" · ")}
         action={
-          o.status === "active" ? (
+          o.status === "active" && awaiting ? (
+            <a href={o.url} target="_blank" rel="noreferrer" className={`${btn.ghost} !px-4 !py-3 !text-sm`}>
+              Preview buyer&apos;s page <ExternalLink className="h-4 w-4" />
+            </a>
+          ) : o.status === "active" ? (
             <>
               <CopyButton text={o.url} className="!rounded-none !px-4 !py-3 !text-sm" />
               <a href={o.url} target="_blank" rel="noreferrer" className={btn.primary}>
@@ -119,6 +137,26 @@ export default async function OfferDetailPage({ params }: { params: Promise<{ re
           )
         }
       />
+
+      {o.approval_status && o.status === "active" && (
+        <ApprovalPanel
+          slug={slug}
+          offerId={o.id}
+          status={o.approval_status}
+          isStaff={staff}
+          canEdit={staff || o.agent_id === user.id}
+          agent={o.agent}
+          reason={o.approval_reason}
+          note={o.approval_note}
+          approvedBy={o.approved_by}
+          approvedAt={o.approved_at}
+          price={o.price}
+          projectName={o.project}
+          schedule={o.schedule}
+          customMilestones={o.custom_milestones ?? []}
+          officialPlans={o.official_plans}
+        />
+      )}
 
       <Ledger
         items={[
@@ -151,7 +189,7 @@ export default async function OfferDetailPage({ params }: { params: Promise<{ re
                 remindedAt={o.last_reminded_at}
                 reminders={o.reminders_sent}
                 viberText={viberText}
-                active={o.status === "active"}
+                active={live}
                 nothingMissing={missingList.length === 0}
               />
             </div>
@@ -248,13 +286,17 @@ export default async function OfferDetailPage({ params }: { params: Promise<{ re
                 </div>
               ))}
             </dl>
-            <h3 className="mt-6 text-xs font-bold uppercase tracking-[0.16em] text-[#6b665d]">Payment schedule</h3>
+            <h3 className="mt-6 text-xs font-bold uppercase tracking-[0.16em] text-[#6b665d]">Payment schedule · {o.custom ? "custom terms" : (o.plan_name ?? "full payment")}</h3>
             <ul className="mt-2 divide-y divide-[#e6e2db] text-sm">
               {o.schedule.map((s, i) => (
                 <li key={i} className="flex items-baseline justify-between gap-4 py-2">
                   <span className="min-w-0">
                     <span className="font-semibold">{s.label}</span>
-                    <span className="text-[#8a847a]"> · {s.percent}%{s.date ? ` · ${shortDate(s.date)}` : ""}</span>
+                    <span className="text-[#8a847a]">
+                      {" "}
+                      · {pct(s.percent)}
+                      {s.months && s.end_date ? ` · ${s.months} × ${php(s.monthly)}, ${shortDate(s.date)} – ${shortDate(s.end_date)}` : s.date ? ` · ${shortDate(s.date)}` : " · on completion"}
+                    </span>
                   </span>
                   <span className="shrink-0 font-bold tabular-nums">{php(s.amount)}</span>
                 </li>

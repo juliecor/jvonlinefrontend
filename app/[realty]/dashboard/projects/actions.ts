@@ -94,13 +94,14 @@ export async function deleteUnit(slug: string, unitId: number): Promise<FormStat
 
 /* ─── Payment plans ─── */
 
-/** Milestone rows come as label[], percent[], days[]. */
+/** Milestone rows come as label[], percent[], days[], months[] (blank months = one payment). */
 function milestonesFrom(formData: FormData) {
   const labels = formData.getAll("label").map(String)
   const percents = formData.getAll("percent").map(String)
   const days = formData.getAll("days").map(String)
+  const months = formData.getAll("months").map(String)
   return labels
-    .map((label, i) => ({ label: label.trim(), percent: Number(percents[i]), days: days[i]?.trim() === "" ? null : Number(days[i]) }))
+    .map((label, i) => ({ label: label.trim(), percent: Number(percents[i]), days: days[i]?.trim() === "" ? null : Number(days[i]), months: Number(months[i]) >= 2 ? Number(months[i]) : null }))
     .filter((m) => m.label || m.percent)
 }
 
