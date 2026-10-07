@@ -2,9 +2,9 @@
 
 import { useCallback, useEffect, useState } from "react"
 import Image from "next/image"
-import Link from "next/link"
 import { AnimatePresence, motion, useMotionValue, useMotionValueEvent, useReducedMotion, useScroll, useSpring } from "framer-motion"
-import { LogIn, Menu, X } from "lucide-react"
+import { Menu, X } from "lucide-react"
+import { AccountLink } from "@/components/account-link"
 import { COMPANY } from "@/lib/johndorf/company"
 import type { PublicProjectCard } from "@/lib/public-projects-types"
 import { Buying, Footer, News } from "./closing"
@@ -149,12 +149,9 @@ function TopBar() {
             ))}
           </nav>
           <div className="flex items-center gap-2">
-            <Link
-              href="/johndorf/login"
+            <AccountLink
               className={`hidden items-center gap-2 rounded-full border px-4 py-2 text-[12px] font-semibold uppercase tracking-[0.12em] transition-colors sm:inline-flex ${solid ? "border-[#2a1d1b]/20 text-[#2a1d1b] hover:border-[#b4241c] hover:text-[#b4241c]" : "border-white/30 text-white hover:bg-white/10"}`}
-            >
-              <LogIn className="h-4 w-4" /> Sign in
-            </Link>
+            />
             <button type="button" onClick={() => setOpen(true)} aria-label="Open menu" className={`rounded-full p-2.5 lg:hidden ${solid ? "text-[#2a1d1b]" : "text-white"}`}>
               <Menu className="h-5 w-5" />
             </button>
@@ -189,9 +186,7 @@ function TopBar() {
                   {n.label}
                 </motion.a>
               ))}
-              <Link href="/johndorf/login" onClick={() => setOpen(false)} className="mt-4 inline-flex items-center gap-2 rounded-full border border-white/30 px-6 py-3 text-sm font-semibold uppercase tracking-[0.12em] text-white">
-                <LogIn className="h-4 w-4" /> Sign in
-              </Link>
+              <AccountLink onClick={() => setOpen(false)} className="mt-4 inline-flex items-center gap-2 rounded-full border border-white/30 px-6 py-3 text-sm font-semibold uppercase tracking-[0.12em] text-white" />
             </nav>
           </motion.div>
         )}

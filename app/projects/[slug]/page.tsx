@@ -1,5 +1,6 @@
 import type { Metadata } from "next"
 import Link from "next/link"
+import { AccountLink } from "@/components/account-link"
 import { notFound } from "next/navigation"
 import { ArrowRight, ArrowUpRight, ExternalLink, MapPin } from "lucide-react"
 import { publicProject, publicProjects } from "@/lib/public-projects"
@@ -182,9 +183,7 @@ export default async function ProjectPage({ params }: Props) {
                       Inquire on johndorfventures.com <ExternalLink className="h-4 w-4" />
                     </a>
                   )}
-                  <Link href="/johndorf/login" className="inline-flex items-center gap-2 rounded-sm border border-[#2a1d1b]/20 px-7 py-4 text-[13px] font-semibold uppercase tracking-[0.14em] text-[#2a1d1b] hover:border-[#b4241c] hover:text-[#b4241c]">
-                    Agent sign in
-                  </Link>
+                  <AccountLink signIn="Agent sign in" dashboard="Open your dashboard" icon={false} className="inline-flex items-center gap-2 rounded-sm border border-[#2a1d1b]/20 px-7 py-4 text-[13px] font-semibold uppercase tracking-[0.14em] text-[#2a1d1b] hover:border-[#b4241c] hover:text-[#b4241c]" />
                 </div>
               </div>
               {prev && next && (

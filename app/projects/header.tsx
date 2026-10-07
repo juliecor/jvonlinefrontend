@@ -3,7 +3,7 @@
 import Image from "next/image"
 import Link from "next/link"
 import { usePathname } from "next/navigation"
-import { LogIn } from "lucide-react"
+import { AccountLink } from "@/components/account-link"
 
 /** Johndorf's bar for the project pages: solid, simple, phone-friendly. The landing has its own. */
 export function SiteHeader({ light = false }: { light?: boolean }) {
@@ -28,9 +28,7 @@ export function SiteHeader({ light = false }: { light?: boolean }) {
           ))}
         </nav>
         <div className="flex items-center gap-2">
-          <Link href="/johndorf/login" className={`inline-flex items-center gap-2 rounded-sm border px-4 py-2 text-[12px] font-semibold uppercase tracking-[0.12em] transition ${light ? "border-white/30 text-white hover:bg-white/10" : "border-[#2a1d1b]/20 text-[#2a1d1b] hover:border-[#b4241c] hover:text-[#b4241c]"}`}>
-            <LogIn className="h-4 w-4" /> Sign in
-          </Link>
+          <AccountLink className={`inline-flex items-center gap-2 rounded-sm border px-4 py-2 text-[12px] font-semibold uppercase tracking-[0.12em] transition ${light ? "border-white/30 text-white hover:bg-white/10" : "border-[#2a1d1b]/20 text-[#2a1d1b] hover:border-[#b4241c] hover:text-[#b4241c]"}`} />
         </div>
       </div>
     </header>

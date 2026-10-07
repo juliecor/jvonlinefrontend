@@ -4,7 +4,8 @@ import { useRef } from "react"
 import Image from "next/image"
 import Link from "next/link"
 import { motion, useScroll, useTransform } from "framer-motion"
-import { ArrowRight, ArrowUp, ArrowUpRight, Building2, Compass, Landmark, LogIn } from "lucide-react"
+import { ArrowRight, ArrowUp, ArrowUpRight, Building2, Compass, Landmark } from "lucide-react"
+import { AccountLink } from "@/components/account-link"
 import { BUYING, COMPANY, NEWS } from "@/lib/johndorf/company"
 import { Eyebrow, Magnetic, Reveal, RiseWords, ease, serif } from "./ui"
 
@@ -156,9 +157,7 @@ export function Footer() {
             <a href={COMPANY.website} target="_blank" rel="noopener noreferrer" className="inline-flex items-center gap-2 text-sm font-semibold text-white/85 hover:text-white">
               <Landmark className="h-4 w-4" /> Official website <ArrowUpRight className="h-3.5 w-3.5" />
             </a>
-            <Link href="/johndorf/login" className="inline-flex items-center gap-2 text-sm font-semibold text-white/50 hover:text-white">
-              <LogIn className="h-4 w-4" /> Realty &amp; agent sign in
-            </Link>
+            <AccountLink signIn="Realty & agent sign in" dashboard="Your dashboard" className="inline-flex items-center gap-2 text-sm font-semibold text-white/50 hover:text-white" />
           </div>
           <div className="flex items-start sm:justify-end">
             <Magnetic strength={0.5}>
