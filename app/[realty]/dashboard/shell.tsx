@@ -142,10 +142,8 @@ export function DashboardShell({ slug, user, counts, superAdmin, signOutAction, 
 
       {/* Public site */}
       <div className="px-5 pb-5">
-        <a
+        <Link
           href={isSite ? "/" : `/${slug}/login`}
-          target="_blank"
-          rel="noreferrer"
           className="group block border border-[#e6e2db] bg-[#faf8f5] p-4 outline-none transition hover:border-[var(--accent)] focus-visible:ring-2 focus-visible:ring-[var(--accent)]"
         >
           <div className="flex items-center justify-between">
@@ -158,7 +156,7 @@ export function DashboardShell({ slug, user, counts, superAdmin, signOutAction, 
           <p className="mt-0.5 text-sm text-[#6b665d]">
             {isSite ? (counts ? `${counts.publicProjects} project page${counts.publicProjects === 1 ? "" : "s"} live` : "Johndorf's website") : staff ? "Share it with your agents" : "Where you sign in"}
           </p>
-        </a>
+        </Link>
       </div>
 
       {/* Account */}

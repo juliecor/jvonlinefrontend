@@ -114,7 +114,7 @@ export function AdminShell({ user, counts, realties, signOutAction, children }: 
 
       {/* Public site */}
       <div className="px-5 pb-5 pt-5">
-        <a href="/" target="_blank" rel="noreferrer" className="group block border border-[#e6e2db] bg-[#faf8f5] p-4 outline-none transition hover:border-[var(--accent)] focus-visible:ring-2 focus-visible:ring-[var(--accent)]">
+        <Link href="/" className="group block border border-[#e6e2db] bg-[#faf8f5] p-4 outline-none transition hover:border-[var(--accent)] focus-visible:ring-2 focus-visible:ring-[var(--accent)]">
           <div className="flex items-center justify-between">
             <p className="flex items-center gap-2 text-xs font-bold uppercase tracking-[0.14em] text-[#6b665d]">
               <Globe className="h-4 w-4 text-[var(--accent)]" /> Public site
@@ -123,7 +123,7 @@ export function AdminShell({ user, counts, realties, signOutAction, children }: 
           </div>
           <p className="mt-2 truncate text-[15px] font-bold text-[#17150f]">jvconline.ph</p>
           <p className="mt-0.5 text-sm text-[#6b665d]">The public website</p>
-        </a>
+        </Link>
       </div>
 
       {/* Account */}
