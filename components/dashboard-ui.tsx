@@ -89,6 +89,8 @@ export function Tag({ tone = "neutral", children }: { tone?: "neutral" | "good" 
 export const btn = {
   primary: "inline-flex items-center justify-center gap-2 bg-[var(--accent)] px-5 py-3 text-[15px] font-bold text-white transition hover:brightness-110 disabled:opacity-60",
   ghost: "inline-flex items-center justify-center gap-1.5 rounded-md border border-[#d9d4cb] bg-white px-3 py-2 text-xs font-semibold text-[#17150f] transition hover:border-[#17150f] disabled:opacity-60",
+  /** A row's own action: flat, bordered, bold ("View", "Open"). */
+  outline: "inline-flex items-center justify-center gap-1.5 border border-[#d9d4cb] bg-white px-3.5 py-2.5 text-sm font-bold text-[#17150f] transition hover:border-[#17150f] disabled:opacity-60",
 }
 
 export const field = "mt-1.5 block w-full rounded-md border border-[#d9d4cb] bg-white px-3.5 py-2.5 text-[15px] text-[#17150f] outline-none transition focus:border-[var(--accent)] focus:ring-2 focus:ring-[var(--accent)]/15 disabled:bg-[#f6f4f0] disabled:text-[#8a847a]"

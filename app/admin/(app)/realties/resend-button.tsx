@@ -3,6 +3,7 @@
 import { useActionState } from "react"
 import { LoaderCircle, RotateCw } from "lucide-react"
 import { CopyButton } from "@/components/copy-button"
+import { btn } from "@/components/dashboard-ui"
 import { type ResendState, resendInvite } from "./actions"
 
 export function ResendButton({ id }: { id: number }) {
@@ -13,14 +14,14 @@ export function ResendButton({ id }: { id: number }) {
       <button
         type="submit"
         disabled={pending}
-        className="inline-flex items-center gap-1.5 rounded-md border border-slate-300 px-2.5 py-1.5 text-xs font-semibold text-slate-700 transition hover:border-slate-900 hover:text-slate-900 disabled:opacity-60"
+        className={btn.outline}
       >
-        {pending ? <LoaderCircle className="h-3.5 w-3.5 animate-spin" /> : <RotateCw className="h-3.5 w-3.5" />}
+        {pending ? <LoaderCircle className="h-4 w-4 animate-spin" /> : <RotateCw className="h-4 w-4" />}
         Resend invite
       </button>
-      {state.sent && <span className="text-xs text-emerald-700">{state.sent}</span>}
+      {state.sent && <span className="text-xs font-semibold text-emerald-700">{state.sent}</span>}
       {state.url && <CopyButton text={state.url} label="Copy link" />}
-      {state.error && <span className="text-xs text-red-700">{state.error}</span>}
+      {state.error && <span className="text-xs font-semibold text-red-700">{state.error}</span>}
     </form>
   )
 }

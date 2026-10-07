@@ -1,8 +1,10 @@
 import Link from "next/link"
-import { Building2, Clock, Eye, FileText, FileUp, Home, MessageSquareReply, UserPlus, UserRound, Users } from "lucide-react"
+import { Building2, Clock, FileText, FileUp, Home, MessageSquareReply, Plus, UserPlus } from "lucide-react"
+import { Empty, Ledger, PageHeader, Panel, Row, Rows, Tag, btn } from "@/components/dashboard-ui"
 import { api } from "@/lib/api"
 import { requireAdmin } from "@/lib/admin-auth"
-import { shortDate } from "@/lib/format"
+import { greeting, shortDate } from "@/lib/format"
+import { OpenDashboard } from "./open-dashboard"
 
 export const metadata = { title: "Dashboard" }
 
@@ -21,61 +23,110 @@ type Stats = {
   documents: number
   recent: { kind: string; at: string; realty: string | null; realty_id: number | null; text: string; code?: string }[]
 }
+type Realty = { id: number; name: string; slug: string; status: "invited" | "active"; users_count: number }
 
 const KIND_ICON = { realty_registered: Building2, realty_invited: Clock, agent_joined: UserPlus, project_added: Home, offer_created: FileText, offer_response: MessageSquareReply, document_uploaded: FileUp } as const
 
-/** jvconline.ph/admin — the numbers across every realty, and what happened lately. */
+/** jvconline.ph/admin — the numbers across every realty, the realties themselves, and what happened lately. */
 export default async function AdminDashboardPage() {
   const { user, token } = await requireAdmin()
-  const s = await api<Stats>("/admin/stats", { token })
-
-  const tiles = [
-    { label: "Realties", value: s.realties, note: `${s.realties_active} active · ${s.realties_invited} invited`, icon: Building2, href: "/admin/realties" },
-    { label: "Realty staff", value: s.realty_users, note: "logins across realties", icon: UserRound, href: "/admin/people" },
-    { label: "Agents", value: s.agents, note: "invited by their realty", icon: Users, href: "/admin/people" },
-    { label: "Projects", value: s.projects, note: `${s.units} unit${s.units === 1 ? "" : "s"} listed`, icon: Home, href: "/admin/realties" },
-    { label: "Active offers", value: s.offers_active, note: `${s.offers_total} sent in total`, icon: FileText, href: "/admin/offers" },
-    { label: "Offer views", value: s.offer_views, note: `${s.offer_responses} buyer response${s.offer_responses === 1 ? "" : "s"} · ${s.documents} document${s.documents === 1 ? "" : "s"}`, icon: Eye, href: "/admin/offers" },
-  ]
+  const [s, realties] = await Promise.all([api<Stats>("/admin/stats", { token }), api<Realty[]>("/admin/realties", { token })])
 
   return (
-    <div className="mx-auto max-w-5xl">
-      <p className="text-sm text-slate-500">Welcome back, {user.name.split(" ")[0]}.</p>
-      <h1 className="mt-1 text-2xl font-semibold tracking-tight sm:text-3xl">Dashboard</h1>
-
-      <div className="mt-8 grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
-        {tiles.map(({ label, value, note, icon: Icon, href }) => (
-          <Link key={label} href={href} className="rounded-2xl border border-slate-200 bg-white p-5 transition hover:border-slate-400">
-            <Icon className="h-5 w-5 text-slate-400" />
-            <p className="mt-4 text-3xl font-semibold tabular-nums tracking-tight">{value.toLocaleString("en-PH")}</p>
-            <p className="mt-1 text-sm font-medium">{label}</p>
-            <p className="text-xs text-slate-500">{note}</p>
+    <div>
+      <PageHeader
+        eyebrow="jvconline"
+        title={`${greeting()}, ${user.name.split(" ")[0]}.`}
+        lede="Here's how every realty on the platform stands today."
+        action={
+          <Link href="/admin/realties#invite" className={btn.primary}>
+            <Plus className="h-4 w-4" strokeWidth={2.5} /> Invite a realty
           </Link>
-        ))}
-      </div>
+        }
+      />
+      <Ledger
+        items={[
+          { label: "Realties", value: s.realties_active, note: s.realties_invited ? `${s.realties_invited} invited` : "all registered", href: "/admin/realties" },
+          { label: "People", value: s.realty_users + s.agents, note: `${s.realty_users} staff · ${s.agents} agent${s.agents === 1 ? "" : "s"}`, href: "/admin/people" },
+          { label: "Projects", value: s.projects, note: `${s.units} unit${s.units === 1 ? "" : "s"} listed` },
+          { label: "Active offers", value: s.offers_active, note: `${s.offers_total} sent in total`, href: "/admin/offers" },
+          { label: "Offer views", value: s.offer_views, note: `${s.offer_responses} response${s.offer_responses === 1 ? "" : "s"} · ${s.documents} doc${s.documents === 1 ? "" : "s"}`, href: "/admin/offers" },
+        ]}
+      />
 
-      <section className="mt-8 overflow-hidden rounded-2xl border border-slate-200 bg-white">
-        <h2 className="border-b border-slate-100 px-5 py-3 text-xs font-semibold uppercase tracking-[0.14em] text-slate-500 sm:px-6">Latest activity</h2>
-        <ul className="divide-y divide-slate-100">
+      <Panel title={`Realties · ${realties.length}`} aside={<Link href="/admin/realties" className="font-semibold hover:text-[#17150f]">All realties →</Link>}>
+        <Rows>
+          {realties.map((r) => (
+            <Row key={r.id}>
+              <div className="min-w-0">
+                <div className="flex flex-wrap items-center gap-2">
+                  <Link href={`/admin/realties/${r.id}`} className="text-lg font-bold hover:text-[var(--accent)]">
+                    {r.name}
+                  </Link>
+                  {r.status === "active" ? <Tag tone="good">Active</Tag> : <Tag tone="warn">Invited</Tag>}
+                </div>
+                <p className="mt-0.5 text-sm text-[#6b665d]">
+                  jvconline.ph/{r.slug}
+                  {r.status === "active" && ` · ${r.users_count} login${r.users_count === 1 ? "" : "s"}`}
+                </p>
+              </div>
+              <div className="flex shrink-0 flex-wrap items-center gap-2">
+                {user.is_superadmin && r.status === "active" && <OpenDashboard slug={r.slug} />}
+                <Link href={`/admin/realties/${r.id}`} className={btn.outline}>
+                  Details
+                </Link>
+              </div>
+            </Row>
+          ))}
+          {realties.length === 0 && (
+            <li>
+              <Empty>No realties yet. Invite the first one.</Empty>
+            </li>
+          )}
+        </Rows>
+      </Panel>
+
+      <Panel title="Latest activity">
+        <Rows>
           {s.recent.map((e, i) => {
             const Icon = KIND_ICON[e.kind as keyof typeof KIND_ICON] ?? FileText
             return (
-              <li key={i} className="flex items-start gap-3 px-5 py-3 sm:px-6">
-                <Icon className="mt-0.5 h-4 w-4 shrink-0 text-slate-400" />
+              <li key={i} className="flex items-start gap-4 py-4">
+                <span className="flex h-10 w-10 shrink-0 items-center justify-center bg-[#f1eee9] text-[#3d3a34]">
+                  <Icon className="h-5 w-5" />
+                </span>
                 <div className="min-w-0 flex-1">
-                  <p className="text-sm">{e.text}</p>
-                  <p className="mt-0.5 text-xs text-slate-400">
+                  <p className="text-[15px] font-semibold text-[#17150f]">{e.text}</p>
+                  <p className="mt-0.5 text-sm text-[#8a847a]">
                     {shortDate(e.at)}
-                    {e.realty_id && <> · <Link href={`/admin/realties/${e.realty_id}`} className="hover:text-slate-900 hover:underline">{e.realty}</Link></>}
-                    {e.code && <> · <a href={`/offer/${e.code}`} target="_blank" className="font-mono hover:text-slate-900 hover:underline">{e.code}</a></>}
+                    {e.realty_id && (
+                      <>
+                        {" · "}
+                        <Link href={`/admin/realties/${e.realty_id}`} className="hover:text-[#17150f] hover:underline">
+                          {e.realty}
+                        </Link>
+                      </>
+                    )}
+                    {e.code && (
+                      <>
+                        {" · "}
+                        <a href={`/offer/${e.code}`} target="_blank" rel="noreferrer" className="font-mono hover:text-[#17150f] hover:underline">
+                          {e.code}
+                        </a>
+                      </>
+                    )}
                   </p>
                 </div>
               </li>
             )
           })}
-          {s.recent.length === 0 && <li className="px-6 py-10 text-center text-sm text-slate-500">Nothing yet.</li>}
-        </ul>
-      </section>
+          {s.recent.length === 0 && (
+            <li>
+              <Empty>Nothing yet.</Empty>
+            </li>
+          )}
+        </Rows>
+      </Panel>
     </div>
   )
 }

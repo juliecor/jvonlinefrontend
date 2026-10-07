@@ -1,8 +1,12 @@
+import { Suspense } from "react"
 import Link from "next/link"
 import { ExternalLink, Eye } from "lucide-react"
+import { Empty, PageHeader, Panel, Row, Rows, Tag, btn } from "@/components/dashboard-ui"
+import { LeadTag } from "@/components/leads"
 import { api } from "@/lib/api"
 import { requireAdmin } from "@/lib/admin-auth"
 import { php, shortDate } from "@/lib/format"
+import { RealtyFilter } from "../realty-filter"
 
 export const metadata = { title: "Offers" }
 
@@ -15,8 +19,6 @@ type Offer = {
 }
 type Realty = { id: number; name: string }
 
-const RESPONSE_TONE = { interested: "bg-emerald-50 text-emerald-700", question: "bg-amber-50 text-amber-700", not_interested: "bg-slate-100 text-slate-600" } as const
-
 /** jvconline.ph/admin/offers — every offer on the platform, filterable by realty. */
 export default async function AdminOffersPage({ searchParams }: { searchParams: Promise<{ realty?: string }> }) {
   const { token } = await requireAdmin()
@@ -27,60 +29,65 @@ export default async function AdminOffersPage({ searchParams }: { searchParams: 
   ])
 
   return (
-    <div className="mx-auto max-w-5xl">
-      <div className="flex flex-wrap items-end justify-between gap-4">
-        <div>
-          <h1 className="text-2xl font-semibold tracking-tight sm:text-3xl">Offers</h1>
-          <p className="mt-1 text-sm text-slate-500">Sales offers agents have sent to buyers, across all realties.</p>
-        </div>
-        <form className="flex items-center gap-2">
-          <label className="text-xs font-semibold uppercase tracking-[0.12em] text-slate-500" htmlFor="realty">Realty</label>
-          <select id="realty" name="realty" defaultValue={realty ?? ""} className="rounded-lg border border-slate-300 bg-white px-3 py-2 text-sm">
-            <option value="">All</option>
-            {realties.map((r) => <option key={r.id} value={r.id}>{r.name}</option>)}
-          </select>
-          <button type="submit" className="rounded-lg border border-slate-300 px-3 py-2 text-sm font-semibold text-slate-700 hover:border-slate-900">Filter</button>
-        </form>
-      </div>
+    <div>
+      <PageHeader
+        eyebrow="Platform"
+        title="Offers"
+        lede="Sales offers agents have sent to buyers, across all realties."
+        action={
+          <Suspense>
+            <RealtyFilter realties={realties} />
+          </Suspense>
+        }
+      />
 
-      <section className="mt-8 overflow-hidden rounded-2xl border border-slate-200 bg-white">
-        <ul className="divide-y divide-slate-100">
+      <Panel title={`Offers · ${offers.length}`}>
+        <Rows>
           {offers.map((o) => (
-            <li key={o.id} className={`flex flex-col gap-2 px-5 py-4 sm:flex-row sm:items-center sm:justify-between sm:px-6 ${o.status === "void" ? "opacity-60" : ""}`}>
+            <Row key={o.id} muted={o.status === "void"}>
               <div className="min-w-0">
                 <div className="flex flex-wrap items-center gap-2">
-                  <p className="font-semibold">{o.buyer_name}</p>
-                  <span className="font-mono text-xs text-slate-400">{o.code}</span>
-                  {o.status === "void" && <span className="rounded-full bg-slate-200 px-2 py-0.5 text-[10px] font-semibold uppercase tracking-[0.14em] text-slate-600">Void</span>}
-                  {o.latest_response && (
-                    <span className={`rounded-full px-2 py-0.5 text-[10px] font-semibold uppercase tracking-[0.14em] ${RESPONSE_TONE[o.latest_response.kind]}`}>
-                      {o.latest_response.label}
-                      {o.responses_count > 1 && ` · ${o.responses_count}`}
-                    </span>
-                  )}
+                  <p className="text-lg font-bold">{o.buyer_name}</p>
+                  <span className="font-mono text-xs text-[#8a847a]">{o.code}</span>
+                  {o.status === "void" && <Tag>Void</Tag>}
+                  {o.latest_response && <LeadTag kind={o.latest_response.kind} label={`${o.latest_response.label}${o.responses_count > 1 ? ` · ${o.responses_count}` : ""}`} />}
                   {o.custom && (
-                    <span className={`rounded-full px-2 py-0.5 text-[10px] font-semibold uppercase tracking-[0.14em] ${o.approval_status === "approved" ? "bg-slate-100 text-slate-600" : o.approval_status === "rejected" ? "bg-red-50 text-red-700" : "bg-amber-50 text-amber-700"}`}>
+                    <Tag tone={o.approval_status === "approved" ? "neutral" : o.approval_status === "rejected" ? "bad" : "warn"}>
                       Custom terms{o.approval_status === "pending" ? " · waiting" : o.approval_status === "rejected" ? " · sent back" : ""}
-                    </span>
+                    </Tag>
                   )}
                   {o.requirements.required > 0 && o.status === "active" && (
-                    <span className="rounded-full bg-slate-100 px-2 py-0.5 text-[10px] font-semibold uppercase tracking-[0.14em] text-slate-600">
+                    <Tag tone={o.requirements.to_review > 0 ? "warn" : "neutral"}>
                       Docs {o.requirements.submitted + (o.requirements.details ? 1 : 0)}/{o.requirements.required + 1}
                       {o.requirements.to_review > 0 && ` · ${o.requirements.to_review} to review`}
-                    </span>
+                    </Tag>
                   )}
                 </div>
-                <p className="mt-0.5 text-sm text-slate-500">
-                  {o.realty && <Link href={`/admin/realties/${o.realty.id}`} className="font-medium text-slate-700 hover:underline">{o.realty.name}</Link>} · {o.project} · {o.unit} · {php(o.price)}{o.agent && <> · by {o.agent}</>}
+                <p className="mt-0.5 text-sm text-[#6b665d]">
+                  {o.realty && (
+                    <Link href={`/admin/realties/${o.realty.id}`} className="font-semibold text-[#3d3a34] hover:text-[var(--accent)] hover:underline">
+                      {o.realty.name}
+                    </Link>
+                  )}
+                  {" · "}
+                  {[o.project, o.unit, php(o.price), o.agent && `by ${o.agent}`].filter(Boolean).join(" · ")}
                 </p>
-                <p className="mt-0.5 flex items-center gap-1 text-xs text-slate-400">{shortDate(o.created_at)} · <Eye className="h-3 w-3" /> {o.views} view{o.views === 1 ? "" : "s"}</p>
+                <p className="mt-0.5 flex items-center gap-1 text-sm text-[#8a847a]">
+                  {shortDate(o.created_at)} · <Eye className="h-3.5 w-3.5" /> {o.views} view{o.views === 1 ? "" : "s"}
+                </p>
               </div>
-              <a href={o.url} target="_blank" rel="noreferrer" className="inline-flex shrink-0 items-center gap-1.5 rounded-md border border-slate-300 px-2.5 py-1.5 text-xs font-semibold text-slate-700 hover:border-slate-900">Open <ExternalLink className="h-3.5 w-3.5" /></a>
-            </li>
+              <a href={o.url} target="_blank" rel="noreferrer" className={btn.outline}>
+                Open <ExternalLink className="h-3.5 w-3.5" />
+              </a>
+            </Row>
           ))}
-          {offers.length === 0 && <li className="px-6 py-10 text-center text-sm text-slate-500">No offers{realty ? " for this realty" : ""} yet.</li>}
-        </ul>
-      </section>
+          {offers.length === 0 && (
+            <li>
+              <Empty>No offers{realty ? " for this realty" : ""} yet.</Empty>
+            </li>
+          )}
+        </Rows>
+      </Panel>
     </div>
   )
 }

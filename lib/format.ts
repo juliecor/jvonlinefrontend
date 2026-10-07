@@ -30,3 +30,9 @@ export const timeAgo = (iso: string | null | undefined) => {
   if (days < 7) return `${days} days ago`
   return shortDate(iso)
 }
+
+/** "Good morning" / "Good afternoon" / "Good evening", by the clock in Manila. */
+export const greeting = () => {
+  const h = Number(new Date().toLocaleString("en-PH", { hour: "numeric", hour12: false, timeZone: "Asia/Manila" }))
+  return h < 12 ? "Good morning" : h < 18 ? "Good afternoon" : "Good evening"
+}

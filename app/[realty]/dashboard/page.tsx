@@ -3,7 +3,7 @@ import { ArrowRight } from "lucide-react"
 import { Ledger, PageHeader, Panel, Row, Rows, btn, display } from "@/components/dashboard-ui"
 import { ContactButtons, LeadTag, NewTag, type Lead } from "@/components/leads"
 import { api } from "@/lib/api"
-import { timeAgo } from "@/lib/format"
+import { greeting, timeAgo } from "@/lib/format"
 import { SITE_REALTY } from "@/lib/public-projects-types"
 import { requireRealtyUser } from "@/lib/realty-auth"
 
@@ -16,10 +16,6 @@ type Overview = {
 
 type RecentLead = Lead & { offer_id: number; offer_code: string | null; unit: string | null; project: string | null }
 
-const greeting = () => {
-  const h = Number(new Date().toLocaleString("en-PH", { hour: "numeric", hour12: false, timeZone: "Asia/Manila" }))
-  return h < 12 ? "Good morning" : h < 18 ? "Good afternoon" : "Good evening"
-}
 
 /** The realty dashboard's first page: the numbers, and the two things people come here to do. */
 export default async function RealtyOverviewPage({ params }: { params: Promise<{ realty: string }> }) {
