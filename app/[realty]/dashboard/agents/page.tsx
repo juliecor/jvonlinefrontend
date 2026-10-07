@@ -141,7 +141,15 @@ function ApplicationRow({ slug, application: a }: { slug: string; application: A
           </div>
           <p className="mt-0.5 text-sm text-[#8a847a]">
             {a.email}
-            {a.phone && <> · {a.phone}</>} · applied {shortDate(a.applied_at)}
+            {a.phone && (
+              <>
+                {" · "}
+                <a href={`tel:${a.phone}`} className="hover:text-[#17150f] hover:underline">
+                  {a.phone}
+                </a>
+              </>
+            )}{" "}
+            · applied {shortDate(a.applied_at)}
             {a.status === "rejected" && a.reviewed_at && <> · rejected {shortDate(a.reviewed_at)}{a.reviewed_by && <> by {a.reviewed_by}</>}</>}
           </p>
         </div>
