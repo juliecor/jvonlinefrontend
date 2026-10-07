@@ -6,7 +6,7 @@ import { realtyIcons } from "@/lib/realty-icon"
 import { signOutRealty } from "../login/actions"
 import { DashboardShell, type ShellCounts, type SuperAdminNav } from "./shell"
 
-type Props = { children: React.ReactNode; params: Promise<{ realty: string }> }
+type Props = { children: React.ReactNode; modal: React.ReactNode; params: Promise<{ realty: string }> }
 type Stats = { projects: number; offers: number; agents: number; agents_invited: number; agents_pending: number; public_projects: number; new_responses: number; docs_to_review: number; to_approve: number; sent_back: number }
 
 export async function generateMetadata({ params }: Props): Promise<Metadata> {
@@ -18,7 +18,7 @@ export async function generateMetadata({ params }: Props): Promise<Metadata> {
  * jvconline.ph/<realty>/dashboard — the realty's own space. Its logo and brand
  * colour (--accent) tint the shell; staff and agents share it, the nav differs.
  */
-export default async function RealtyDashboardLayout({ children, params }: Props) {
+export default async function RealtyDashboardLayout({ children, modal, params }: Props) {
   const { realty: slug } = await params
   const { user, token } = await requireRealtyUser(slug)
   const accent = user.realty.accent_color ?? "#1f2937"
@@ -38,6 +38,8 @@ export default async function RealtyDashboardLayout({ children, params }: Props)
     <div style={{ ["--accent" as string]: accent }}>
       <DashboardShell slug={slug} user={user} counts={counts} superAdmin={superAdmin} signOutAction={signOutRealty.bind(null, slug)}>
         {children}
+        {/* New offer and Add project open here, as a dialog over the current page (see @modal). */}
+        {modal}
       </DashboardShell>
     </div>
   )

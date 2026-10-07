@@ -74,17 +74,17 @@ export function OfferForm({ slug, projects, initialProject, today, isStaff, real
 
   if (state.url) {
     return (
-      <div className="rounded-2xl border border-emerald-200 bg-emerald-50 p-6">
-        <p className="text-sm font-semibold uppercase tracking-[0.14em] text-emerald-700">Offer ready</p>
-        <p className="mt-2 text-lg font-semibold text-slate-900">{state.emailed ? `Emailed to ${state.emailed}` : "Send this link to the buyer"}</p>
+      <div className="border border-emerald-300 bg-emerald-50 p-6">
+        <p className="text-sm font-bold uppercase tracking-[0.14em] text-emerald-700">Offer ready</p>
+        <p className="mt-2 text-lg font-bold text-[#17150f]">{state.emailed ? `Emailed to ${state.emailed}` : "Send this link to the buyer"}</p>
         {state.emailed && <p className="mt-1 text-sm text-slate-600">You can also copy the link below and send it by Viber or text.</p>}
-        <p className="mt-3 break-all rounded-lg border border-emerald-200 bg-white px-3.5 py-2.5 font-mono text-sm text-slate-800">{state.url}</p>
+        <p className="mt-3 break-all border border-emerald-200 bg-white px-3.5 py-2.5 font-mono text-sm text-[#17150f]">{state.url}</p>
         <div className="mt-4 flex flex-wrap gap-2">
           <CopyButton text={state.url} className="bg-white" />
-          <a href={state.url} target="_blank" rel="noreferrer" className="inline-flex items-center gap-1.5 rounded-md border border-slate-300 bg-white px-2.5 py-1.5 text-xs font-semibold text-slate-700 hover:border-slate-900">
+          <a href={state.url} target="_blank" rel="noreferrer" className="inline-flex items-center gap-1.5 border border-[#d9d4cb] bg-white px-3.5 py-2.5 text-sm font-bold text-[#17150f] hover:border-[#17150f]">
             Open <ExternalLink className="h-3.5 w-3.5" />
           </a>
-          <Link href={state.id ? `/${slug}/dashboard/offers/${state.id}` : `/${slug}/dashboard/offers`} className="inline-flex items-center rounded-md bg-slate-900 px-3 py-1.5 text-xs font-semibold text-white hover:bg-slate-700">
+          <Link href={state.id ? `/${slug}/dashboard/offers/${state.id}` : `/${slug}/dashboard/offers`} className="inline-flex items-center bg-[var(--accent)] px-4 py-2.5 text-sm font-bold text-white hover:brightness-110">
             Track this offer
           </Link>
         </div>
@@ -193,14 +193,14 @@ export function OfferForm({ slug, projects, initialProject, today, isStaff, real
           <input name="purchase_date" type="date" required value={date} onChange={(e) => setDate(e.target.value)} className={fieldClass} />
         </label>
         {state.error && <Alert kind="error">{state.error}</Alert>}
-        <button type="submit" disabled={pending || !unit || !termsOk} className="inline-flex items-center gap-2 rounded-lg bg-slate-900 px-5 py-2.5 text-sm font-semibold text-white transition hover:bg-slate-700 disabled:opacity-60">
+        <button type="submit" disabled={pending || !unit || !termsOk} className="inline-flex items-center gap-2 bg-[var(--accent)] px-6 py-3.5 text-[15px] font-bold text-white transition hover:brightness-110 disabled:opacity-60">
           {pending ? <LoaderCircle className="h-4 w-4 animate-spin" /> : <Send className="h-4 w-4" />}
           {custom && !isStaff ? "Send for approval" : "Create offer link"}
         </button>
         {custom && !termsOk && <p className="text-xs font-semibold text-amber-700">The payments need a name and an amount each, and must add up to the price.</p>}
       </div>
 
-      <aside className="h-fit rounded-2xl border border-slate-200 bg-slate-50 p-5 lg:sticky lg:top-6">
+      <aside className="h-fit border border-[#e0dcd5] bg-white p-5 lg:sticky lg:top-6">
         <p className="text-xs font-semibold uppercase tracking-[0.14em] text-slate-500">Preview{custom ? " · custom terms" : ""}</p>
         {unit ? (
           <>

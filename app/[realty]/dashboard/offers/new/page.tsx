@@ -1,11 +1,9 @@
 import Link from "next/link"
 import { ArrowLeft } from "lucide-react"
 import { PageHeader } from "@/components/dashboard-ui"
-import { api } from "@/lib/api"
 import { todayManila } from "@/lib/format"
-import { requireRealtyUser } from "@/lib/realty-auth"
-import type { Project, ProjectDetail } from "../../projects/types"
 import { OfferForm } from "../offer-form"
+import { loadNewOffer } from "./load"
 
 export const metadata = { title: "New offer" }
 
@@ -14,12 +12,9 @@ type Props = { params: Promise<{ realty: string }>; searchParams: Promise<{ proj
 /** jvconline.ph/<realty>/dashboard/offers/new — prepare a sales offer for a buyer. */
 export default async function NewOfferPage({ params, searchParams }: Props) {
   const { realty: slug } = await params
-  const { user, token } = await requireRealtyUser(slug)
   const query = await searchParams
-
   // Every active project with its units and plans, so the form can switch between them without round trips.
-  const list = (await api<Project[]>("/realty/projects", { token })).filter((p) => p.status === "active")
-  const projects = (await Promise.all(list.map((p) => api<ProjectDetail>(`/realty/projects/${p.id}`, { token })))).filter((p) => p.units.some((u) => u.price !== null))
+  const { user, projects } = await loadNewOffer(slug)
 
   return (
     <div>
