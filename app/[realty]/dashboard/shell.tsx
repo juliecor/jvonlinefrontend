@@ -60,7 +60,7 @@ export function DashboardShell({ slug, user, counts, signOutAction, children }: 
         </Link>
         <div className="mt-4 flex items-center justify-between gap-2">
           <p className="truncate text-xs font-bold uppercase tracking-[0.16em] text-[#6b665d]">Dashboard</p>
-          <span className="shrink-0 bg-[#f3f0eb] px-2 py-1 text-[11px] font-bold uppercase tracking-[0.12em] text-[#3d3a34]">{staff ? "Staff" : "Agent"}</span>
+          <span className="shrink-0 bg-[#f3f0eb] px-2 py-1 text-[11px] font-bold uppercase tracking-[0.12em] text-[#3d3a34]">{staff ? "Admin" : "Agent"}</span>
         </div>
       </div>
 
