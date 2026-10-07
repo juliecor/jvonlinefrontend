@@ -15,7 +15,7 @@ export const metadata = { title: "Agents" }
 type Agents = {
   agents: { id: number; name: string; email: string; phone: string | null; joined_at: string; offers_count: number }[]
   applications: Application[]
-  invitations: { id: number; name: string; email: string | null; invited_at: string; expires_at: string; expired: boolean }[]
+  invitations: { id: number; name: string; email: string | null; phone: string | null; invited_at: string; expires_at: string; expired: boolean }[]
 }
 
 type Application = {
@@ -61,7 +61,18 @@ export default async function RealtyAgentsPage({ params }: { params: Promise<{ r
                     <p className="font-semibold">{i.name}</p>
                     {i.expired ? <Tag tone="bad">Link expired</Tag> : <Tag tone="warn">Invited</Tag>}
                   </div>
-                  <p className="mt-0.5 text-sm text-[#8a847a]">{i.email ?? "no email yet"} · link made {shortDate(i.invited_at)}</p>
+                  <p className="mt-0.5 text-sm text-[#8a847a]">
+                    {i.email ?? "no email yet"}
+                    {i.phone && (
+                      <>
+                        {" · "}
+                        <a href={`tel:${i.phone}`} className="hover:text-[#17150f] hover:underline">
+                          {i.phone}
+                        </a>
+                      </>
+                    )}{" "}
+                    · link made {shortDate(i.invited_at)}
+                  </p>
                 </div>
                 <NewLinkButton slug={slug} id={i.id} />
               </Row>

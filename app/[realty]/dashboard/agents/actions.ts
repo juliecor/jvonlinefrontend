@@ -12,10 +12,12 @@ export async function inviteAgent(slug: string, _: AgentInviteState, formData: F
   if (user.role !== "realty") return { error: "Only realty staff can invite agents." }
   const name = String(formData.get("name") ?? "").trim()
   const email = String(formData.get("email") ?? "").trim()
+  const phone = String(formData.get("phone") ?? "").trim()
   if (!name) return { error: "Enter the agent's name." }
+  if (phone && !/^09\d{9}$/.test(phone)) return { error: "Enter an 11-digit mobile number starting with 09, numbers only, like 09171234567." }
 
   try {
-    const inv = await api<{ join_url: string }>("/realty/agents", { method: "POST", token, body: { name, email: email || null } })
+    const inv = await api<{ join_url: string }>("/realty/agents", { method: "POST", token, body: { name, email: email || null, phone: phone || null } })
     revalidatePath(`/${slug}/dashboard`, "layout")
     return { url: inv.join_url, name }
   } catch (e) {

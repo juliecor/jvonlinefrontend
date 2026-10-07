@@ -10,7 +10,7 @@ import { realtyIcons } from "@/lib/realty-icon"
 import { JoinForm } from "./join-form"
 
 type Props = { params: Promise<{ realty: string; token: string }> }
-type Invite = { realty: PublicRealty; name: string; email: string | null; invited_by: string | null; expires_at: string }
+type Invite = { realty: PublicRealty; name: string; email: string | null; phone: string | null; invited_by: string | null; expires_at: string }
 
 export async function generateMetadata({ params }: Props): Promise<Metadata> {
   const realty = await realtyBySlug((await params).realty)
@@ -145,7 +145,7 @@ export default async function JoinPage({ params }: Props) {
               </dl>
 
               <div className="mt-8">
-                <JoinForm token={token} name={invite.name} email={invite.email} />
+                <JoinForm token={token} name={invite.name} email={invite.email} phone={invite.phone} />
               </div>
 
               <div className="mt-10 border-t border-[#e0dcd5] pt-6">

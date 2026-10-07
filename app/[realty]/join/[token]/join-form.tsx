@@ -9,12 +9,12 @@ const field = "mt-1.5 block w-full border border-[#d9d4cb] bg-white px-4 py-3.5 
 const label = "text-xs font-bold uppercase tracking-[0.12em] text-[#5a554d]"
 
 /** Name, login email, contact number, resume and password, with the password rules ticked off as they type. */
-export function JoinForm({ token, name, email }: { token: string; name: string; email: string | null }) {
+export function JoinForm({ token, name, email, phone: invitedPhone }: { token: string; name: string; email: string | null; phone: string | null }) {
   const [state, action, pending] = useActionState<JoinState, FormData>(joinRealty.bind(null, token), {})
   const [show, setShow] = useState(false)
   const [pw, setPw] = useState("")
   const [pw2, setPw2] = useState("")
-  const [phone, setPhone] = useState(state.phone ?? "")
+  const [phone, setPhone] = useState(state.phone ?? invitedPhone ?? "")
   const [resume, setResume] = useState<File | null>(null)
   // The form action clears the file input after each try, so forget the picked file with it.
   const [seen, setSeen] = useState(state)
