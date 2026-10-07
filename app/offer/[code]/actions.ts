@@ -1,6 +1,7 @@
 "use server"
 
-import { api, errorMessage } from "@/lib/api"
+import { ApiError, api, errorMessage } from "@/lib/api"
+import type { Requirement } from "@/lib/requirements-types"
 
 export type RespondState = { error?: string; done?: "interested" | "question" | "not_interested"; name?: string }
 
@@ -28,4 +29,45 @@ export async function respondToOffer(code: string, _: RespondState, fd: FormData
     return { error: errorMessage(e) }
   }
   return { done: kind, name }
+}
+
+export type ReqResult = { requirements?: Requirement[]; detailsAt?: string | null; error?: string; fields?: Record<string, string> }
+
+const fieldErrors = (e: unknown) => (e instanceof ApiError ? Object.fromEntries(Object.entries(e.errors).map(([k, v]) => [k, v[0]])) : {})
+
+/** The buyer information form. Sent as JSON; checkboxes become booleans. */
+export async function submitDetails(code: string, fd: FormData): Promise<ReqResult> {
+  const body: Record<string, unknown> = {}
+  for (const [k, v] of fd.entries()) if (typeof v === "string") body[k] = v.trim() || null
+  body.co_borrower = fd.get("co_borrower") === "on"
+  body.consent = fd.get("consent") === "on"
+  try {
+    const r = await api<{ requirements: Requirement[]; details_submitted_at: string }>(`/offers/${encodeURIComponent(code)}/details`, { method: "POST", body })
+    return { requirements: r.requirements, detailsAt: r.details_submitted_at }
+  } catch (e) {
+    return { error: errorMessage(e), fields: fieldErrors(e) }
+  }
+}
+
+/** Photos or PDFs for one requirement. */
+export async function uploadDocuments(code: string, typeId: number, fd: FormData): Promise<ReqResult> {
+  const out = new FormData()
+  out.append("requirement_type_id", String(typeId))
+  for (const f of fd.getAll("files")) if (f instanceof File && f.size > 0) out.append("files[]", f)
+  if (!out.has("files[]")) return { error: "Choose a photo or a PDF." }
+  try {
+    const r = await api<{ requirements: Requirement[] }>(`/offers/${encodeURIComponent(code)}/documents`, { method: "POST", body: out })
+    return { requirements: r.requirements }
+  } catch (e) {
+    return { error: errorMessage(e) }
+  }
+}
+
+export async function removeDocument(code: string, docId: number): Promise<ReqResult> {
+  try {
+    const r = await api<{ requirements: Requirement[] }>(`/offers/${encodeURIComponent(code)}/documents/${docId}/remove`, { method: "POST" })
+    return { requirements: r.requirements }
+  } catch (e) {
+    return { error: errorMessage(e) }
+  }
 }

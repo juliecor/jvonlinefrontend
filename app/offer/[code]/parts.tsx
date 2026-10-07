@@ -7,8 +7,8 @@ import { Lightbox } from "../../projects/[slug]/lightbox"
 /** The browser's print dialog doubles as "Save as PDF". */
 export function PrintButton({ className = "" }: { className?: string }) {
   return (
-    <button type="button" onClick={() => window.print()} className={`inline-flex items-center gap-2 text-sm font-bold transition ${className}`}>
-      <Printer className="h-4 w-4" /> Save as PDF
+    <button type="button" onClick={() => window.print()} aria-label="Save as PDF" className={`inline-flex items-center gap-2 text-sm font-bold transition ${className}`}>
+      <Printer className="h-4 w-4" /> <span className="hidden sm:inline">Save as PDF</span>
     </button>
   )
 }

@@ -6,9 +6,11 @@ import { RealtyMark } from "@/components/form"
 import { ApiError, api } from "@/lib/api"
 import { longDate, php, phpExact, sqm } from "@/lib/format"
 import { SITE_REALTY } from "@/lib/public-projects-types"
+import type { Requirement } from "@/lib/requirements-types"
 import { realtyToken } from "@/lib/realty-auth"
 import { realtyIcons } from "@/lib/realty-icon"
 import { PrintButton, Zoomable } from "./parts"
+import { RequirementsSection } from "./requirements"
 import { RespondSection } from "./respond"
 
 type Milestone = { label: string; percent: number; date: string | null; amount: number }
@@ -40,6 +42,9 @@ type Offer = {
   unit: { name: string; unit_type: string | null; category: string; floor: string | null; area_sqm: number | null; floor_plan_url: string | null; highlights: string | null }
   model: { name: string; specs: Specs | null; images: string[] } | null
   agent: { name: string; email: string } | null
+  requirements: Requirement[]
+  details_submitted_at: string | null
+  buyer_contact: { email: string | null; phone: string | null }
 }
 
 type Props = { params: Promise<{ code: string }> }
@@ -145,6 +150,12 @@ export default async function OfferPage({ params }: Props) {
             <a href="#respond" className="inline-flex items-center gap-2 bg-[var(--accent)] px-3.5 py-2 text-sm font-bold text-white hover:brightness-110">
               Respond
             </a>
+            {offer.requirements.length > 0 && (
+              <a href="#requirements" className="inline-flex items-center gap-2 border border-[#17150f] px-3.5 py-2 text-sm font-bold text-[#17150f] hover:bg-[#17150f] hover:text-white">
+                <span className="sm:hidden">Docs</span>
+                <span className="hidden sm:inline">Requirements</span>
+              </a>
+            )}
             <PrintButton className="border border-[#d9d4cb] px-3.5 py-2 text-[#17150f] hover:border-[#17150f]" />
           </div>
         </div>
@@ -399,6 +410,26 @@ export default async function OfferPage({ params }: Props) {
             <RespondSection code={offer.code} buyerName={offer.buyer_name} agentName={agent?.name ?? realty.name} />
           </div>
         </section>
+
+        {/* The buyer's requirements */}
+        {offer.requirements.length > 0 && (
+          <section id="requirements" className="scroll-mt-20 border-t border-[#ebe7e1] px-6 py-10 print:hidden sm:px-10 sm:py-12">
+            <p className="text-xs font-bold uppercase tracking-[0.16em] text-[var(--accent)]">Reserve this home</p>
+            <h2 className="mt-2 text-3xl font-bold tracking-tight">Your requirements</h2>
+            <p className="mt-2 max-w-2xl text-[15px] text-[#5a554d]">
+              Send your details and documents here, from your phone if you like. {agent?.name ?? realty.name} sees each one as it arrives and will tell you if anything needs fixing.
+            </p>
+            <div className="mt-6">
+              <RequirementsSection
+                code={offer.code}
+                initial={offer.requirements}
+                detailsAt={offer.details_submitted_at}
+                prefill={{ name: offer.buyer_name, email: offer.buyer_contact.email, phone: offer.buyer_contact.phone }}
+                realtyName={realty.name}
+              />
+            </div>
+          </section>
+        )}
 
         {/* Contact */}
         <section className="break-inside-avoid bg-[#17150f] px-6 py-10 text-white sm:px-10">

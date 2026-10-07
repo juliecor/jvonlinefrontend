@@ -10,6 +10,7 @@ type Offer = {
   id: number; code: string; status: "active" | "void"; buyer_name: string; price: number; views: number; created_at: string
   realty: { id: number; name: string; slug: string } | null; project: string | null; unit: string | null; agent: string | null; url: string
   responses_count: number; latest_response: { kind: "interested" | "question" | "not_interested"; label: string } | null
+  requirements: { required: number; submitted: number; approved: number; to_review: number; details: boolean }
 }
 type Realty = { id: number; name: string }
 
@@ -54,6 +55,12 @@ export default async function AdminOffersPage({ searchParams }: { searchParams: 
                     <span className={`rounded-full px-2 py-0.5 text-[10px] font-semibold uppercase tracking-[0.14em] ${RESPONSE_TONE[o.latest_response.kind]}`}>
                       {o.latest_response.label}
                       {o.responses_count > 1 && ` · ${o.responses_count}`}
+                    </span>
+                  )}
+                  {o.requirements.required > 0 && o.status === "active" && (
+                    <span className="rounded-full bg-slate-100 px-2 py-0.5 text-[10px] font-semibold uppercase tracking-[0.14em] text-slate-600">
+                      Docs {o.requirements.submitted + (o.requirements.details ? 1 : 0)}/{o.requirements.required + 1}
+                      {o.requirements.to_review > 0 && ` · ${o.requirements.to_review} to review`}
                     </span>
                   )}
                 </div>

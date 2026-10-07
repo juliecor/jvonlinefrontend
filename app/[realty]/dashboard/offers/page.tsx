@@ -5,6 +5,7 @@ import { Empty, PageHeader, Panel, Row, Rows, Tag, btn } from "@/components/dash
 import { api } from "@/lib/api"
 import { LeadTag, NewTag, type LeadKind } from "@/components/leads"
 import { php, shortDate, timeAgo } from "@/lib/format"
+import type { RequirementSummary } from "@/lib/requirements-types"
 import { requireRealtyUser } from "@/lib/realty-auth"
 import { voidOffer } from "./actions"
 
@@ -29,6 +30,7 @@ type Offer = {
   responses_count: number
   new_responses: number
   latest_response: { kind: LeadKind; label: string; at: string } | null
+  requirements: RequirementSummary
 }
 
 /** jvconline.ph/<realty>/dashboard/offers — agents see theirs, staff see the whole realty's. */
@@ -63,6 +65,7 @@ export default async function OffersPage({ params }: { params: Promise<{ realty:
                   {o.status === "void" && <Tag>Void</Tag>}
                   {o.latest_response && <LeadTag kind={o.latest_response.kind} label={o.latest_response.label} />}
                   {o.new_responses > 0 && <NewTag />}
+                  {o.requirements.required > 0 && o.status === "active" && <ReqChip r={o.requirements} />}
                 </div>
                 <p className="mt-0.5 text-sm text-[#6b665d]">
                   {o.project} · {o.unit} · {php(o.price)}
@@ -106,5 +109,20 @@ export default async function OffersPage({ params }: { params: Promise<{ realty:
         </Rows>
       </Panel>
     </div>
+  )
+}
+
+/** "Docs 1/3 · 2 to review" — how far the buyer is with their requirements (details count as one). */
+function ReqChip({ r }: { r: RequirementSummary }) {
+  const done = r.submitted + (r.details ? 1 : 0)
+  const total = r.required + 1
+  const complete = r.details && r.approved === r.required
+  return (
+    <span className="inline-flex items-center gap-1.5">
+      <span className={`border px-1.5 py-0.5 text-[10px] font-bold uppercase tracking-[0.12em] ${complete ? "border-emerald-200 bg-emerald-50 text-emerald-700" : "border-[#d9d4cb] text-[#5a554d]"}`}>
+        {complete ? "Docs complete" : `Docs ${done}/${total}`}
+      </span>
+      {r.to_review > 0 && <span className="border border-amber-300 bg-amber-50 px-1.5 py-0.5 text-[10px] font-bold uppercase tracking-[0.12em] text-amber-800">{r.to_review} to review</span>}
+    </span>
   )
 }

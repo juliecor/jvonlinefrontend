@@ -46,15 +46,16 @@ export function OfferForm({ slug, projects, initialProject, today }: { slug: str
     return (
       <div className="rounded-2xl border border-emerald-200 bg-emerald-50 p-6">
         <p className="text-sm font-semibold uppercase tracking-[0.14em] text-emerald-700">Offer ready</p>
-        <p className="mt-2 text-lg font-semibold text-slate-900">Send this link to the buyer</p>
+        <p className="mt-2 text-lg font-semibold text-slate-900">{state.emailed ? `Emailed to ${state.emailed}` : "Send this link to the buyer"}</p>
+        {state.emailed && <p className="mt-1 text-sm text-slate-600">You can also copy the link below and send it by Viber or text.</p>}
         <p className="mt-3 break-all rounded-lg border border-emerald-200 bg-white px-3.5 py-2.5 font-mono text-sm text-slate-800">{state.url}</p>
         <div className="mt-4 flex flex-wrap gap-2">
           <CopyButton text={state.url} className="bg-white" />
           <a href={state.url} target="_blank" rel="noreferrer" className="inline-flex items-center gap-1.5 rounded-md border border-slate-300 bg-white px-2.5 py-1.5 text-xs font-semibold text-slate-700 hover:border-slate-900">
             Open <ExternalLink className="h-3.5 w-3.5" />
           </a>
-          <Link href={`/${slug}/dashboard/offers`} className="inline-flex items-center rounded-md bg-slate-900 px-3 py-1.5 text-xs font-semibold text-white hover:bg-slate-700">
-            All offers
+          <Link href={state.id ? `/${slug}/dashboard/offers/${state.id}` : `/${slug}/dashboard/offers`} className="inline-flex items-center rounded-md bg-slate-900 px-3 py-1.5 text-xs font-semibold text-white hover:bg-slate-700">
+            Track this offer
           </Link>
         </div>
       </div>
@@ -96,10 +97,19 @@ export function OfferForm({ slug, projects, initialProject, today }: { slug: str
             <input name="buyer_name" required placeholder="Full name" className={fieldClass} />
           </label>
           <label className="block">
+            <Label>Buyer&apos;s mobile (optional)</Label>
+            <input name="buyer_phone" type="tel" placeholder="09XX XXX XXXX" className={fieldClass} />
+          </label>
+          <label className="block sm:col-span-2">
             <Label>Buyer&apos;s email (optional)</Label>
             <input name="buyer_email" type="email" placeholder="buyer@example.com" className={fieldClass} />
+            <span className="mt-1 block text-xs text-slate-500">Needed to email the offer and requirement reminders.</span>
           </label>
         </div>
+        <label className="flex items-center gap-3 text-sm font-medium text-slate-800">
+          <input type="checkbox" name="email_buyer" defaultChecked className="h-4 w-4 accent-[var(--accent)]" />
+          Email the offer to the buyer now (if you entered their email)
+        </label>
         <label className="block sm:max-w-xs">
           <Label>Purchase / reservation date</Label>
           <input name="purchase_date" type="date" required value={date} onChange={(e) => setDate(e.target.value)} className={fieldClass} />

@@ -1,5 +1,5 @@
 import Link from "next/link"
-import { Building2, Clock, Eye, FileText, Home, MessageSquareReply, UserPlus, UserRound, Users } from "lucide-react"
+import { Building2, Clock, Eye, FileText, FileUp, Home, MessageSquareReply, UserPlus, UserRound, Users } from "lucide-react"
 import { api } from "@/lib/api"
 import { requireAdmin } from "@/lib/admin-auth"
 import { shortDate } from "@/lib/format"
@@ -18,10 +18,11 @@ type Stats = {
   offers_total: number
   offer_views: number
   offer_responses: number
+  documents: number
   recent: { kind: string; at: string; realty: string | null; realty_id: number | null; text: string; code?: string }[]
 }
 
-const KIND_ICON = { realty_registered: Building2, realty_invited: Clock, agent_joined: UserPlus, project_added: Home, offer_created: FileText, offer_response: MessageSquareReply } as const
+const KIND_ICON = { realty_registered: Building2, realty_invited: Clock, agent_joined: UserPlus, project_added: Home, offer_created: FileText, offer_response: MessageSquareReply, document_uploaded: FileUp } as const
 
 /** jvconline.ph/admin — the numbers across every realty, and what happened lately. */
 export default async function AdminDashboardPage() {
@@ -34,7 +35,7 @@ export default async function AdminDashboardPage() {
     { label: "Agents", value: s.agents, note: "invited by their realty", icon: Users, href: "/admin/people" },
     { label: "Projects", value: s.projects, note: `${s.units} unit${s.units === 1 ? "" : "s"} listed`, icon: Home, href: "/admin/realties" },
     { label: "Active offers", value: s.offers_active, note: `${s.offers_total} sent in total`, icon: FileText, href: "/admin/offers" },
-    { label: "Offer views", value: s.offer_views, note: `${s.offer_responses} buyer response${s.offer_responses === 1 ? "" : "s"}`, icon: Eye, href: "/admin/offers" },
+    { label: "Offer views", value: s.offer_views, note: `${s.offer_responses} buyer response${s.offer_responses === 1 ? "" : "s"} · ${s.documents} document${s.documents === 1 ? "" : "s"}`, icon: Eye, href: "/admin/offers" },
   ]
 
   return (

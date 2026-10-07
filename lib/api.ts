@@ -66,6 +66,11 @@ export async function api<T>(path: string, { method = "GET", body, token }: Opti
   return data as T
 }
 
+/** A raw GET (a file, not JSON) — the caller streams the body on. */
+export async function apiFile(path: string, token: string): Promise<Response> {
+  return fetch(`${base()}/api${path}`, { headers: { ...(await visitorHeaders()), Authorization: `Bearer ${token}` }, cache: "no-store" })
+}
+
 /** The first validation message, or the general one — for a form's error line. */
 export function errorMessage(e: unknown): string {
   if (e instanceof ApiError) {
