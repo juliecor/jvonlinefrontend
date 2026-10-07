@@ -123,9 +123,9 @@ export default async function JoinPage({ params }: Props) {
         <div className="w-full max-w-[480px]">
           {invite ? (
             <>
-              <p className="text-xs font-bold uppercase tracking-[0.2em] text-[var(--accent)]">Set up your account</p>
+              <p className="text-xs font-bold uppercase tracking-[0.2em] text-[var(--accent)]">Apply to join</p>
               <h1 className="mt-2 text-3xl font-bold tracking-tight sm:text-4xl">Welcome, {invite.name.split(" ")[0]}.</h1>
-              <p className="mt-3 text-[15px] leading-relaxed text-[#5a554d]">Choose the email and password you&apos;ll use to sign in to {short}&apos;s dashboard. It takes a minute.</p>
+              <p className="mt-3 text-[15px] leading-relaxed text-[#5a554d]">Tell {short} how to reach you, attach your resume, and choose the email and password you&apos;ll sign in with. {short} reviews your application, and your account opens once it&apos;s approved.</p>
 
               <dl className="mt-6 grid border border-[#e0dcd5] bg-white sm:grid-cols-2">
                 <div className="flex items-start gap-3 border-b border-[#e0dcd5] px-4 py-3.5 sm:border-b-0 sm:border-r">

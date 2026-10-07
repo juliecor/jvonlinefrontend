@@ -11,7 +11,7 @@ export const metadata = { title: "Overview" }
 
 type Overview = {
   realty: { name: string; slug: string; email: string | null; contact_name: string | null; phone: string | null; address: string | null; about: string | null; registered_at: string | null }
-  stats: { agents: number; agents_invited: number; staff: number; projects: number; units: number; offers: number; new_responses: number }
+  stats: { agents: number; agents_invited: number; agents_pending?: number; staff: number; projects: number; units: number; offers: number; new_responses: number }
 }
 
 type RecentLead = Lead & { offer_id: number; offer_code: string | null; unit: string | null; project: string | null }
@@ -41,7 +41,7 @@ export default async function RealtyOverviewPage({ params }: { params: Promise<{
           { label: staff ? "Active offers" : "Your offers", value: stats.offers, note: "links sent to buyers", href: `/${slug}/dashboard/offers` },
           { label: "New responses", value: stats.new_responses, note: stats.new_responses ? "buyers waiting for a reply" : "all caught up", href: `/${slug}/dashboard/offers` },
           ...(staff
-            ? [{ label: "Agents", value: stats.agents, note: stats.agents_invited ? `${stats.agents_invited} invite${stats.agents_invited === 1 ? "" : "s"} open` : "on your team", href: `/${slug}/dashboard/agents` }]
+            ? [{ label: "Agents", value: stats.agents, note: stats.agents_pending ? `${stats.agents_pending} to approve` : stats.agents_invited ? `${stats.agents_invited} invite${stats.agents_invited === 1 ? "" : "s"} open` : "on your team", href: `/${slug}/dashboard/agents` }]
             : []),
         ]}
       />

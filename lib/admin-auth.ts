@@ -11,7 +11,7 @@ import { api } from "./api"
 export const ADMIN_COOKIE = "jv_admin"
 export const ADMIN_SESSION_SECONDS = 12 * 60 * 60
 
-export type AuthUser = { id: number; name: string; email: string; role: "admin" | "realty" | "agent"; realty_id: number | null }
+export type AuthUser = { id: number; name: string; email: string; role: "admin" | "realty" | "agent"; status?: "pending" | "active" | "rejected"; realty_id: number | null }
 
 export async function adminToken(): Promise<string | null> {
   return (await cookies()).get(ADMIN_COOKIE)?.value ?? null

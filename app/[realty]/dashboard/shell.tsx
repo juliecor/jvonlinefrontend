@@ -8,7 +8,7 @@ import { RealtyMark } from "@/components/form"
 import { SITE_REALTY } from "@/lib/public-projects-types"
 import type { RealtyUser } from "@/lib/realty-auth"
 
-export type ShellCounts = { projects: number; offers: number; agents: number; agentsInvited: number; publicProjects: number; newResponses: number; toApprove: number }
+export type ShellCounts = { projects: number; offers: number; agents: number; agentsInvited: number; agentsPending: number; publicProjects: number; newResponses: number; toApprove: number }
 
 type Item = { href: string; label: string; icon: typeof LayoutDashboard; exact?: boolean; count?: number; note?: string; alert?: string }
 
@@ -35,6 +35,9 @@ export function DashboardShell({ slug, user, counts, signOutAction, children }: 
   const staff = user.role === "realty"
   const isSite = slug === SITE_REALTY
 
+  // Anything waiting on this person: buyer updates, offers to approve, and (for staff) agents to approve.
+  const waiting = (counts?.newResponses ?? 0) + (counts?.toApprove ?? 0) + (staff ? (counts?.agentsPending ?? 0) : 0)
+
   const groups: { title: string; items: Item[] }[] = [
     { title: "Workspace", items: [{ href: `/${slug}/dashboard`, label: "Overview", icon: LayoutDashboard, exact: true }] },
     {
@@ -47,7 +50,7 @@ export function DashboardShell({ slug, user, counts, signOutAction, children }: 
     },
     ...(staff
       ? [
-          { title: "Team", items: [{ href: `/${slug}/dashboard/agents`, label: "Agents", icon: Users, count: counts?.agents, note: counts?.agentsInvited ? `+${counts.agentsInvited} invited` : undefined }] },
+          { title: "Team", items: [{ href: `/${slug}/dashboard/agents`, label: "Agents", icon: Users, count: counts?.agents, note: counts?.agentsInvited ? `+${counts.agentsInvited} invited` : undefined, alert: counts?.agentsPending ? `${counts.agentsPending} to approve` : undefined }] },
           { title: "Setup", items: [{ href: `/${slug}/dashboard/requirements`, label: "Buyer requirements", icon: ClipboardCheck }] },
         ]
       : []),
@@ -168,9 +171,9 @@ export function DashboardShell({ slug, user, counts, signOutAction, children }: 
             <Link href={`/${slug}/dashboard/offers/new`} className="flex items-center gap-1.5 bg-[var(--accent)] px-3 py-2 text-sm font-bold text-white">
               <Plus className="h-4 w-4" strokeWidth={2.5} /> Offer
             </Link>
-            <button type="button" onClick={() => setOpen(true)} aria-label={counts?.newResponses || counts?.toApprove ? `Open menu, ${(counts?.newResponses ?? 0) + (counts?.toApprove ?? 0)} things need you` : "Open menu"} className="relative p-2 text-[#17150f]">
+            <button type="button" onClick={() => setOpen(true)} aria-label={waiting ? `Open menu, ${waiting} things need you` : "Open menu"} className="relative p-2 text-[#17150f]">
               <Menu className="h-6 w-6" />
-              {!!(counts?.newResponses || counts?.toApprove) && <span aria-hidden className="absolute right-1 top-1 h-2.5 w-2.5 border-2 border-white bg-[var(--accent)]" />}
+              {!!waiting && <span aria-hidden className="absolute right-1 top-1 h-2.5 w-2.5 border-2 border-white bg-[var(--accent)]" />}
             </button>
           </div>
         </div>

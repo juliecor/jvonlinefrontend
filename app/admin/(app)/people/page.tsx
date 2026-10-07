@@ -5,7 +5,7 @@ import { shortDate } from "@/lib/format"
 
 export const metadata = { title: "People" }
 
-type Person = { id: number; name: string; email: string; role: "realty" | "agent"; joined_at: string; offers_count: number; realty: { id: number; name: string; slug: string } | null }
+type Person = { id: number; name: string; email: string; role: "realty" | "agent"; status?: "pending" | "active" | "rejected"; joined_at: string; offers_count: number; realty: { id: number; name: string; slug: string } | null }
 type Realty = { id: number; name: string }
 
 function List({ title, rows }: { title: string; rows: Person[] }) {
@@ -16,7 +16,11 @@ function List({ title, rows }: { title: string; rows: Person[] }) {
         {rows.map((p) => (
           <li key={p.id} className="flex flex-col gap-1 px-5 py-3 sm:flex-row sm:items-center sm:justify-between sm:px-6">
             <div className="min-w-0">
-              <p className="truncate text-sm font-medium">{p.name}</p>
+              <p className="flex items-center gap-2 truncate text-sm font-medium">
+                {p.name}
+                {p.status === "pending" && <span className="rounded-full bg-amber-50 px-2 py-0.5 text-[11px] font-semibold text-amber-700">Pending approval</span>}
+                {p.status === "rejected" && <span className="rounded-full bg-red-50 px-2 py-0.5 text-[11px] font-semibold text-red-700">Rejected</span>}
+              </p>
               <p className="truncate text-xs text-slate-500">{p.email}{p.realty && <> · <Link href={`/admin/realties/${p.realty.id}`} className="hover:text-slate-900 hover:underline">{p.realty.name}</Link></>}</p>
             </div>
             <p className="shrink-0 text-xs text-slate-400">{p.offers_count} active offer{p.offers_count === 1 ? "" : "s"} · joined {shortDate(p.joined_at)}</p>

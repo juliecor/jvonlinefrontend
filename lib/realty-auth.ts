@@ -52,6 +52,8 @@ export async function currentRealtyUser(): Promise<{ user: RealtyUser; token: st
   try {
     const user = await api<AuthUser & { realty: PublicRealty | null }>("/auth/me", { token })
     if ((user.role !== "realty" && user.role !== "agent") || !user.realty) return null
+    // Agents waiting on (or turned down by) their realty's staff have no session.
+    if (user.status && user.status !== "active") return null
     return { user: user as RealtyUser, token }
   } catch {
     return null

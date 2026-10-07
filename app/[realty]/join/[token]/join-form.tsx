@@ -1,18 +1,26 @@
 "use client"
 
 import { useActionState, useState } from "react"
-import { ArrowRight, Check, Eye, EyeOff, LoaderCircle } from "lucide-react"
+import { ArrowRight, Check, Eye, EyeOff, FileText, LoaderCircle } from "lucide-react"
+import { fileSize } from "@/lib/requirements-types"
 import { type JoinState, joinRealty } from "./actions"
 
 const field = "mt-1.5 block w-full border border-[#d9d4cb] bg-white px-4 py-3.5 text-[15px] text-[#17150f] outline-none transition placeholder:text-[#b3ada3] focus:border-[var(--accent)] focus:ring-2 focus:ring-[var(--accent)]/15"
 const label = "text-xs font-bold uppercase tracking-[0.12em] text-[#5a554d]"
 
-/** Name, login email and password, with the password rules ticked off as they type. */
+/** Name, login email, contact number, resume and password, with the password rules ticked off as they type. */
 export function JoinForm({ token, name, email }: { token: string; name: string; email: string | null }) {
   const [state, action, pending] = useActionState<JoinState, FormData>(joinRealty.bind(null, token), {})
   const [show, setShow] = useState(false)
   const [pw, setPw] = useState("")
   const [pw2, setPw2] = useState("")
+  const [resume, setResume] = useState<File | null>(null)
+  // The form action clears the file input after each try, so forget the picked file with it.
+  const [seen, setSeen] = useState(state)
+  if (seen !== state) {
+    setSeen(state)
+    setResume(null)
+  }
   const rules = [
     { ok: pw.length >= 8, text: "At least 8 characters" },
     { ok: pw.length > 0 && pw === pw2, text: "Both passwords match" },
@@ -30,6 +38,30 @@ export function JoinForm({ token, name, email }: { token: string; name: string; 
         <input name="email" type="email" required defaultValue={state.email ?? email ?? ""} autoComplete="username" placeholder="you@example.com" className={field} />
         <span className="mt-1 block text-xs text-[#8a847a]">You&apos;ll sign in with this.</span>
       </label>
+      <label className="block">
+        <span className={label}>Contact number</span>
+        <input name="phone" type="tel" required maxLength={40} defaultValue={state.phone ?? ""} autoComplete="tel" placeholder="09XX XXX XXXX" className={field} />
+        <span className="mt-1 block text-xs text-[#8a847a]">Your mobile number, so the team can reach you.</span>
+      </label>
+      <div>
+        <span className={label}>Resume</span>
+        <label className="mt-1.5 flex cursor-pointer items-center gap-3 border border-dashed border-[#cfc9bf] bg-white px-4 py-3.5 transition hover:border-[var(--accent)] focus-within:border-[var(--accent)] focus-within:ring-2 focus-within:ring-[var(--accent)]/15">
+          <FileText className="h-5 w-5 shrink-0 text-[var(--accent)]" />
+          <span className="min-w-0 flex-1">
+            <span className="block truncate text-[15px] font-semibold text-[#17150f]">{resume ? resume.name : "Choose your resume"}</span>
+            <span className="block text-xs text-[#8a847a]">{resume ? `${fileSize(resume.size)} · tap to change` : "PDF only, up to 10 MB"}</span>
+          </span>
+          <input
+            name="resume"
+            type="file"
+            accept="application/pdf,.pdf"
+            required
+            onChange={(e) => setResume(e.target.files?.[0] ?? null)}
+            className="sr-only"
+          />
+        </label>
+        <span className="mt-1 block text-xs text-[#8a847a]">The team reviews it before your account opens.</span>
+      </div>
       <label className="block">
         <span className={label}>Password</span>
         <span className="relative mt-1.5 block">
@@ -85,7 +117,7 @@ export function JoinForm({ token, name, email }: { token: string; name: string; 
         className="inline-flex w-full items-center justify-center gap-2 bg-[var(--accent)] px-5 py-4 text-base font-bold text-white transition hover:brightness-110 disabled:opacity-60"
       >
         {pending ? <LoaderCircle className="h-5 w-5 animate-spin" /> : null}
-        Create my account
+        Send application
         {!pending && <ArrowRight className="h-5 w-5" />}
       </button>
     </form>

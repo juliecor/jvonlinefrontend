@@ -38,3 +38,19 @@ export async function newAgentLink(slug: string, _: NewLinkState, formData: Form
     return { error: errorMessage(e) }
   }
 }
+
+export type ReviewState = { error?: string }
+
+/** Approve, reject or delete an agent's application. Staff only; the sidebar counts update with it. */
+export async function reviewApplication(slug: string, id: number, decision: "approve" | "reject" | "delete"): Promise<ReviewState> {
+  const { token, user } = await requireRealtyUser(slug)
+  if (user.role !== "realty") return { error: "Only realty staff can review applications." }
+  try {
+    if (decision === "delete") await api(`/realty/agents/${id}`, { method: "DELETE", token })
+    else await api(`/realty/agents/${id}/${decision}`, { method: "POST", token })
+  } catch (e) {
+    return { error: errorMessage(e) }
+  }
+  revalidatePath(`/${slug}/dashboard`, "layout")
+  return {}
+}

@@ -6,7 +6,7 @@ import { currentRealtyUser, realtyBySlug } from "@/lib/realty-auth"
 import { realtyIcons } from "@/lib/realty-icon"
 import { RealtyLoginForm } from "./login-form"
 
-type Props = { params: Promise<{ realty: string }>; searchParams: Promise<{ registered?: string; joined?: string }> }
+type Props = { params: Promise<{ realty: string }>; searchParams: Promise<{ registered?: string; joined?: string; applied?: string }> }
 
 export async function generateMetadata({ params }: Props): Promise<Metadata> {
   const realty = await realtyBySlug((await params).realty)
@@ -33,6 +33,11 @@ export default async function RealtyLoginPage({ params, searchParams }: Props) {
           {query.registered && (
             <div className="mb-5">
               <Alert kind="success">Your realty is registered. Sign in to open your dashboard.</Alert>
+            </div>
+          )}
+          {query.applied && (
+            <div className="mb-5">
+              <Alert kind="success">Your application is in. {realty.name} will review it, and you can sign in here once it&apos;s approved.</Alert>
             </div>
           )}
           {query.joined && (
