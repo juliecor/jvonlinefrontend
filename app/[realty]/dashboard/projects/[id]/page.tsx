@@ -6,12 +6,11 @@ import { Alert } from "@/components/form"
 import { ApiError, api } from "@/lib/api"
 import { longDate } from "@/lib/format"
 import { requireRealtyUser } from "@/lib/realty-auth"
+import { AddPlan, AddUnit } from "../add-dialog"
 import { PlanCard } from "../plan-card"
-import { PlanForm } from "../plan-form"
 import { ProjectForm } from "../project-form"
 import { PublicPageEditor } from "../public-page"
 import type { ProjectDetail } from "../types"
-import { UnitForm } from "../unit-form"
 import { UnitRow } from "../unit-row"
 
 type Props = { params: Promise<{ realty: string; id: string }>; searchParams: Promise<{ plan_error?: string }> }
@@ -67,34 +66,30 @@ export default async function ProjectPage({ params, searchParams }: Props) {
         <img src={project.cover_url} alt="" className="mt-8 aspect-[16/6] w-full rounded-md object-cover" />
       )}
 
-      <Panel title={`Units · ${project.units.length}`} aside={priced ? `${priced} ready to offer` : "none ready to offer yet"}>
+      <Panel
+        title={`Units · ${project.units.length}`}
+        aside={
+          <span className="flex items-center gap-4">
+            <span>{priced ? `${priced} ready to offer` : "none ready to offer yet"}</span>
+            {staff && <AddUnit slug={slug} projectId={project.id} projectName={project.name} />}
+          </span>
+        }
+      >
         <ul className="divide-y divide-[#e6e2db]">
           {project.units.map((u) => (
             <UnitRow key={u.id} slug={slug} projectId={project.id} unit={u} staff={staff} />
           ))}
-          {project.units.length === 0 && <li><Empty>No units yet.</Empty></li>}
+          {project.units.length === 0 && <li><Empty>No units yet.{staff ? " Use Add unit to add the first one." : ""}</Empty></li>}
         </ul>
-        {staff && (
-          <div className="mt-6 border-t border-[#e6e2db] pt-6">
-            <h3 className="mb-4 text-sm font-semibold">Add a unit</h3>
-            <UnitForm slug={slug} projectId={project.id} />
-          </div>
-        )}
       </Panel>
 
-      <Panel title={`Payment plans · ${project.payment_plans.length}`}>
+      <Panel title={`Payment plans · ${project.payment_plans.length}`} aside={staff ? <AddPlan slug={slug} projectId={project.id} projectName={project.name} /> : undefined}>
         <ul className="grid gap-x-10 divide-y divide-[#e6e2db] sm:grid-cols-2 sm:divide-y-0">
           {project.payment_plans.map((plan) => (
             <PlanCard key={plan.id} slug={slug} projectId={project.id} plan={plan} staff={staff} />
           ))}
           {project.payment_plans.length === 0 && <li className="sm:col-span-2"><Empty>No payment plans yet. Without one, offers show the full price due on the purchase date.</Empty></li>}
         </ul>
-        {staff && (
-          <div className="mt-6 border-t border-[#e6e2db] pt-6">
-            <h3 className="mb-4 text-sm font-semibold">Add a payment plan</h3>
-            <PlanForm slug={slug} projectId={project.id} />
-          </div>
-        )}
       </Panel>
 
       {staff && (

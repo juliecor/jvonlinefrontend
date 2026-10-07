@@ -1,6 +1,6 @@
 "use client"
 
-import { useActionState, useEffect, useRef } from "react"
+import { useActionState, useEffect, useEffectEvent, useRef } from "react"
 import { LoaderCircle, Plus, Save } from "lucide-react"
 import { btn, field } from "@/components/dashboard-ui"
 import { Alert, Label } from "@/components/form"
@@ -9,16 +9,22 @@ import type { Unit } from "./types"
 
 const fileInput = "mt-1.5 block w-full text-sm text-[#6b665d] file:mr-3 file:rounded-md file:border-0 file:bg-[var(--accent)] file:px-3 file:py-2 file:text-sm file:font-semibold file:text-white"
 
-/** Add a unit (no `unit`) or edit one. `onDone` closes an inline editor after a save. */
+/**
+ * Add a unit (no `unit`) or edit one. `onDone` closes the editor or the add
+ * dialog after a save; "Save and add another" keeps the dialog open instead.
+ */
 export function UnitForm({ slug, projectId, unit, onDone }: { slug: string; projectId: number; unit?: Unit; onDone?: () => void }) {
   const action = unit ? updateUnit.bind(null, slug, unit.id) : createUnit.bind(null, slug, projectId)
   const [state, submit, pending] = useActionState<FormState, FormData>(action, {})
   const form = useRef<HTMLFormElement>(null)
+  const another = useRef(false)
+  const saved = useEffectEvent(() => {
+    if (!unit) form.current?.reset()
+    if (unit || !another.current) onDone?.()
+  })
   useEffect(() => {
-    if (!state.ok) return
-    if (unit) onDone?.()
-    else form.current?.reset()
-  }, [state, unit, onDone])
+    if (state.ok) saved()
+  }, [state])
 
   return (
     <form ref={form} action={submit} className="grid gap-4 sm:grid-cols-3">
@@ -46,8 +52,8 @@ export function UnitForm({ slug, projectId, unit, onDone }: { slug: string; proj
         <input name="area_sqm" type="number" step="0.01" min="0" defaultValue={unit?.area_sqm ?? ""} placeholder="67.15" className={field} />
       </label>
       <label className="block">
-        <Label>Price (₱) — blank = price on request</Label>
-        <input name="price" type="number" step="1" min="0" defaultValue={unit?.price ? Number(unit.price) : ""} placeholder="4850000" className={field} />
+        <Label>Price (₱)</Label>
+        <input name="price" type="number" step="1" min="0" defaultValue={unit?.price ? Number(unit.price) : ""} placeholder="Blank = price on request" className={field} />
       </label>
       {unit && (
         <label className="block">
@@ -73,13 +79,18 @@ export function UnitForm({ slug, projectId, unit, onDone }: { slug: string; proj
       </label>
       {state.error && <div className="sm:col-span-3"><Alert kind="error">{state.error}</Alert></div>}
       {state.ok && !unit && <div className="sm:col-span-3"><Alert kind="success">{state.ok}</Alert></div>}
-      <div className="flex gap-2 sm:col-span-3">
-        <button type="submit" disabled={pending} className={btn.primary}>
+      <div className="flex flex-wrap gap-2 sm:col-span-3">
+        <button type="submit" disabled={pending} onClick={() => (another.current = false)} className={btn.primary}>
           {pending ? <LoaderCircle className="h-4 w-4 animate-spin" /> : unit ? <Save className="h-4 w-4" /> : <Plus className="h-4 w-4" />}
           {unit ? "Save unit" : "Add unit"}
         </button>
-        {unit && onDone && (
-          <button type="button" onClick={onDone} className={btn.ghost}>Cancel</button>
+        {!unit && onDone && (
+          <button type="submit" disabled={pending} onClick={() => (another.current = true)} className="inline-flex items-center justify-center gap-2 border border-[#d9d4cb] bg-white px-5 py-3 text-[15px] font-bold text-[#17150f] transition hover:border-[#17150f] disabled:opacity-60">
+            Save and add another
+          </button>
+        )}
+        {onDone && (
+          <button type="button" onClick={onDone} className={unit ? btn.ghost : "px-3 py-3 text-[15px] font-semibold text-[#6b665d] transition hover:text-[#17150f]"}>Cancel</button>
         )}
       </div>
     </form>

@@ -11,12 +11,14 @@ type Row = { id: number; label: string; percent: string; days: string; months: s
 let nextId = 1
 const row = (label = "", percent = "", days = "", months = ""): Row => ({ id: nextId++, label, percent, days, months })
 const fresh = () => [row("Reservation", "10", "0"), row("On completion", "90", "")]
+const cols = "@2xl:grid-cols-[minmax(0,1fr)_6rem_10rem_8rem_2.75rem] @2xl:gap-3"
+const small = "mb-1 block text-[11px] font-bold uppercase tracking-[0.1em] text-[#6b665d] @2xl:hidden"
 const fromPlan = (p: PaymentPlan) => p.milestones.map((m) => row(m.label, String(m.percent), m.days === null ? "" : String(m.days), m.months ? String(m.months) : ""))
 
 /**
  * Milestones: label, % and days from the purchase date (blank = on completion), and optionally
  * the number of monthly payments it is spread over (the first is due on that day). Must total 100%.
- * Add a plan (no `plan`) or edit one; `onDone` closes an inline editor after a save.
+ * Add a plan (no `plan`) or edit one; `onDone` closes the editor or the add dialog after a save.
  */
 export function PlanForm({ slug, projectId, plan, onDone }: { slug: string; projectId: number; plan?: PaymentPlan; onDone?: () => void }) {
   const [rows, setRows] = useState<Row[]>(() => (plan ? fromPlan(plan) : fresh()))
@@ -26,7 +28,7 @@ export function PlanForm({ slug, projectId, plan, onDone }: { slug: string; proj
   const [state, submit, pending] = useActionState<FormState, FormData>(async (prev, fd) => {
     const result = await action(prev, fd)
     if (result.ok) {
-      if (plan) onDone?.()
+      if (onDone) onDone()
       else {
         form.current?.reset()
         setRows(fresh())
@@ -43,33 +45,39 @@ export function PlanForm({ slug, projectId, plan, onDone }: { slug: string; proj
         <Label>Plan name</Label>
         <input name="name" required defaultValue={plan?.name} placeholder="10 / 10 / 10 / 70 · Spot cash · 24 months" className={field} />
       </label>
-      <div className="overflow-x-auto">
-        <table className="w-full min-w-[640px] text-sm">
-          <thead>
-            <tr className="text-left text-xs font-semibold uppercase tracking-[0.12em] text-[#8a847a]">
-              <th className="pb-2 pr-3">Milestone</th>
-              <th className="w-24 pb-2 pr-3">%</th>
-              <th className="w-40 pb-2 pr-3">Days after purchase</th>
-              <th className="w-32 pb-2 pr-3">Monthly payments</th>
-              <th className="w-10 pb-2" />
-            </tr>
-          </thead>
-          <tbody>
-            {rows.map((r) => (
-              <tr key={r.id}>
-                <td className="py-1 pr-3"><input name="label" required value={r.label} onChange={(e) => update(r.id, { label: e.target.value })} placeholder="Within 30 days" className={`${field} mt-0`} /></td>
-                <td className="py-1 pr-3"><input name="percent" type="number" step="0.01" min="0.01" max="100" required value={r.percent} onChange={(e) => update(r.id, { percent: e.target.value })} className={`${field} mt-0`} /></td>
-                <td className="py-1 pr-3"><input name="days" type="number" min="0" value={r.days} onChange={(e) => update(r.id, { days: e.target.value })} placeholder="blank = on completion" className={`${field} mt-0`} /></td>
-                <td className="py-1 pr-3"><input name="months" type="number" min="1" max="120" value={r.months} onChange={(e) => update(r.id, { months: e.target.value })} placeholder="one payment" title="Spread over this many monthly payments; the first is due on the day before" className={`${field} mt-0`} /></td>
-                <td className="py-1">
-                  <button type="button" aria-label="Remove milestone" disabled={rows.length === 1} onClick={() => setRows((rs) => rs.filter((x) => x.id !== r.id))} className="rounded-md p-2 text-[#a39d92] hover:bg-[#f6f4f0] hover:text-red-600 disabled:opacity-30">
-                    <Trash2 className="h-4 w-4" />
-                  </button>
-                </td>
-              </tr>
-            ))}
-          </tbody>
-        </table>
+      {/* Columns when there's room; a small card per milestone in a narrow space (a phone). */}
+      <div className="@container">
+        <div className={`hidden pb-2 text-left text-xs font-semibold uppercase tracking-[0.12em] text-[#8a847a] @2xl:grid ${cols}`}>
+          <span>Milestone</span>
+          <span>%</span>
+          <span>Days after purchase</span>
+          <span>Monthly payments</span>
+        </div>
+        <div className="space-y-3 @2xl:space-y-2">
+          {rows.map((r, i) => (
+            <div key={r.id} className={`grid grid-cols-2 items-end gap-3 border border-[#e6e2db] p-3 @2xl:items-center @2xl:border-0 @2xl:p-0 ${cols}`}>
+              <label className="col-span-2 block @2xl:col-span-1">
+                <span className={small}>Milestone {i + 1}</span>
+                <input name="label" required value={r.label} onChange={(e) => update(r.id, { label: e.target.value })} placeholder="Within 30 days" className={`${field} mt-0`} />
+              </label>
+              <label className="block">
+                <span className={small}>%</span>
+                <input name="percent" type="number" step="0.01" min="0.01" max="100" required value={r.percent} onChange={(e) => update(r.id, { percent: e.target.value })} className={`${field} mt-0`} />
+              </label>
+              <label className="block">
+                <span className={small}>Days after purchase</span>
+                <input name="days" type="number" min="0" value={r.days} onChange={(e) => update(r.id, { days: e.target.value })} placeholder="on completion" className={`${field} mt-0`} />
+              </label>
+              <label className="block">
+                <span className={small}>Monthly payments</span>
+                <input name="months" type="number" min="1" max="120" value={r.months} onChange={(e) => update(r.id, { months: e.target.value })} placeholder="once" title="Spread over this many monthly payments; the first is due on the day before" className={`${field} mt-0`} />
+              </label>
+              <button type="button" aria-label={`Remove milestone ${i + 1}`} disabled={rows.length === 1} onClick={() => setRows((rs) => rs.filter((x) => x.id !== r.id))} className="flex h-[46px] items-center justify-center self-end text-[#a39d92] hover:bg-[#f6f4f0] hover:text-red-600 disabled:opacity-30 @2xl:self-auto">
+                <Trash2 className="h-4 w-4" />
+              </button>
+            </div>
+          ))}
+        </div>
       </div>
       <div className="flex flex-wrap items-center gap-3">
         <button type="button" onClick={() => setRows((rs) => [...rs, row()])} className={btn.ghost}>
@@ -79,12 +87,12 @@ export function PlanForm({ slug, projectId, plan, onDone }: { slug: string; proj
       </div>
       {state.error && <Alert kind="error">{state.error}</Alert>}
       {state.ok && !plan && <Alert kind="success">{state.ok}</Alert>}
-      <div className="flex gap-2">
+      <div className="flex flex-wrap gap-2">
         <button type="submit" disabled={pending} className={btn.primary}>
           {pending ? <LoaderCircle className="h-4 w-4 animate-spin" /> : plan ? <Save className="h-4 w-4" /> : <Plus className="h-4 w-4" />}
           {plan ? "Save plan" : "Add payment plan"}
         </button>
-        {plan && onDone && <button type="button" onClick={onDone} className={btn.ghost}>Cancel</button>}
+        {onDone && <button type="button" onClick={onDone} className={plan ? btn.ghost : "px-3 py-3 text-[15px] font-semibold text-[#6b665d] transition hover:text-[#17150f]"}>Cancel</button>}
       </div>
     </form>
   )
