@@ -25,6 +25,8 @@ type Offer = {
   project: string | null
   unit: string | null
   agent: string | null
+  /** The accredited realty that sold it; null when Johndorf's own team did. */
+  broker?: string | null
   url: string
   first_viewed_at: string | null
   last_viewed_at: string | null
@@ -94,6 +96,7 @@ export default async function OffersPage({ params }: { params: Promise<{ realty:
                 <p className="mt-0.5 text-sm text-[#6b665d]">
                   {o.project} · {o.unit} · {php(o.price)}
                   {staff && o.agent && <> · by {o.agent}</>}
+                  {o.broker && <> · {o.broker}</>}
                 </p>
                 <p className="mt-1 flex flex-wrap items-center gap-x-1.5 text-xs font-medium text-[#8a847a]">
                   Sent {shortDate(o.created_at)} ·

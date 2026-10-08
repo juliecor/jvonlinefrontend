@@ -12,7 +12,17 @@ export const ADMIN_COOKIE = "jv_admin"
 export const ADMIN_SESSION_SECONDS = 12 * 60 * 60
 
 /** `is_superadmin`: a platform admin who can switch into any realty's dashboard; there `role` is the role they're viewing as. */
-export type AuthUser = { id: number; name: string; email: string; role: "admin" | "realty" | "agent"; is_superadmin?: boolean; status?: "pending" | "active" | "rejected"; realty_id: number | null }
+export type AuthUser = {
+  id: number
+  name: string
+  email: string
+  role: "admin" | "realty" | "agent"
+  is_superadmin?: boolean
+  status?: "pending" | "active" | "rejected"
+  /** True while an accepted realty still has the temporary password it was mailed: the dashboard stays shut until it is replaced. */
+  must_change_password?: boolean
+  realty_id: number | null
+}
 
 export async function adminToken(): Promise<string | null> {
   return (await cookies()).get(ADMIN_COOKIE)?.value ?? null

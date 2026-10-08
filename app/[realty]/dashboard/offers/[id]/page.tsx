@@ -9,6 +9,7 @@ import { longDate, php, shortDate, sqm, timeAgo } from "@/lib/format"
 import { INCOME_SOURCES, type Requirement, type RequirementSummary } from "@/lib/requirements-types"
 import { type MilestoneInput, type ScheduleRow, pct } from "@/lib/schedule"
 import { requireRealtyUser } from "@/lib/realty-auth"
+import { isDeveloperMember, isDeveloperStaff } from "@/lib/realty-roles"
 import { VoidOfferButton } from "../void-button"
 import type { UnitHold } from "../actions"
 import { LoginPanel } from "../buyer-login"
@@ -33,6 +34,7 @@ type OfferDetail = {
   project: string | null
   unit: string | null
   agent: string | null
+  broker?: string | null
   url: string
   first_viewed_at: string | null
   last_viewed_at: string | null
@@ -96,7 +98,12 @@ export default async function OfferDetailPage({ params }: { params: Promise<{ re
     if (e instanceof ApiError && e.status === 404) notFound()
     throw e
   }
+  // `staff` is any realty admin (they see who made each offer); the rest is about Johndorf, which owns
+  // the units: its admins approve custom terms and set a unit's status, its team checks the buyer's files.
   const staff = user.role === "realty"
+  const developerStaff = isDeveloperStaff(user)
+  const canReview = isDeveloperMember(user)
+  const approverName = user.realty.developer?.name ?? user.realty.name
   const hadNew = o.responses.some((r) => r.new)
   const awaiting = o.approval_status === "pending" || o.approval_status === "rejected"
   const live = o.status === "active" && !awaiting
@@ -151,7 +158,7 @@ export default async function OfferDetailPage({ params }: { params: Promise<{ re
                 <span className="text-xl font-bold tabular-nums text-[#17150f]">{php(o.price)}</span>
                 <span>
                   Sent {shortDate(o.created_at)}
-                  {staff && o.agent ? ` by ${o.agent}` : ""}
+                  {staff && o.agent ? ` by ${o.agent}` : ""}{o.broker ? ` · ${o.broker}` : ""}
                 </span>
               </p>
             </div>
@@ -203,8 +210,9 @@ export default async function OfferDetailPage({ params }: { params: Promise<{ re
                     slug={slug}
                     offerId={o.id}
                     status={o.approval_status}
-                    isStaff={staff}
-                    canEdit={staff || o.agent_id === user.id}
+                    isStaff={developerStaff}
+                    canEdit={developerStaff || o.agent_id === user.id}
+                    approverName={approverName}
                     agent={o.agent}
                     reason={o.approval_reason}
                     note={o.approval_note}
@@ -222,7 +230,7 @@ export default async function OfferDetailPage({ params }: { params: Promise<{ re
                   <LoginPanel slug={slug} offerId={o.id} buyer={o.buyer_name} realty={user.realty.name} url={o.url} username={o.access_username} password={o.access_password} />
                 )}
                 {o.unit_hold && (o.status === "active" || o.unit_hold.this_offer) && (
-                  <UnitStatusPanel slug={slug} offerId={o.id} unitName={o.unit_detail.name ?? o.unit ?? "Unit"} project={o.project} initial={o.unit_hold} canChange={staff} />
+                  <UnitStatusPanel slug={slug} offerId={o.id} unitName={o.unit_detail.name ?? o.unit ?? "Unit"} project={o.project} initial={o.unit_hold} canChange={developerStaff} />
                 )}
                 </div>
                 {o.status === "active" && !awaiting && (
@@ -262,7 +270,7 @@ export default async function OfferDetailPage({ params }: { params: Promise<{ re
                             </div>
                             <span className={`border px-2.5 py-1 text-xs font-bold ${o.details_submitted_at ? "border-emerald-300 bg-emerald-50 text-emerald-800" : "border-[#d9d4cb] text-[#6b665d]"}`}>{o.details_submitted_at ? "Received" : "Missing"}</span>
                           </div>
-                          <RequirementsPanel slug={slug} offerId={o.id} requirements={o.requirements} />
+                          <RequirementsPanel slug={slug} offerId={o.id} requirements={o.requirements} canReview={canReview} />
                         </div>
                         <div className="space-y-6">
                           <FollowUp

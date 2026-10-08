@@ -3,7 +3,7 @@
 import { useEffect, useRef, useState } from "react"
 import Link from "next/link"
 import { usePathname } from "next/navigation"
-import { ArrowUpRight, BadgeCheck, Building2, ChevronDown, ClipboardCheck, FileText, Globe, Landmark, LayoutDashboard, LogOut, Menu, Plus, Settings, Sparkles, UsersRound, Users, X } from "lucide-react"
+import { ArrowUpRight, BadgeCheck, Building2, ChevronDown, ClipboardCheck, FileText, Globe, Handshake, Landmark, LayoutDashboard, LogOut, Menu, Plus, Settings, Sparkles, UsersRound, Users, X } from "lucide-react"
 import { Feedback } from "@/components/feedback"
 import { AskPanel } from "./ai/ask-panel"
 import { RealtyMark } from "@/components/form"
@@ -11,11 +11,12 @@ import { assistantName } from "@/lib/assistant-name"
 import { type ViewRealty, RoleSwitch } from "@/components/role-switch"
 import { SITE_REALTY } from "@/lib/public-projects-types"
 import type { RealtyUser } from "@/lib/realty-auth"
+import { isBroker, isDeveloperStaff } from "@/lib/realty-roles"
 
 /** What a super admin gets on top of the realty's own dashboard: the platform's realties and people, and View as. */
 export type SuperAdminNav = { realties: ViewRealty[]; realtyCount: number | null; peopleCount: number | null }
 
-export type ShellCounts = { projects: number; offers: number; agents: number; agentsInvited: number; agentsPending: number; publicProjects: number; newResponses: number; toApprove: number }
+export type ShellCounts = { projects: number; offers: number; agents: number; agentsInvited: number; agentsPending: number; publicProjects: number; newResponses: number; toApprove: number; realtiesPending: number }
 
 type Item = { href: string; label: string; icon: typeof LayoutDashboard; exact?: boolean; count?: number; note?: string; alert?: string }
 
@@ -41,18 +42,22 @@ export function DashboardShell({ slug, user, counts, superAdmin, signOutAction, 
   const account = `/${slug}/dashboard/account`
   const realty = user.realty
   const staff = user.role === "realty"
+  // Johndorf is the developer: its admins edit the inventory, approve terms and accept realties. An accredited
+  // realty (a broker) sells that inventory through its own agents and sees only what it needs for that.
+  const broker = isBroker(user)
+  const developerStaff = isDeveloperStaff(user)
   const isSite = slug === SITE_REALTY
 
   // Anything waiting on this person: buyer updates, offers to approve, and (for staff) agents to approve.
-  const waiting = (counts?.newResponses ?? 0) + (counts?.toApprove ?? 0) + (staff ? (counts?.agentsPending ?? 0) : 0)
+  const waiting = (counts?.newResponses ?? 0) + (counts?.toApprove ?? 0) + (staff ? (counts?.agentsPending ?? 0) : 0) + (developerStaff ? (counts?.realtiesPending ?? 0) : 0)
 
   const groups: { title: string; items: Item[] }[] = [
     {
       title: "Workspace",
       items: [
         { href: `/${slug}/dashboard`, label: "Overview", icon: LayoutDashboard, exact: true },
-        // The AI assistant: answers from this realty's data.
-        { href: `/${slug}/dashboard/ai`, label: assistantName(realty.name), icon: Sparkles },
+        // The AI assistant: answers from this realty's data (Johndorf's own team only).
+        ...(broker ? [] : [{ href: `/${slug}/dashboard/ai`, label: assistantName(realty.name), icon: Sparkles }]),
       ],
     },
     {
@@ -60,13 +65,20 @@ export function DashboardShell({ slug, user, counts, superAdmin, signOutAction, 
       items: [
         { href: `/${slug}/dashboard/projects`, label: "Projects", icon: Building2, count: counts?.projects },
         { href: `/${slug}/dashboard/offers`, label: staff ? "Offers" : "My offers", icon: FileText, count: counts?.offers, alert: counts?.newResponses ? `${counts.newResponses} new` : undefined },
-        ...(staff ? [{ href: `/${slug}/dashboard/approvals`, label: "Approvals", icon: BadgeCheck, count: counts?.toApprove, alert: counts?.toApprove ? "to do" : undefined }] : []),
+        ...(developerStaff ? [{ href: `/${slug}/dashboard/approvals`, label: "Approvals", icon: BadgeCheck, count: counts?.toApprove, alert: counts?.toApprove ? "to do" : undefined }] : []),
       ],
     },
     ...(staff
       ? [
-          { title: "Team", items: [{ href: `/${slug}/dashboard/agents`, label: "Agents", icon: Users, count: counts?.agents, note: counts?.agentsInvited ? `+${counts.agentsInvited} invited` : undefined, alert: counts?.agentsPending ? `${counts.agentsPending} to approve` : undefined }] },
-          { title: "Setup", items: [{ href: `/${slug}/dashboard/requirements`, label: "Buyer requirements", icon: ClipboardCheck }] },
+          {
+            title: "Team",
+            items: [
+              { href: `/${slug}/dashboard/agents`, label: "Agents", icon: Users, count: counts?.agents, note: counts?.agentsInvited ? `+${counts.agentsInvited} invited` : undefined, alert: counts?.agentsPending ? `${counts.agentsPending} to approve` : undefined },
+              // Realties accredited under this developer: invite, review their form, accept.
+              ...(developerStaff ? [{ href: `/${slug}/dashboard/realties`, label: "Realties", icon: Handshake, alert: counts?.realtiesPending ? `${counts.realtiesPending} to review` : undefined }] : []),
+            ],
+          },
+          ...(developerStaff ? [{ title: "Setup", items: [{ href: `/${slug}/dashboard/requirements`, label: "Buyer requirements", icon: ClipboardCheck }] }] : []),
         ]
       : []),
     ...(superAdmin
@@ -91,6 +103,13 @@ export function DashboardShell({ slug, user, counts, superAdmin, signOutAction, 
         <Link href={`/${slug}/dashboard`} onClick={() => setOpen(false)} className="flex items-center outline-none focus-visible:ring-2 focus-visible:ring-[var(--accent)]">
           <RealtyMark name={realty.name} logo={realty.logo_url} className="h-14" />
         </Link>
+        {/* An accredited realty works inside Johndorf's brand, under its own name. */}
+        {broker && (
+          <p className="mt-3 text-[15px] font-bold leading-snug text-[#17150f]">
+            {realty.name}
+            {realty.developer && <span className="mt-0.5 block text-xs font-semibold text-[#6b665d]">Accredited by {realty.developer.name}</span>}
+          </p>
+        )}
         <div className="mt-4 flex items-center justify-between gap-2">
           <p className="truncate text-xs font-bold uppercase tracking-[0.16em] text-[#6b665d]">Dashboard</p>
           <span className="shrink-0 bg-[#f3f0eb] px-2 py-1 text-[11px] font-bold uppercase tracking-[0.12em] text-[#3d3a34]">{staff ? "Admin" : "Agent"}</span>
@@ -231,7 +250,7 @@ export function DashboardShell({ slug, user, counts, superAdmin, signOutAction, 
           Powered by <Link href="/platform" className="font-medium text-[#8a847a] hover:text-[#17150f]">jvconline</Link>
         </p>
       </main>
-      <AskPanel slug={slug} name={assistantName(realty.name)} isAgent={user.role === "agent"} />
+      {!broker && <AskPanel slug={slug} name={assistantName(realty.name)} isAgent={user.role === "agent"} />}
       <Feedback />
     </div>
   )

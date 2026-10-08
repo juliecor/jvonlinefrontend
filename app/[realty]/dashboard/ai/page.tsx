@@ -1,6 +1,7 @@
-import { notFound } from "next/navigation"
+import { notFound, redirect } from "next/navigation"
 import { ApiError, api } from "@/lib/api"
 import { requireRealtyUser } from "@/lib/realty-auth"
+import { isBroker } from "@/lib/realty-roles"
 import type { ChatMessage, ChatSummary } from "./actions"
 import { AssistantChat } from "./chat"
 
@@ -13,6 +14,7 @@ export default async function AssistantPage({ params, searchParams }: Props) {
   const { realty: slug } = await params
   const { chat: chatParam } = await searchParams
   const { user, token } = await requireRealtyUser(slug)
+  if (isBroker(user)) redirect(`/${slug}/dashboard`)
   // attention: how many things wait for this person (null if it couldn't be counted).
   const { name, chats, attention } = await api<{ name: string; chats: ChatSummary[]; attention: number | null }>("/realty/assistant/chats", { token })
 

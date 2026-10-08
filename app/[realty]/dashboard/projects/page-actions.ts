@@ -4,12 +4,13 @@ import { revalidatePath } from "next/cache"
 import { redirect } from "next/navigation"
 import { api, errorMessage } from "@/lib/api"
 import { requireRealtyUser } from "@/lib/realty-auth"
+import { isDeveloperStaff } from "@/lib/realty-roles"
 
 export type PageState = { error?: string; ok?: string }
 
 async function staff(slug: string) {
   const session = await requireRealtyUser(slug)
-  if (session.user.role !== "realty") redirect(`/${slug}/dashboard/projects`)
+  if (!isDeveloperStaff(session.user)) redirect(`/${slug}/dashboard/projects`)
   return session.token
 }
 

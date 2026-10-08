@@ -16,14 +16,14 @@ const STATE_STYLE = {
 const STATE_ICON = { missing: null, review: Clock, approved: CheckCircle2, rejected: AlertCircle } as const
 
 /** Each requirement with the buyer's files: preview, open, approve or send back with a reason. */
-export function RequirementsPanel({ slug, offerId, requirements }: { slug: string; offerId: number; requirements: Requirement[] }) {
+export function RequirementsPanel({ slug, offerId, requirements, canReview = true }: { slug: string; offerId: number; requirements: Requirement[]; canReview?: boolean }) {
   const shown = requirements.filter((r) => r.needed !== "not_needed" || r.files.length > 0)
   const skipped = requirements.length - shown.length
   return (
     <div>
       <ul className="divide-y divide-[#e6e2db]">
         {shown.map((r) => (
-          <RequirementRow key={r.id} slug={slug} offerId={offerId} req={r} />
+          <RequirementRow key={r.id} slug={slug} offerId={offerId} req={r} canReview={canReview} />
         ))}
       </ul>
       {skipped > 0 && <p className="pt-3 text-sm text-[#8a847a]">{skipped} item{skipped === 1 ? "" : "s"} on your list {skipped === 1 ? "doesn't" : "don't"} apply to this buyer, going by their details.</p>}
@@ -31,7 +31,7 @@ export function RequirementsPanel({ slug, offerId, requirements }: { slug: strin
   )
 }
 
-function RequirementRow({ slug, offerId, req }: { slug: string; offerId: number; req: Requirement }) {
+function RequirementRow({ slug, offerId, req, canReview }: { slug: string; offerId: number; req: Requirement; canReview: boolean }) {
   const Icon = STATE_ICON[req.state]
   return (
     <li className="py-5">
@@ -55,7 +55,7 @@ function RequirementRow({ slug, offerId, req }: { slug: string; offerId: number;
       ) : (
         <ul className="mt-4 grid gap-3 sm:grid-cols-2">
           {req.files.map((f) => (
-            <FileCard key={f.id} slug={slug} offerId={offerId} file={f} />
+            <FileCard key={f.id} slug={slug} offerId={offerId} file={f} canReview={canReview} />
           ))}
         </ul>
       )}
@@ -63,7 +63,7 @@ function RequirementRow({ slug, offerId, req }: { slug: string; offerId: number;
   )
 }
 
-function FileCard({ slug, offerId, file }: { slug: string; offerId: number; file: Requirement["files"][number] }) {
+function FileCard({ slug, offerId, file, canReview }: { slug: string; offerId: number; file: Requirement["files"][number]; canReview: boolean }) {
   const [pending, start] = useTransition()
   const [rejecting, setRejecting] = useState(false)
   const [note, setNote] = useState("")
@@ -104,6 +104,7 @@ function FileCard({ slug, offerId, file }: { slug: string; offerId: number; file
       </a>
       {file.status === "rejected" && file.note && <p className="mx-3 mb-3 bg-red-50 px-3 py-2 text-xs font-semibold text-red-800">Reason: {file.note}</p>}
 
+      {canReview && (
       <div className="mt-auto flex flex-wrap items-center gap-2 border-t border-[#ebe7e1] px-3 py-2.5">
         {file.status === "pending" && !rejecting && (
           <>
@@ -141,6 +142,7 @@ function FileCard({ slug, offerId, file }: { slug: string; offerId: number; file
         )}
         {msg.error && <p className="w-full text-xs font-semibold text-red-700">{msg.error}</p>}
       </div>
+      )}
     </li>
   )
 }

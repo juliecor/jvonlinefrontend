@@ -5,6 +5,7 @@ import { Empty, PageHeader, Panel, Row, Rows, Tag, btn } from "@/components/dash
 import { api } from "@/lib/api"
 import { php, shortDate, timeAgo } from "@/lib/format"
 import { requireRealtyUser } from "@/lib/realty-auth"
+import { isDeveloperStaff } from "@/lib/realty-roles"
 
 export const metadata = { title: "Approvals" }
 
@@ -27,7 +28,7 @@ type Offer = {
 export default async function ApprovalsPage({ params }: { params: Promise<{ realty: string }> }) {
   const { realty: slug } = await params
   const { user, token } = await requireRealtyUser(slug)
-  if (user.role !== "realty") redirect(`/${slug}/dashboard/offers`)
+  if (!isDeveloperStaff(user)) redirect(`/${slug}/dashboard/offers`)
   const offers = (await api<Offer[]>("/realty/offers", { token })).filter((o) => o.custom && o.status === "active")
   const waiting = offers.filter((o) => o.approval_status === "pending")
   const decided = offers.filter((o) => o.approval_status !== "pending").slice(0, 15)

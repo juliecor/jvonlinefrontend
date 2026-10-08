@@ -3,9 +3,7 @@ import { ExternalLink, LayoutDashboard } from "lucide-react"
 import { Empty, Ledger, PageHeader, Panel, Row, Rows, Tag, btn } from "@/components/dashboard-ui"
 import { api } from "@/lib/api"
 import { shortDate } from "@/lib/format"
-import { InviteRealtyForm } from "./invite-form"
 import { OpenDashboard } from "./open-dashboard"
-import { ResendButton } from "./resend-button"
 
 type Realty = {
   id: number
@@ -13,10 +11,12 @@ type Realty = {
   slug: string
   email: string | null
   status: "invited" | "active"
+  /** A developer (Johndorf) owns projects and units; a broker is accredited under one and sells its units. */
+  kind: "developer" | "broker"
+  developer: { name: string; slug: string } | null
   invited_at: string | null
   registered_at: string | null
   users_count: number
-  latest_invitation: { email: string; expires_at: string; accepted_at: string | null } | null
 }
 type Stats = { realties_active: number; realties_invited: number; realty_users: number; agents: number; projects: number; units: number; offers_active: number; offers_total: number; offer_views: number; offer_responses: number }
 
@@ -33,10 +33,11 @@ export type PlatformContext = {
 /** Every realty on the platform and the invite form; inside a realty dashboard, the platform's numbers too. */
 export async function RealtiesView({ ctx, eyebrow, showStats = false }: { ctx: PlatformContext; eyebrow: string; showStats?: boolean }) {
   const [realties, s] = await Promise.all([api<Realty[]>("/admin/realties", { token: ctx.token }), showStats ? api<Stats>("/admin/stats", { token: ctx.token }) : Promise.resolve(null)])
+  const developer = realties.find((r) => r.kind === "developer" && r.status === "active")
 
   return (
     <div>
-      <PageHeader eyebrow={eyebrow} title="Realties" lede="Each realty gets its own page at jvconline.ph/<address>, its own login and its own dashboard." />
+      <PageHeader eyebrow={eyebrow} title="Realties" lede="Johndorf is the developer. Every realty accredited under it has its own sign-in and dashboard, and sells Johndorf's units through its own agents." />
 
       {s && (
         <Ledger
@@ -52,7 +53,7 @@ export async function RealtiesView({ ctx, eyebrow, showStats = false }: { ctx: P
       <Panel title={`Realties · ${realties.length}`}>
         <Rows>
           {realties.map((r) => {
-            const expired = r.status === "invited" && r.latest_invitation && new Date(r.latest_invitation.expires_at) < new Date()
+            const broker = r.kind === "broker"
             return (
               <Row key={r.id}>
                 <div className="min-w-0">
@@ -60,13 +61,13 @@ export async function RealtiesView({ ctx, eyebrow, showStats = false }: { ctx: P
                     <Link href={`${ctx.base}/realties/${r.id}`} className="text-lg font-bold hover:text-[var(--accent)]">
                       {r.name}
                     </Link>
-                    {r.status === "active" ? <Tag tone="good">Active</Tag> : expired ? <Tag tone="bad">Invite expired</Tag> : <Tag tone="warn">Invited</Tag>}
+                    {r.status !== "active" ? <Tag tone="warn">Not registered</Tag> : broker ? <Tag tone="good">Accredited{r.developer ? ` by ${r.developer.name}` : ""}</Tag> : <Tag tone="accent">Developer</Tag>}
                     {r.slug === ctx.currentSlug && <Tag tone="accent">You&apos;re here</Tag>}
                   </div>
                   <p className="mt-0.5 text-sm text-[#6b665d]">
-                    jvconline.ph/{r.slug}
+                    jvconline.ph/{broker ? `${r.slug}/login` : r.slug}
                     {r.email && ` · ${r.email}`}
-                    {r.status === "active" ? ` · registered ${shortDate(r.registered_at)} · ${r.users_count} login${r.users_count === 1 ? "" : "s"}` : ` · invited ${shortDate(r.invited_at)}`}
+                    {r.status === "active" ? ` · ${broker ? "accredited" : "registered"} ${shortDate(r.registered_at)} · ${r.users_count} login${r.users_count === 1 ? "" : "s"}` : ` · invited ${shortDate(r.invited_at)}`}
                   </p>
                 </div>
                 <div className="flex shrink-0 flex-wrap items-center gap-2">
@@ -74,12 +75,10 @@ export async function RealtiesView({ ctx, eyebrow, showStats = false }: { ctx: P
                   <Link href={`${ctx.base}/realties/${r.id}`} className={btn.outline}>
                     Details
                   </Link>
-                  {r.status === "active" ? (
-                    <Link href={`/${r.slug}`} target="_blank" className={btn.outline}>
-                      Page <ExternalLink className="h-3.5 w-3.5" />
+                  {r.status === "active" && (
+                    <Link href={broker ? `/${r.slug}/login` : `/${r.slug}`} target="_blank" className={btn.outline}>
+                      {broker ? "Login" : "Page"} <ExternalLink className="h-3.5 w-3.5" />
                     </Link>
-                  ) : (
-                    <ResendButton id={r.id} />
                   )}
                 </div>
               </Row>
@@ -87,16 +86,19 @@ export async function RealtiesView({ ctx, eyebrow, showStats = false }: { ctx: P
           })}
           {realties.length === 0 && (
             <li>
-              <Empty>No realties yet. Invite the first one below.</Empty>
+              <Empty>No realties yet.</Empty>
             </li>
           )}
         </Rows>
       </Panel>
 
       <div id="invite" className="scroll-mt-24">
-        <Panel title="Invite a realty" aside="They get an email with a link to register. It works for 7 days.">
-          <div className="pt-6">
-            <InviteRealtyForm />
+        <Panel title="Accredit a realty" aside="Invited and accepted by the developer's admins">
+          <div className="flex flex-wrap items-center justify-between gap-4 pt-6">
+            <p className="max-w-xl text-[15px] text-[#5a554d]">
+              A realty is invited by email under <strong>Team › Realties</strong> in {developer ? `${developer.name}'s` : "the developer's"} dashboard. It fills in the accreditation form, the developer&apos;s admins read it and accept it, and the realty gets its login by email.
+            </p>
+            {ctx.superAdmin && developer && <DashboardButton ctx={ctx} slug={developer.slug} />}
           </div>
         </Panel>
       </div>

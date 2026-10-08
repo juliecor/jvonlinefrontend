@@ -15,15 +15,18 @@ export async function signInRealty(slug: string, _: RealtyLoginState, formData: 
   if (!email || !password) return { error: "Enter your email and password.", email }
 
   let token: string
+  let mustChangePassword = false
   try {
     const res = await api<{ token: string; user: AuthUser }>("/auth/login", { method: "POST", body: { email, password, realty: slug, device: `realty-web:${slug}` } })
     token = res.token
+    mustChangePassword = !!res.user?.must_change_password
   } catch (e) {
     return { error: errorMessage(e), email }
   }
 
   await setRealtyToken(token)
-  redirect(`/${slug}/dashboard`)
+  // A realty that was just accepted signs in with the temporary password from its email, then chooses its own.
+  redirect(mustChangePassword ? `/${slug}/password` : `/${slug}/dashboard`)
 }
 
 export async function signOutRealty(slug: string): Promise<void> {

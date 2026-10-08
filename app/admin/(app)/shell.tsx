@@ -65,7 +65,7 @@ export function AdminShell({ user, counts, realties, signOutAction, children }: 
           onClick={() => setOpen(false)}
           className="flex items-center justify-center gap-2 bg-[var(--accent)] px-4 py-3.5 text-[15px] font-bold text-white outline-none transition hover:brightness-125 focus-visible:ring-2 focus-visible:ring-[var(--accent)] focus-visible:ring-offset-2"
         >
-          <Plus className="h-5 w-5" strokeWidth={2.5} /> Invite a realty
+          <Plus className="h-5 w-5" strokeWidth={2.5} /> Accredit a realty
         </Link>
       </div>
 

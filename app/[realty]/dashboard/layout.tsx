@@ -7,7 +7,7 @@ import { signOutRealty } from "../login/actions"
 import { DashboardShell, type ShellCounts, type SuperAdminNav } from "./shell"
 
 type Props = { children: React.ReactNode; modal: React.ReactNode; params: Promise<{ realty: string }> }
-type Stats = { projects: number; offers: number; agents: number; agents_invited: number; agents_pending: number; public_projects: number; new_responses: number; docs_to_review: number; to_approve: number; sent_back: number }
+type Stats = { projects: number; offers: number; agents: number; agents_invited: number; agents_pending: number; public_projects: number; new_responses: number; docs_to_review: number; to_approve: number; sent_back: number; realties_pending?: number }
 
 export async function generateMetadata({ params }: Props): Promise<Metadata> {
   const realty = await realtyBySlug((await params).realty)
@@ -24,7 +24,7 @@ export default async function RealtyDashboardLayout({ children, modal, params }:
   const accent = user.realty.accent_color ?? "#1f2937"
   // The sidebar's counts; the dashboard still works if they can't be read.
   const counts: ShellCounts | null = await api<{ stats: Stats }>("/realty/overview", { token })
-    .then(({ stats: s }) => ({ projects: s.projects, offers: s.offers, agents: s.agents, agentsInvited: s.agents_invited, agentsPending: s.agents_pending ?? 0, publicProjects: s.public_projects, newResponses: s.new_responses + s.docs_to_review + s.sent_back, toApprove: s.to_approve }))
+    .then(({ stats: s }) => ({ projects: s.projects, offers: s.offers, agents: s.agents, agentsInvited: s.agents_invited, agentsPending: s.agents_pending ?? 0, publicProjects: s.public_projects, newResponses: s.new_responses + s.docs_to_review + s.sent_back, toApprove: s.to_approve, realtiesPending: s.realties_pending ?? 0 }))
     .catch(() => null)
   // A super admin gets this realty's dashboard plus the platform's realties and people, and View as.
   const superAdmin: SuperAdminNav | null = user.is_superadmin

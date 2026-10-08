@@ -1,12 +1,13 @@
 import { RouteModal } from "@/components/route-modal"
 import { requireRealtyUser } from "@/lib/realty-auth"
+import { isDeveloperStaff } from "@/lib/realty-roles"
 import { ProjectForm } from "../../../projects/project-form"
 
 /** "Add project" opens here, over the Projects page. Agents can't add projects, so they get nothing. */
 export default async function NewProjectModal({ params }: { params: Promise<{ realty: string }> }) {
   const { realty: slug } = await params
   const { user } = await requireRealtyUser(slug)
-  if (user.role !== "realty") return null
+  if (!isDeveloperStaff(user)) return null
 
   return (
     <RouteModal eyebrow={user.realty.name} title="Add a project">

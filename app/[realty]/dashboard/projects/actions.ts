@@ -4,6 +4,7 @@ import { revalidatePath } from "next/cache"
 import { redirect } from "next/navigation"
 import { api, errorMessage } from "@/lib/api"
 import { requireRealtyUser } from "@/lib/realty-auth"
+import { isDeveloperStaff } from "@/lib/realty-roles"
 import type { Project } from "./types"
 
 export type FormState = { error?: string; ok?: string }
@@ -17,7 +18,7 @@ const tidy = (fd: FormData, field: string) => {
 
 async function staff(slug: string) {
   const session = await requireRealtyUser(slug)
-  if (session.user.role !== "realty") redirect(`/${slug}/dashboard/projects`)
+  if (!isDeveloperStaff(session.user)) redirect(`/${slug}/dashboard/projects`)
   return session.token
 }
 

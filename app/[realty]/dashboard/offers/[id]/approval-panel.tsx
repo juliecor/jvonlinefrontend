@@ -13,6 +13,8 @@ type Props = {
   status: "pending" | "approved" | "rejected"
   isStaff: boolean
   canEdit: boolean
+  /** Who approves custom terms: the developer's admins (Johndorf), not the realty that made the offer. */
+  approverName: string
   agent: string | null
   reason: string | null
   note: string | null
@@ -81,7 +83,7 @@ export function ApprovalPanel(p: Props) {
               {p.status === "pending"
                 ? p.isStaff
                   ? `${p.agent ?? "The agent"} made their own payment terms. The buyer can't open the offer until you approve them.`
-                  : "Your realty's admins have your custom terms. The buyer can open the offer once they approve them; you'll get an email."
+                  : `${p.approverName}'s admins have ${p.canEdit ? "your" : `${p.agent ?? "the agent"}'s`} custom terms. The buyer can open the offer once they approve them${p.canEdit ? "; you'll get an email" : ""}.`
                 : p.isStaff
                   ? `Waiting for ${p.agent ?? "the agent"} to change the terms and send them again.`
                   : "Change the terms below and send them for approval again."}

@@ -7,6 +7,7 @@ import { HashTabs } from "@/components/hash-tabs"
 import { ApiError, api } from "@/lib/api"
 import { longDate, php } from "@/lib/format"
 import { requireRealtyUser } from "@/lib/realty-auth"
+import { isDeveloperStaff } from "@/lib/realty-roles"
 import { AddPlan, AddUnit } from "../add-dialog"
 import { PlanCard } from "../plan-card"
 import { ProjectForm } from "../project-form"
@@ -36,7 +37,7 @@ export default async function ProjectPage({ params, searchParams }: Props) {
   // unit: a unit's name, from "View" on a card in the AI chat — the units list opens searched for it.
   const { plan_error: planError, unit: unitQuery } = await searchParams
   const { user, token } = await requireRealtyUser(slug)
-  const staff = user.role === "realty"
+  const staff = isDeveloperStaff(user)
 
   let project: ProjectDetail
   try {

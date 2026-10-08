@@ -13,7 +13,18 @@ import { ApiError, api } from "./api"
 export const REALTY_COOKIE = "jv_realty"
 export const REALTY_SESSION_SECONDS = 12 * 60 * 60
 
-export type PublicRealty = { id: number; name: string; slug: string; logo_url: string | null; accent_color: string | null; status: "invited" | "active" }
+export type PublicRealty = {
+  id: number
+  name: string
+  slug: string
+  logo_url: string | null
+  accent_color: string | null
+  status: "invited" | "active"
+  /** A "developer" owns projects and units (Johndorf); a "broker" is accredited under one and sells its units. */
+  kind?: "developer" | "broker"
+  /** The developer a broker is accredited under; its name and logo show on the broker's pages. */
+  developer?: { name: string; slug: string; logo_url: string | null } | null
+}
 
 export type RealtyUser = AuthUser & { role: "realty" | "agent"; realty: PublicRealty }
 
@@ -64,5 +75,8 @@ export async function currentRealtyUser(): Promise<{ user: RealtyUser; token: st
 export async function requireRealtyUser(slug: string): Promise<{ user: RealtyUser; token: string }> {
   const session = await currentRealtyUser()
   if (!session || session.user.realty.slug !== slug) redirect(`/${slug}/login`)
+  // An accepted realty signs in with a temporary password and has to replace it first. Every page and
+  // action passes through here, so the redirect lives here and not only in the layout.
+  if (session.user.must_change_password) redirect(`/${slug}/password`)
   return session
 }

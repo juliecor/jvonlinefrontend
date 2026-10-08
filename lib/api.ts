@@ -60,9 +60,16 @@ export async function api<T>(path: string, { method = "GET", body, token, header
   })
   if (res.status === 204) return undefined as T
   const text = await res.text()
-  const data = text ? JSON.parse(text) : null
+  // Laravel answers JSON, but a web server or PHP limit in front of it can answer with a plain page.
+  let data: { message?: string; errors?: Record<string, string[]> } | null = null
+  try {
+    data = text ? JSON.parse(text) : null
+  } catch {
+    if (res.ok) throw new ApiError(res.status, "The server sent back something unexpected. Please try again.")
+  }
   if (!res.ok) {
-    throw new ApiError(res.status, data?.message ?? `Request failed (${res.status})`, data?.errors ?? {})
+    // 413 comes from Nginx or Laravel when the files are bigger than the server accepts.
+    throw new ApiError(res.status, data?.message || (res.status === 413 ? "That upload is too big for the server. Try smaller files." : `Request failed (${res.status})`), data?.errors ?? {})
   }
   return data as T
 }

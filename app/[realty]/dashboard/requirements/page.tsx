@@ -2,6 +2,7 @@ import { redirect } from "next/navigation"
 import { PageHeader } from "@/components/dashboard-ui"
 import { api } from "@/lib/api"
 import { requireRealtyUser } from "@/lib/realty-auth"
+import { isDeveloperStaff } from "@/lib/realty-roles"
 import { type ReqType, RequirementsEditor } from "./editor"
 
 export const metadata = { title: "Buyer requirements" }
@@ -10,7 +11,7 @@ export const metadata = { title: "Buyer requirements" }
 export default async function RequirementsPage({ params }: { params: Promise<{ realty: string }> }) {
   const { realty: slug } = await params
   const { user, token } = await requireRealtyUser(slug)
-  if (user.role !== "realty") redirect(`/${slug}/dashboard`)
+  if (!isDeveloperStaff(user)) redirect(`/${slug}/dashboard`)
   const { types, applies } = await api<{ types: ReqType[]; applies: Record<string, string> }>("/realty/requirements", { token })
 
   return (

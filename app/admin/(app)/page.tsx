@@ -40,7 +40,7 @@ export default async function AdminDashboardPage() {
         lede="Here's how every realty on the platform stands today."
         action={
           <Link href="/admin/realties#invite" className={btn.primary}>
-            <Plus className="h-4 w-4" strokeWidth={2.5} /> Invite a realty
+            <Plus className="h-4 w-4" strokeWidth={2.5} /> Accredit a realty
           </Link>
         }
       />

@@ -46,6 +46,8 @@ type Offer = {
   unit: { name: string; unit_type: string | null; category: string; floor: string | null; area_sqm: number | null; floor_plan_url: string | null; highlights: string | null }
   model: { name: string; specs: Specs | null; images: string[] } | null
   agent: { name: string; email: string } | null
+  /** The accredited realty that prepared it, when it isn't Johndorf's own team. */
+  broker?: { name: string; phone: string | null; email: string | null } | null
   requirements: Requirement[]
   details_submitted_at: string | null
   buyer_contact: { email: string | null; phone: string | null }
@@ -247,7 +249,7 @@ export default async function OfferPage({ params }: Props) {
                   <div className="border-t border-[#ebe7e1] px-6 py-6 sm:border-l sm:border-t-0 sm:px-10">
                     <p className="text-xs font-bold uppercase tracking-[0.16em] text-[#8a847a]">Prepared by</p>
                     <p className="mt-1.5 text-2xl font-bold tracking-tight sm:text-3xl">{agent?.name ?? realty.name}</p>
-                    <p className="mt-1 text-sm font-semibold text-[#5a554d]">{agent ? realty.name : "Sales team"}</p>
+                    <p className="mt-1 text-sm font-semibold text-[#5a554d]">{agent ? (offer.broker?.name ?? realty.name) : "Sales team"}</p>
                   </div>
                 </section>
 

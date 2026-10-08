@@ -5,12 +5,11 @@ import { Empty, Ledger, PageHeader, Panel, Row, Rows, Tag, btn } from "@/compone
 import { ApiError, api } from "@/lib/api"
 import { php, shortDate } from "@/lib/format"
 import { DashboardButton, type PlatformContext } from "./realties-view"
-import { ResendButton } from "./resend-button"
 
 type Detail = {
   realty: {
     id: number; name: string; slug: string; email: string | null; contact_name: string | null; phone: string | null; address: string | null; about: string | null
-    status: "invited" | "active"; logo_url: string | null; invited_at: string | null; registered_at: string | null
+    status: "invited" | "active"; kind: "developer" | "broker"; developer: { name: string; slug: string } | null; logo_url: string | null; invited_at: string | null; registered_at: string | null
     users_count: number; agents_count: number; projects_count: number; offers_count: number
   }
   people: { id: number; name: string; email: string; role: "realty" | "agent"; joined_at: string }[]
@@ -29,6 +28,7 @@ export async function RealtyView({ ctx, id }: { ctx: PlatformContext; id: string
     throw e
   }
   const r = d.realty
+  const broker = r.kind === "broker"
 
   return (
     <div>
@@ -41,23 +41,23 @@ export async function RealtyView({ ctx, id }: { ctx: PlatformContext; id: string
       )}
       <div className="mt-3">
         <PageHeader
-          eyebrow={r.status === "active" ? "Realty · active" : "Realty · invited"}
+          eyebrow={r.status !== "active" ? "Realty · not registered" : broker ? `Realty · accredited${r.developer ? ` by ${r.developer.name}` : ""}` : "Realty · developer"}
           title={r.name}
-          lede={`jvconline.ph/${r.slug}${r.registered_at ? ` · registered ${shortDate(r.registered_at)}` : r.invited_at ? ` · invited ${shortDate(r.invited_at)}` : ""}`}
+          lede={`jvconline.ph/${broker ? `${r.slug}/login` : r.slug}${r.registered_at ? ` · registered ${shortDate(r.registered_at)}` : r.invited_at ? ` · invited ${shortDate(r.invited_at)}` : ""}`}
           action={
             r.status === "active" ? (
               <>
                 {ctx.superAdmin && <DashboardButton ctx={ctx} slug={r.slug} />}
-                <Link href={`/${r.slug}`} target="_blank" className={btn.outline}>
-                  Public page <ExternalLink className="h-3.5 w-3.5" />
-                </Link>
+                {!broker && (
+                  <Link href={`/${r.slug}`} target="_blank" className={btn.outline}>
+                    Public page <ExternalLink className="h-3.5 w-3.5" />
+                  </Link>
+                )}
                 <Link href={`/${r.slug}/login`} target="_blank" className={btn.outline}>
                   Their login <ExternalLink className="h-3.5 w-3.5" />
                 </Link>
               </>
-            ) : (
-              <ResendButton id={r.id} />
-            )
+            ) : undefined
           }
         />
       </div>
@@ -132,7 +132,7 @@ export async function RealtyView({ ctx, id }: { ctx: PlatformContext; id: string
         </Rows>
       </Panel>
 
-      <Panel title="Latest offers">
+      <Panel title={broker ? "Latest offers sold" : "Latest offers"}>
         <Rows>
           {d.offers.map((o) => (
             <Row key={o.id} muted={o.status === "void"}>

@@ -74,7 +74,7 @@ export function UnitStatusPanel({ slug, offerId, unitName, project, initial, can
 
       {msg.error && <p className="mt-3 text-sm font-bold text-red-700">{msg.error}</p>}
       {hold.status === "available" ? (
-        <p className="mt-3 text-sm text-[#6b665d]">{canChange ? "When the buyer reserves or buys, mark it here. The project's unit list will show it's theirs." : "Your realty's admins mark it reserved or sold when the buyer goes ahead."}</p>
+        <p className="mt-3 text-sm text-[#6b665d]">{canChange ? "When the buyer reserves or buys, mark it here. The project's unit list will show it's theirs." : "The developer's admins mark it reserved or sold when the buyer goes ahead."}</p>
       ) : heldElsewhere ? (
         <p className="mt-3 border-l-4 border-amber-500 bg-amber-50 px-4 py-2.5 text-sm font-semibold text-amber-900">
           This unit is already {hold.status}

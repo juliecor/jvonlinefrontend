@@ -2,6 +2,7 @@ import Link from "next/link"
 import { ArrowLeft } from "lucide-react"
 import { PageHeader } from "@/components/dashboard-ui"
 import { todayManila } from "@/lib/format"
+import { isDeveloperStaff } from "@/lib/realty-roles"
 import { OfferForm } from "../offer-form"
 import { loadNewOffer, termsFromQuery } from "./load"
 
@@ -24,7 +25,7 @@ export default async function NewOfferPage({ params, searchParams }: Props) {
       <div className="mt-3 mb-8">
         <PageHeader eyebrow="Sales" title="New sales offer" lede="The buyer gets a link to a page with the unit, the price, the payment schedule and your contact details." />
       </div>
-      <OfferForm slug={slug} projects={projects} initialProject={query.project ? Number(query.project) : undefined} initialUnit={query.unit ? Number(query.unit) : undefined} initialPlan={query.plan ? Number(query.plan) : undefined} initialTerms={termsFromQuery(query.terms)} initialDate={query.date && /^\d{4}-\d{2}-\d{2}$/.test(query.date) ? query.date : undefined} today={todayManila()} isStaff={user.role === "realty"} realtyName={user.realty.name} />
+      <OfferForm slug={slug} projects={projects} initialProject={query.project ? Number(query.project) : undefined} initialUnit={query.unit ? Number(query.unit) : undefined} initialPlan={query.plan ? Number(query.plan) : undefined} initialTerms={termsFromQuery(query.terms)} initialDate={query.date && /^\d{4}-\d{2}-\d{2}$/.test(query.date) ? query.date : undefined} today={todayManila()} isStaff={isDeveloperStaff(user)} realtyName={user.realty.developer?.name ?? user.realty.name} />
     </div>
   )
 }

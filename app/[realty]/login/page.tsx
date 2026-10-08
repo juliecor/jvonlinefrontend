@@ -60,7 +60,7 @@ export default async function RealtyLoginPage({ params, searchParams }: Props) {
         )}
         <div aria-hidden className="absolute inset-x-0 top-0 h-1.5 bg-[var(--accent)]" />
 
-        <Link href={slug === SITE_REALTY ? "/" : `/${slug}`} className="inline-flex self-start bg-white px-4 py-3 shadow-[0_10px_30px_-12px_rgba(0,0,0,0.5)]">
+        <Link href={slug === SITE_REALTY || realty.kind === "broker" ? "/" : `/${slug}/login`} className="inline-flex self-start bg-white px-4 py-3 shadow-[0_10px_30px_-12px_rgba(0,0,0,0.5)]">
           {realty.logo_url ? (
             // eslint-disable-next-line @next/next/no-img-element
             <img src={realty.logo_url} alt={realty.name} className="h-9 w-auto max-w-[220px] object-contain sm:h-11 lg:h-14" />
@@ -70,7 +70,7 @@ export default async function RealtyLoginPage({ params, searchParams }: Props) {
         </Link>
 
         <div>
-          <p className="text-xs font-bold uppercase tracking-[0.22em] text-white/75">{brand ? COMPANY.tagline : "Sales dashboard"}</p>
+          <p className="text-xs font-bold uppercase tracking-[0.22em] text-white/75">{brand ? COMPANY.tagline : realty.developer ? `Accredited by ${realty.developer.name}` : "Sales dashboard"}</p>
           <h2 className="mt-3 max-w-xl text-[1.75rem] font-bold leading-[1.08] tracking-tight sm:text-5xl">{short}&apos;s sales dashboard.</h2>
           <p className="mt-4 hidden max-w-lg text-base leading-relaxed text-white/85 sm:block">Projects, price lists, sales offers and your buyers&apos; answers, in one place, on your phone or your desk.</p>
 
