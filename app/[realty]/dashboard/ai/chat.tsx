@@ -3,24 +3,26 @@
 import { useEffect, useRef, useState } from "react"
 import Link from "next/link"
 import { useRouter } from "next/navigation"
-import { ArrowUp, Check, Copy, MessageSquare, Plus, Sparkles, Trash2, X } from "lucide-react"
+import { ArrowRight, ArrowUp, BellRing, Check, Copy, MessageSquare, Plus, Sparkles, Trash2, X } from "lucide-react"
 import { confirmAction, toast } from "@/components/feedback"
 import { Markdown } from "@/components/markdown"
 import { timeAgo } from "@/lib/format"
-import { type ChatMessage, type ChatSummary, deleteChat } from "./actions"
+import { type ChatMessage, type ChatSummary, type UnitCard, deleteChat } from "./actions"
+import { UnitCards } from "./unit-cards"
 
+const TODAY = "What needs my attention today?"
 const STAFF_IDEAS = [
-  "How many units are available in each project?",
+  "Show the 4 cheapest available units",
   "Which offers are still missing documents?",
+  "Write a Viber follow-up for buyers missing documents",
   "What did buyers say this week?",
-  "Show the 5 cheapest available units",
   "Compare the payment plans of our projects",
   "Which agents have the most active offers?",
 ]
 const AGENT_IDEAS = [
+  "Show the 4 cheapest available units",
   "Which of my buyers haven't answered yet?",
-  "Which of my offers are missing documents?",
-  "Show the 5 cheapest available units",
+  "Write a Viber follow-up for my buyers missing documents",
   "What payment plans does each project have?",
 ]
 
@@ -34,12 +36,14 @@ const STATUS: Record<string, string> = {
   offer_details: "Opening the offer",
   buyer_responses: "Reading buyers' answers",
   list_agents: "Checking the team",
+  show_units: "Getting the unit photos",
+  attention_today: "Checking what needs you",
 }
 
-type Props = { slug: string; name: string; firstName: string; isAgent: boolean; chats: ChatSummary[]; chatId: number | null; initial: ChatMessage[] }
+type Props = { slug: string; name: string; firstName: string; isAgent: boolean; chats: ChatSummary[]; chatId: number | null; initial: ChatMessage[]; attention: number | null }
 
 /** The assistant's chat: past chats on the side, the conversation, and the question box. */
-export function AssistantChat({ slug, name, firstName, isAgent, chats: initialChats, chatId: initialId, initial }: Props) {
+export function AssistantChat({ slug, name, firstName, isAgent, chats: initialChats, chatId: initialId, initial, attention }: Props) {
   const router = useRouter()
   const [chats, setChats] = useState(initialChats)
   const [chatId, setChatId] = useState(initialId)
@@ -51,14 +55,16 @@ export function AssistantChat({ slug, name, firstName, isAgent, chats: initialCh
   const [status, setStatus] = useState("")
   // The answer as it streams in, until it's saved.
   const [streaming, setStreaming] = useState<string | null>(null)
+  // Units the answer shows as cards, as soon as the AI picks them.
+  const [cards, setCards] = useState<UnitCard[]>([])
   const scroller = useRef<HTMLDivElement>(null)
   const base = `/${slug}/dashboard/ai`
 
   // Follow the answer as it grows, unless the person scrolled up to read something.
   useEffect(() => {
     const el = scroller.current
-    if (el && el.scrollHeight - el.scrollTop - el.clientHeight < 160) el.scrollTop = el.scrollHeight
-  }, [messages.length, pending, streaming])
+    if (el && messages.length > 0 && el.scrollHeight - el.scrollTop - el.clientHeight < 160) el.scrollTop = el.scrollHeight
+  }, [messages.length, pending, streaming, cards])
 
   const ask = async (question: string) => {
     const q = question.trim()
@@ -68,6 +74,7 @@ export function AssistantChat({ slug, name, firstName, isAgent, chats: initialCh
     setPending(true)
     setStatus("Thinking")
     setStreaming(null)
+    setCards([])
     setMessages((m) => [...m, { id: -Date.now(), role: "user", content: q, created_at: new Date().toISOString() }])
     requestAnimationFrame(() => scroller.current?.scrollTo({ top: scroller.current.scrollHeight }))
     // Nothing is saved when it fails: take the question back so it can be sent again.
@@ -103,6 +110,10 @@ export function AssistantChat({ slug, name, firstName, isAgent, chats: initialCh
           if (event === "status") setStatus(STATUS[payload.tool] ?? "Looking it up")
           else if (event === "delta") setStreaming((answer += payload.text))
           else if (event === "reset") setStreaming((answer = "") || null)
+          else if (event === "cards") {
+            setCards(payload.cards)
+            setStatus("Writing the answer")
+          }
           else if (event === "error") {
             finished = true
             fail(payload.message)
@@ -124,6 +135,7 @@ export function AssistantChat({ slug, name, firstName, isAgent, chats: initialCh
     } finally {
       setPending(false)
       setStreaming(null)
+      setCards([])
       setStatus("")
     }
   }
@@ -203,7 +215,7 @@ export function AssistantChat({ slug, name, firstName, isAgent, chats: initialCh
 
         <div ref={scroller} className="min-h-0 flex-1 overflow-y-auto px-4 py-6 sm:px-6">
           {messages.length === 0 ? (
-            <div className="mx-auto flex max-w-2xl flex-col items-center pt-6 text-center sm:pt-12">
+            <div className="mx-auto flex max-w-2xl flex-col items-center pt-2 text-center sm:pt-6">
               <span className="flex h-14 w-14 items-center justify-center bg-[var(--accent)] text-white">
                 <Sparkles className="h-7 w-7" />
               </span>
@@ -211,7 +223,24 @@ export function AssistantChat({ slug, name, firstName, isAgent, chats: initialCh
               <p className="mt-2 max-w-md text-[15px] text-[#5a554d]">
                 Ask about projects, units and prices, payment plans, {isAgent ? "your offers and your buyers" : "offers, buyers and agents"}. {name} looks it up in your dashboard as you ask.
               </p>
-              <div className="mt-7 grid w-full gap-2 sm:grid-cols-2">
+              <button type="button" onClick={() => ask(TODAY)} className="group mt-7 flex w-full items-center gap-4 bg-[#17150f] px-4 py-4 text-left text-white transition hover:bg-black sm:px-5">
+                <span className="flex h-11 w-11 shrink-0 items-center justify-center bg-[var(--accent)]">
+                  <BellRing className="h-5 w-5" />
+                </span>
+                <span className="min-w-0 flex-1">
+                  <span className="block text-base font-bold sm:text-lg">{TODAY}</span>
+                  <span className="mt-0.5 block text-sm text-white/70">
+                    {attention === 0 ? "You're all caught up. Ask for today's summary anyway." : isAgent ? "New answers, files to check and buyers to follow up" : "New answers, approvals, files to check and buyers to follow up"}
+                  </span>
+                </span>
+                {!!attention && (
+                  <span className="flex h-8 min-w-8 shrink-0 items-center justify-center bg-[var(--accent)] px-2 text-sm font-bold tabular-nums" aria-label={`${attention} waiting`}>
+                    {attention}
+                  </span>
+                )}
+                <ArrowRight className="hidden h-5 w-5 shrink-0 transition group-hover:translate-x-0.5 sm:block" />
+              </button>
+              <div className="mt-2 grid w-full gap-2 sm:grid-cols-2">
                 {(isAgent ? AGENT_IDEAS : STAFF_IDEAS).map((idea) => (
                   <button key={idea} type="button" onClick={() => ask(idea)} className="border border-[#e0dcd5] bg-[#faf8f5] px-4 py-3 text-left text-sm font-semibold text-[#3d3a34] transition hover:border-[var(--accent)] hover:bg-white hover:text-[#17150f]">
                     {idea}
@@ -221,20 +250,13 @@ export function AssistantChat({ slug, name, firstName, isAgent, chats: initialCh
             </div>
           ) : (
             <div className="mx-auto max-w-3xl space-y-6">
-              {messages.map((m) => (m.role === "user" ? <Question key={m.id} text={m.content} /> : <Answer key={m.id} text={m.content} />))}
-              {pending && streaming ? (
-                <Answer text={streaming} streaming />
+              {messages.map((m) => (m.role === "user" ? <Question key={m.id} text={m.content} /> : <Answer key={m.id} slug={slug} text={m.content} cards={m.cards} />))}
+              {pending && (streaming || cards.length > 0) ? (
+                <Answer slug={slug} text={streaming ?? ""} cards={cards} streaming status={status} />
               ) : pending ? (
                 <div className="flex gap-3">
                   <Avatar />
-                  <p className="flex items-center gap-2 pt-1.5 text-sm font-semibold text-[#6b665d]">
-                    {status}
-                    <span className="flex gap-1">
-                      {[0, 150, 300].map((d) => (
-                        <span key={d} className="h-1.5 w-1.5 animate-bounce bg-[var(--accent)]" style={{ animationDelay: `${d}ms` }} />
-                      ))}
-                    </span>
-                  </p>
+                  <Working status={status} />
                 </div>
               ) : null}
             </div>
@@ -288,27 +310,41 @@ function Question({ text }: { text: string }) {
   return <p className="ml-auto w-fit max-w-[85%] whitespace-pre-wrap bg-[#17150f] px-4 py-2.5 text-[15px] text-white">{text}</p>
 }
 
-function Answer({ text, streaming = false }: { text: string; streaming?: boolean }) {
+/** What the assistant is doing while there's no text yet, e.g. "Searching the units". */
+function Working({ status }: { status: string }) {
+  return (
+    <p className="flex items-center gap-2 pt-1.5 text-sm font-semibold text-[#6b665d]">
+      {status}
+      <span className="flex gap-1">
+        {[0, 150, 300].map((d) => (
+          <span key={d} className="h-1.5 w-1.5 animate-bounce bg-[var(--accent)]" style={{ animationDelay: `${d}ms` }} />
+        ))}
+      </span>
+    </p>
+  )
+}
+
+function Answer({ slug, text, cards = [], streaming = false, status = "" }: { slug: string; text: string; cards?: UnitCard[]; streaming?: boolean; status?: string }) {
   const [copied, setCopied] = useState(false)
   return (
     <div className="flex gap-3">
       <Avatar />
       <div className="min-w-0 flex-1">
-        <Markdown text={text} />
-        {streaming ? (
-          <span aria-hidden className="mt-1 inline-block h-4 w-2 animate-pulse bg-[var(--accent)]" />
-        ) : (
-        <button
-          type="button"
-          onClick={async () => {
-            await navigator.clipboard.writeText(text).catch(() => {})
-            setCopied(true)
-            setTimeout(() => setCopied(false), 1500)
-          }}
-          className="mt-2 inline-flex items-center gap-1.5 text-xs font-semibold text-[#8a847a] transition hover:text-[#17150f]"
-        >
-          {copied ? <Check className="h-3.5 w-3.5" /> : <Copy className="h-3.5 w-3.5" />} {copied ? "Copied" : "Copy"}
-        </button>
+        {text ? <Markdown text={text} streaming={streaming} /> : streaming && <Working status={status} />}
+        {streaming && text && <span aria-hidden className="mt-1 inline-block h-4 w-2 animate-pulse bg-[var(--accent)]" />}
+        {cards.length > 0 && <UnitCards slug={slug} cards={cards} />}
+        {!streaming && (
+          <button
+            type="button"
+            onClick={async () => {
+              await navigator.clipboard.writeText(text).catch(() => {})
+              setCopied(true)
+              setTimeout(() => setCopied(false), 1500)
+            }}
+            className="mt-2 inline-flex items-center gap-1.5 text-xs font-semibold text-[#8a847a] transition hover:text-[#17150f]"
+          >
+            {copied ? <Check className="h-3.5 w-3.5" /> : <Copy className="h-3.5 w-3.5" />} {copied ? "Copied" : "Copy"}
+          </button>
         )}
       </div>
     </div>

@@ -19,8 +19,8 @@ const STATUSES = [
  * A project's units, findable even when there are hundreds (Plumera has 334):
  * search by name, filter by status and type, and 25 at a time.
  */
-export function UnitList({ slug, projectId, units, staff }: { slug: string; projectId: number; units: Unit[]; staff: boolean }) {
-  const [q, setQ] = useState("")
+export function UnitList({ slug, projectId, units, staff, initialQuery = "" }: { slug: string; projectId: number; units: Unit[]; staff: boolean; initialQuery?: string }) {
+  const [q, setQ] = useState(initialQuery)
   const [status, setStatus] = useState("")
   const [type, setType] = useState("")
   const [shown, setShown] = useState(PAGE)

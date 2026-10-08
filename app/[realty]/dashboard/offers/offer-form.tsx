@@ -17,15 +17,17 @@ import { type TermRow, TermsEditor, rowsFrom, termsTotal, toMilestones } from ".
  * plans, or the agent's own custom terms, which a realty admin approves
  * before the buyer can open the offer. Shows the computed schedule before sending.
  */
-export function OfferForm({ slug, projects, initialProject, today, isStaff, realtyName }: { slug: string; projects: ProjectDetail[]; initialProject?: number; today: string; isStaff: boolean; realtyName: string }) {
+export function OfferForm({ slug, projects, initialProject, initialUnit, today, isStaff, realtyName }: { slug: string; projects: ProjectDetail[]; initialProject?: number; initialUnit?: number; today: string; isStaff: boolean; realtyName: string }) {
   const [state, setState] = useState<OfferState>({})
   const [pending, start] = useTransition()
   const [projectId, setProjectId] = useState<number>(initialProject ?? projects[0]?.id ?? 0)
   const project = projects.find((p) => p.id === projectId)
   // Only what can actually be offered: available, and with a price.
   const units = useMemo(() => (project?.units ?? []).filter((u) => u.status === "available" && u.price !== null).sort(byUnitName), [project])
-  const [unitId, setUnitId] = useState<number>(0)
+  // A unit picked elsewhere (e.g. "Make offer" on a card in the AI chat) comes in already chosen.
+  const [unitId, setUnitId] = useState<number>(initialUnit ?? 0)
   const unit = units.find((u) => u.id === unitId) ?? units[0]
+  const unitGone = !!initialUnit && unitId === initialUnit && !units.some((u) => u.id === initialUnit)
   const price = Number(unit?.price ?? 0)
   const [planId, setPlanId] = useState<number | "custom" | "">("")
   const custom = planId === "custom"
@@ -124,6 +126,7 @@ export function OfferForm({ slug, projects, initialProject, today, isStaff, real
   return (
     <form onSubmit={submit} className="grid gap-6 lg:grid-cols-[1fr_380px]">
       <div className="min-w-0 space-y-5">
+        {unitGone && <Alert kind="error">That unit was just reserved or sold, so it can&apos;t get an offer. Pick another one below.</Alert>}
         <div className="grid gap-5 sm:grid-cols-2">
           <label className="block">
             <Label>Project</Label>

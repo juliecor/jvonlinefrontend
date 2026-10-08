@@ -13,7 +13,8 @@ export default async function AssistantPage({ params, searchParams }: Props) {
   const { realty: slug } = await params
   const { chat: chatParam } = await searchParams
   const { user, token } = await requireRealtyUser(slug)
-  const { name, chats } = await api<{ name: string; chats: ChatSummary[] }>("/realty/assistant/chats", { token })
+  // attention: how many things wait for this person (null if it couldn't be counted).
+  const { name, chats, attention } = await api<{ name: string; chats: ChatSummary[]; attention: number | null }>("/realty/assistant/chats", { token })
 
   let open: { id: number; messages: ChatMessage[] } | null = null
   if (chatParam && /^\d+$/.test(chatParam)) {
@@ -25,5 +26,5 @@ export default async function AssistantPage({ params, searchParams }: Props) {
     }
   }
 
-  return <AssistantChat key={open?.id ?? "new"} slug={slug} name={name} firstName={user.name.split(" ")[0]} isAgent={user.role === "agent"} chats={chats} chatId={open?.id ?? null} initial={open?.messages ?? []} />
+  return <AssistantChat key={open?.id ?? "new"} slug={slug} name={name} firstName={user.name.split(" ")[0]} isAgent={user.role === "agent"} chats={chats} chatId={open?.id ?? null} initial={open?.messages ?? []} attention={attention ?? null} />
 }

@@ -151,7 +151,7 @@ function ConfirmBox({ q }: { q: Question | null }) {
           {q.copy !== undefined && (
             <textarea
               readOnly
-              rows={2}
+              rows={Math.min(8, Math.max(2, q.copy.split("\n").length + Math.floor(q.copy.length / 48)))}
               value={q.copy}
               onFocus={(e) => e.currentTarget.select()}
               aria-label="Text to copy"

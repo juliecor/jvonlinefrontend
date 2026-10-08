@@ -15,7 +15,7 @@ import { StatusBar } from "../status-bar"
 import type { ProjectDetail, Unit } from "../types"
 import { UnitList } from "../unit-list"
 
-type Props = { params: Promise<{ realty: string; id: string }>; searchParams: Promise<{ plan_error?: string }> }
+type Props = { params: Promise<{ realty: string; id: string }>; searchParams: Promise<{ plan_error?: string; unit?: string }> }
 
 export async function generateMetadata({ params }: Props) {
   return { title: `Project ${(await params).id}` }
@@ -33,7 +33,8 @@ const priceRange = (units: Unit[]) => {
 /** One project, in tabs: its status and units at a glance, the units, plans, website, models and details. */
 export default async function ProjectPage({ params, searchParams }: Props) {
   const { realty: slug, id } = await params
-  const { plan_error: planError } = await searchParams
+  // unit: a unit's name, from "View" on a card in the AI chat — the units list opens searched for it.
+  const { plan_error: planError, unit: unitQuery } = await searchParams
   const { user, token } = await requireRealtyUser(slug)
   const staff = user.role === "realty"
 
@@ -185,7 +186,7 @@ export default async function ProjectPage({ params, searchParams }: Props) {
             badge: units.length,
             content: (
               <Panel className="!mt-6" title={`Units · ${units.length}`} aside={staff ? <AddUnit slug={slug} projectId={project.id} projectName={project.name} /> : undefined}>
-                <UnitList slug={slug} projectId={project.id} units={units} staff={staff} />
+                <UnitList slug={slug} projectId={project.id} units={units} staff={staff} initialQuery={unitQuery} />
               </Panel>
             ),
           },
