@@ -31,7 +31,7 @@ export function UnitStatusPanel({ slug, offerId, unitName, project, initial, can
     })
 
   return (
-    <section className="mt-4 border border-[#e0dcd5] bg-white p-5 sm:p-6">
+    <section className="h-full border border-[#e0dcd5] bg-white p-5">
       <div className="flex flex-wrap items-center justify-between gap-3">
         <p className="flex items-center gap-2 text-xs font-bold uppercase tracking-[0.16em] text-[#17150f]">
           <Home className="h-4 w-4 text-[var(--accent)]" /> Unit status

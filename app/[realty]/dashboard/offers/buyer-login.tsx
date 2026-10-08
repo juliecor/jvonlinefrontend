@@ -98,7 +98,7 @@ export function LoginPanel({ slug, offerId, buyer, realty, url, username, passwo
     })
 
   return (
-    <section className={`mt-8 border p-5 sm:p-6 ${locked ? "border-[#e0dcd5] bg-white" : "border-amber-300 bg-amber-50"}`}>
+    <section className={`h-full border p-5 ${locked ? "border-[#e0dcd5] bg-white" : "border-amber-300 bg-amber-50"}`}>
       <div className="flex flex-wrap items-start justify-between gap-3">
         <p className="flex items-center gap-2 text-xs font-bold uppercase tracking-[0.16em] text-[#17150f]">
           {locked ? <KeyRound className="h-4 w-4 text-[var(--accent)]" /> : <LockOpen className="h-4 w-4 text-amber-700" />}

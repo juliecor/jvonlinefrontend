@@ -1,5 +1,5 @@
 import Link from "next/link"
-import { ChevronRight, Eye, EyeOff, ExternalLink, Plus } from "lucide-react"
+import { ChevronRight, Eye, EyeOff, ExternalLink, Home, Plus } from "lucide-react"
 import { CopyButton } from "@/components/copy-button"
 import { Empty, PageHeader, Panel, Row, Rows, Tag, btn } from "@/components/dashboard-ui"
 import { api } from "@/lib/api"
@@ -36,6 +36,8 @@ type Offer = {
   unit_status: "reserved" | "sold" | null
   approval_status: "pending" | "approved" | "rejected" | null
   approval_note: string | null
+  /** The house model's picture, else the project's photo. */
+  photo: string | null
 }
 
 /** jvconline.ph/<realty>/dashboard/offers — agents see theirs, staff see the whole realty's. */
@@ -63,9 +65,20 @@ export default async function OffersPage({ params }: { params: Promise<{ realty:
         <Rows>
           {offers.map((o) => (
             <Row key={o.id} muted={o.status === "void"}>
+              <div className="flex min-w-0 items-start gap-4">
+              <Link href={`/${slug}/dashboard/offers/${o.id}`} className="block h-[72px] w-24 shrink-0 overflow-hidden bg-[#efece6]" aria-hidden tabIndex={-1}>
+                {o.photo ? (
+                  // eslint-disable-next-line @next/next/no-img-element
+                  <img src={o.photo} alt="" className="h-full w-full object-cover transition duration-500 hover:scale-105" />
+                ) : (
+                  <span className="flex h-full w-full items-center justify-center">
+                    <Home className="h-6 w-6 text-[#c9c3b9]" />
+                  </span>
+                )}
+              </Link>
               <div className="min-w-0">
                 <div className="flex flex-wrap items-center gap-2">
-                  <Link href={`/${slug}/dashboard/offers/${o.id}`} className="text-lg font-bold hover:text-[var(--accent)]">{o.buyer_name}</Link>
+                  <Link href={`/${slug}/dashboard/offers/${o.id}`} className="text-base font-bold hover:text-[var(--accent)] sm:text-lg">{o.buyer_name}</Link>
                   <span className="font-mono text-xs text-[#a39d92]">{o.code}</span>
                   {o.status === "void" && <Tag>Void</Tag>}
                   {o.unit_status === "sold" && <span className="bg-[#17150f] px-1.5 py-0.5 text-[10px] font-bold uppercase tracking-[0.14em] text-white">Sold</span>}
@@ -95,7 +108,8 @@ export default async function OffersPage({ params }: { params: Promise<{ realty:
                   {o.latest_response && <> · answered {timeAgo(o.latest_response.at)}</>}
                 </p>
               </div>
-              <div className="flex shrink-0 flex-wrap items-center gap-2">
+              </div>
+              <div className="flex shrink-0 flex-wrap items-center gap-2 pl-28 sm:pl-0">
                 {o.status === "active" && !(o.approval_status === "pending" || o.approval_status === "rejected") && (
                   <>
                     <CopyButton text={o.url} />

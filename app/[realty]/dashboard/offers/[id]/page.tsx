@@ -1,8 +1,8 @@
 import Link from "next/link"
 import { notFound } from "next/navigation"
-import { ArrowLeft, ExternalLink } from "lucide-react"
+import { ArrowLeft, ExternalLink, Home } from "lucide-react"
 import { CopyButton } from "@/components/copy-button"
-import { Ledger, PageHeader, Panel, Tag, btn } from "@/components/dashboard-ui"
+import { Panel, Tag, btn } from "@/components/dashboard-ui"
 import { ContactButtons, LeadTag, VIA_LABEL, type Lead } from "@/components/leads"
 import { ApiError, api } from "@/lib/api"
 import { longDate, php, shortDate, sqm, timeAgo } from "@/lib/format"
@@ -42,6 +42,8 @@ type OfferDetail = {
   fee_notes: string | null
   unit_detail: { name: string | null; unit_type: string | null; area_sqm: number | null; status: string | null }
   unit_hold: UnitHold | null
+  /** The house model's picture, else the project's photo. */
+  photo: string | null
   responses: Lead[]
   buyer_phone: string | null
   buyer_details: Record<string, string | boolean | null> | null
@@ -123,37 +125,71 @@ export default async function OfferDetailPage({ params }: { params: Promise<{ re
       <Link href={`/${slug}/dashboard/offers`} className="mb-5 inline-flex items-center gap-1.5 text-sm font-semibold text-[#6b665d] hover:text-[#17150f]">
         <ArrowLeft className="h-4 w-4" /> All offers
       </Link>
-      <PageHeader
-        eyebrow={`Sales offer · ${o.code}`}
-        title={o.buyer_name}
-        lede={[o.project, o.unit, staff && o.agent ? `by ${o.agent}` : null].filter(Boolean).join(" · ")}
-        action={
-          o.status === "active" && awaiting ? (
-            <a href={o.url} target="_blank" rel="noreferrer" className={`${btn.ghost} !px-4 !py-3 !text-sm`}>
-              Preview buyer&apos;s page <ExternalLink className="h-4 w-4" />
-            </a>
-          ) : o.status === "active" ? (
-            <>
-              <CopyButton text={o.url} className="!rounded-none !px-4 !py-3 !text-sm" />
-              <a href={o.url} target="_blank" rel="noreferrer" className={btn.primary}>
-                Open buyer&apos;s page <ExternalLink className="h-4 w-4" />
-              </a>
-            </>
+      {/* The offer at a glance: the house, the buyer, the price, and how far along it is. */}
+      <section className="overflow-hidden border border-[#e0dcd5] bg-white">
+        <div className="flex flex-col sm:flex-row">
+          {o.photo ? (
+            // eslint-disable-next-line @next/next/no-img-element
+            <img src={o.photo} alt={o.unit ?? o.project ?? ""} className="aspect-[2/1] w-full object-cover sm:aspect-auto sm:w-64 sm:shrink-0 lg:w-80" />
           ) : (
-            <Tag tone="bad">Void</Tag>
-          )
-        }
-      />
+            <div className="hidden w-64 shrink-0 items-center justify-center bg-[#efece6] sm:flex lg:w-80">
+              <Home className="h-10 w-10 text-[#c9c3b9]" />
+            </div>
+          )}
+          <div className="flex min-w-0 flex-1 flex-col justify-between gap-5 p-5 sm:p-6">
+            <div>
+              <div className="flex flex-wrap items-center gap-2">
+                <p className="text-xs font-bold uppercase tracking-[0.18em] text-[var(--accent)]">Sales offer · {o.code}</p>
+                {o.status === "void" && <Tag tone="bad">Void</Tag>}
+                {o.unit_hold?.this_offer && o.unit_hold.status === "sold" && <span className="bg-[#17150f] px-1.5 py-0.5 text-[10px] font-bold uppercase tracking-[0.14em] text-white">Sold</span>}
+                {o.unit_hold?.this_offer && o.unit_hold.status === "reserved" && <Tag tone="warn">Reserved</Tag>}
+                {o.approval_status === "approved" && <Tag>Custom terms</Tag>}
+              </div>
+              <h1 className="mt-1.5 text-2xl font-bold tracking-tight sm:text-3xl">{o.buyer_name}</h1>
+              <p className="mt-1 text-[15px] font-semibold text-[#3d3a34]">{[o.project, o.unit, o.unit_detail.area_sqm ? sqm(o.unit_detail.area_sqm) : null].filter(Boolean).join(" · ")}</p>
+              <p className="mt-2 flex flex-wrap items-baseline gap-x-3 gap-y-0.5 text-sm text-[#6b665d]">
+                <span className="text-xl font-bold tabular-nums text-[#17150f]">{php(o.price)}</span>
+                <span>
+                  Sent {shortDate(o.created_at)}
+                  {staff && o.agent ? ` by ${o.agent}` : ""}
+                </span>
+              </p>
+            </div>
+            <div className="flex flex-wrap gap-2">
+              {o.status === "active" && awaiting ? (
+                <a href={o.url} target="_blank" rel="noreferrer" className={btn.outline}>
+                  Preview buyer&apos;s page <ExternalLink className="h-4 w-4" />
+                </a>
+              ) : o.status === "active" ? (
+                <>
+                  <a href={o.url} target="_blank" rel="noreferrer" className="inline-flex items-center gap-2 bg-[var(--accent)] px-4 py-2.5 text-sm font-bold text-white transition hover:brightness-110">
+                    Open buyer&apos;s page <ExternalLink className="h-4 w-4" />
+                  </a>
+                  <CopyButton text={o.url} className="!rounded-none !px-4 !py-2.5 !text-sm" />
+                </>
+              ) : null}
+            </div>
+          </div>
+        </div>
 
-      <Ledger
-        items={[
-          { label: "Opened", value: o.views ? `${o.views}×` : "Not yet", note: o.views ? `last ${timeAgo(o.last_viewed_at)}` : "the buyer hasn't opened the link" },
-          { label: "Response", value: latest ? latest.label : "None yet", note: latest ? timeAgo(latest.created_at) : "waiting for the buyer" },
-          ...(o.requirements.length ? [{ label: "Requirements", value: `${req.submitted + (req.details ? 1 : 0)}/${req.required + 1}`, note: req.to_review ? `${req.to_review} file${req.to_review === 1 ? "" : "s"} to review` : req.missing || !req.details ? "still missing items" : "all in" }] : []),
-          { label: "Price", value: php(o.price), note: `sent ${shortDate(o.created_at)}` },
-        ]}
-      />
-
+        {/* How far along: small, so the page doesn't start with a wall of big numbers. */}
+        <dl className="grid grid-cols-2 border-t border-[#e6e2db] sm:grid-cols-4">
+          {[
+            { label: "Opened", value: o.views ? `${o.views}×` : "Not yet", note: o.views ? `last ${timeAgo(o.last_viewed_at)}` : "link not opened", href: "#activity" },
+            { label: "Response", value: latest ? latest.label : "None yet", note: latest ? timeAgo(latest.created_at) : "waiting for the buyer", href: "#responses" },
+            ...(o.requirements.length
+              ? [{ label: "Requirements", value: `${req.submitted + (req.details ? 1 : 0)} of ${req.required + 1}`, note: req.to_review ? `${req.to_review} to review` : req.missing || !req.details ? "still missing" : "all in", href: "#requirements" }]
+              : []),
+            { label: "Unit", value: o.unit_hold ? o.unit_hold.status.charAt(0).toUpperCase() + o.unit_hold.status.slice(1) : "—", note: o.unit_hold?.this_offer ? "to this buyer" : o.unit_hold?.status === "available" ? "not reserved yet" : "", href: "#overview" },
+          ].map((st, i) => (
+            <a key={st.label} href={st.href} className={`block px-5 py-3.5 transition hover:bg-[#faf8f5] ${i % 2 ? "border-l border-[#e6e2db]" : "sm:border-l sm:first:border-l-0"} ${i > 1 ? "border-t border-[#e6e2db] sm:border-t-0" : ""} border-[#e6e2db]`}>
+              <dt className="text-[11px] font-bold uppercase tracking-[0.14em] text-[#8a847a]">{st.label}</dt>
+              <dd className="mt-0.5 truncate text-lg font-bold">{st.value}</dd>
+              {st.note && <dd className="truncate text-xs text-[#6b665d]">{st.note}</dd>}
+            </a>
+          ))}
+        </dl>
+      </section>
 
       <HashTabs
         tabs={[
@@ -181,12 +217,14 @@ export default async function OfferDetailPage({ params }: { params: Promise<{ re
                     officialPlans={o.official_plans}
                   />
                 )}
-                {o.status === "active" && (
+                <div className="mt-6 grid gap-4 lg:grid-cols-2">
+                  {o.status === "active" && (
                   <LoginPanel slug={slug} offerId={o.id} buyer={o.buyer_name} realty={user.realty.name} url={o.url} username={o.access_username} password={o.access_password} />
                 )}
                 {o.unit_hold && (o.status === "active" || o.unit_hold.this_offer) && (
                   <UnitStatusPanel slug={slug} offerId={o.id} unitName={o.unit_detail.name ?? o.unit ?? "Unit"} project={o.project} initial={o.unit_hold} canChange={staff} />
                 )}
+                </div>
                 {o.status === "active" && !awaiting && (
                   <p className="mt-6 text-sm text-[#6b665d]">
                     Next: send {first} the link and the login, then follow their answer in <a href="#responses" className="font-semibold text-[var(--accent)] hover:underline">Responses</a>
