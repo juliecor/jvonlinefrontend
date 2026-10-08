@@ -7,7 +7,7 @@ import { LeadTag, NewTag, type LeadKind } from "@/components/leads"
 import { php, shortDate, timeAgo } from "@/lib/format"
 import type { RequirementSummary } from "@/lib/requirements-types"
 import { requireRealtyUser } from "@/lib/realty-auth"
-import { voidOffer } from "./actions"
+import { VoidOfferButton } from "./void-button"
 
 export const metadata = { title: "Offers" }
 
@@ -122,9 +122,9 @@ export default async function OffersPage({ params }: { params: Promise<{ realty:
                   {o.responses_count ? `${o.responses_count} response${o.responses_count === 1 ? "" : "s"}` : "Details"} <ChevronRight className="h-3.5 w-3.5" />
                 </Link>
                 {o.status === "active" && (
-                  <form action={voidOffer.bind(null, slug, o.id)}>
-                    <button type="submit" className="px-2 py-1.5 text-xs font-semibold text-[#8a847a] hover:text-red-700">Void</button>
-                  </form>
+                  <VoidOfferButton slug={slug} id={o.id} buyer={o.buyer_name} className="px-2 py-1.5 text-xs font-semibold text-[#8a847a] hover:text-red-700">
+                    Void
+                  </VoidOfferButton>
                 )}
               </div>
             </Row>

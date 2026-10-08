@@ -66,10 +66,15 @@ export async function setUnitStatus(slug: string, offerId: number, status: UnitH
   }
 }
 
-export async function voidOffer(slug: string, id: number): Promise<void> {
+export async function voidOffer(slug: string, id: number): Promise<{ error?: string }> {
   const { token } = await requireRealtyUser(slug)
-  await api(`/realty/offers/${id}/void`, { method: "POST", token }).catch(() => {})
+  try {
+    await api(`/realty/offers/${id}/void`, { method: "POST", token })
+  } catch (e) {
+    return { error: errorMessage(e) }
+  }
   revalidatePath(`/${slug}/dashboard`, "layout")
+  return {}
 }
 
 /** Re-reads the dashboard (sidebar counts included) after responses were marked as seen. */

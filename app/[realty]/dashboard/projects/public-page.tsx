@@ -3,6 +3,7 @@
 import { useActionState, useState } from "react"
 import { Eye, EyeOff, ExternalLink, LoaderCircle, Pencil, Plus, Trash2, Upload, X } from "lucide-react"
 import { Panel, Tag, btn, field } from "@/components/dashboard-ui"
+import { confirmSubmit, toast } from "@/components/feedback"
 import { Alert, Label } from "@/components/form"
 import type { PublicUnitType, PublicUpdate } from "@/lib/public-projects-types"
 import { type PageState, addPageMedia, addUpdatePhotos, deleteUnitType, deleteUpdateMonth, removePageMedia, removeUpdatePhoto, savePageSettings, saveUnitType } from "./page-actions"
@@ -146,10 +147,11 @@ function MediaGrid({ slug, projectId, kind, urls }: { slug: string; projectId: n
               {/* eslint-disable-next-line @next/next/no-img-element */}
               <img src={u} alt="" className={`w-full object-cover ${kind === "hero" ? "aspect-[4/3]" : "aspect-[16/10]"}`} />
               <form
-                action={removePageMedia.bind(null, slug, projectId, kind, u)}
-                onSubmit={(e) => {
-                  if (!confirm("Remove this image from the page?")) e.preventDefault()
+                action={async () => {
+                  await removePageMedia(slug, projectId, kind, u)
+                  toast(kind === "hero" ? "Photo removed from the page" : "Site plan removed")
                 }}
+                onSubmit={confirmSubmit({ title: kind === "hero" ? "Remove this photo from the page?" : "Remove this site plan?", body: kind === "hero" ? "It stops showing at the top of the project's page." : "It stops showing on the project's page and on offers.", confirm: "Remove", danger: true })}
                 className="absolute right-2 top-2"
               >
                 <button type="submit" aria-label="Remove image" className="flex h-8 w-8 items-center justify-center bg-white/90 text-[#17150f] hover:bg-red-600 hover:text-white">
@@ -256,10 +258,11 @@ function UnitTypeRow({ slug, projectId, unit }: { slug: string; projectId: numbe
       <div className="flex shrink-0 items-center gap-1.5">
         <button type="button" onClick={() => setEditing(true)} className={btn.ghost}><Pencil className="h-3.5 w-3.5" /> Edit</button>
         <form
-          action={deleteUnitType.bind(null, slug, unit.id)}
-          onSubmit={(e) => {
-            if (!confirm(`Delete the model "${unit.name}" from the public page?`)) e.preventDefault()
+          action={async () => {
+            await deleteUnitType(slug, unit.id)
+            toast(`Model "${unit.name}" deleted`)
           }}
+          onSubmit={confirmSubmit({ title: `Delete the model "${unit.name}"?`, body: "Its renders and specs come off the project's page. Units of this type stay.", confirm: "Delete model", danger: true })}
         >
           <button type="submit" aria-label={`Delete ${unit.name}`} className="rounded-md p-2 text-[#a39d92] hover:bg-red-50 hover:text-red-700"><Trash2 className="h-4 w-4" /></button>
         </form>
@@ -301,10 +304,11 @@ function UpdateRow({ slug, update }: { slug: string; update: PublicUpdate }) {
           <span className="text-xs text-[#8a847a]">{open ? "hide" : "show"}</span>
         </button>
         <form
-          action={deleteUpdateMonth.bind(null, slug, update.id)}
-          onSubmit={(e) => {
-            if (!confirm(`Delete all ${update.photos.length} photos for ${update.label}?`)) e.preventDefault()
+          action={async () => {
+            await deleteUpdateMonth(slug, update.id)
+            toast(`${update.label} photos deleted`)
           }}
+          onSubmit={confirmSubmit({ title: `Delete ${update.label}?`, body: `All ${update.photos.length} construction photo${update.photos.length === 1 ? "" : "s"} for that month come off the page.`, confirm: "Delete month", danger: true })}
         >
           <button type="submit" className="inline-flex items-center gap-1.5 text-xs font-semibold text-[#8a847a] hover:text-red-700"><Trash2 className="h-3.5 w-3.5" /> Delete month</button>
         </form>
@@ -315,7 +319,13 @@ function UpdateRow({ slug, update }: { slug: string; update: PublicUpdate }) {
             <li key={u} className="group relative">
               {/* eslint-disable-next-line @next/next/no-img-element */}
               <img src={u} alt="" className="aspect-video w-full border border-[#e6e2db] object-cover" />
-              <form action={removeUpdatePhoto.bind(null, slug, update.id, u)} className="absolute right-1 top-1">
+              <form
+                action={async () => {
+                  await removeUpdatePhoto(slug, update.id, u)
+                  toast("Photo removed")
+                }}
+                className="absolute right-1 top-1"
+              >
                 <button type="submit" aria-label="Remove photo" className="flex h-6 w-6 items-center justify-center bg-white/90 text-[#17150f] hover:bg-red-600 hover:text-white"><X className="h-3 w-3" /></button>
               </form>
             </li>

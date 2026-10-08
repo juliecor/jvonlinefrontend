@@ -3,6 +3,7 @@
 import { useActionState, useState } from "react"
 import { LoaderCircle, Pencil, Trash2 } from "lucide-react"
 import { btn } from "@/components/dashboard-ui"
+import { confirmSubmit, toast } from "@/components/feedback"
 import { type FormState, deletePlan } from "./actions"
 import { PlanForm } from "./plan-form"
 import type { PaymentPlan } from "./types"
@@ -10,7 +11,11 @@ import type { PaymentPlan } from "./types"
 /** One payment plan; staff can edit it in place or delete it (existing offers keep their own copy). */
 export function PlanCard({ slug, projectId, plan, staff }: { slug: string; projectId: number; plan: PaymentPlan; staff: boolean }) {
   const [editing, setEditing] = useState(false)
-  const [del, remove, deleting] = useActionState<FormState>(deletePlan.bind(null, slug, plan.id), {})
+  const [del, remove, deleting] = useActionState<FormState>(async () => {
+    const r = await deletePlan(slug, plan.id)
+    if (!r.error) toast(`Plan "${plan.name}" deleted`)
+    return r
+  }, {})
 
   if (editing) {
     return (
@@ -32,9 +37,7 @@ export function PlanCard({ slug, projectId, plan, staff }: { slug: string; proje
             </button>
             <form
               action={remove}
-              onSubmit={(e) => {
-                if (!confirm(`Delete the plan "${plan.name}"? Offers already sent keep their schedule.`)) e.preventDefault()
-              }}
+              onSubmit={confirmSubmit({ title: `Delete the plan "${plan.name}"?`, body: "Agents can't pick it for new offers anymore. Offers already sent keep their own schedule.", confirm: "Delete plan", danger: true })}
             >
               <button type="submit" disabled={deleting} aria-label={`Delete ${plan.name}`} className="rounded-md p-2 text-[#a39d92] transition hover:bg-red-50 hover:text-red-700 disabled:opacity-50">
                 {deleting ? <LoaderCircle className="h-4 w-4 animate-spin" /> : <Trash2 className="h-4 w-4" />}

@@ -3,6 +3,7 @@
 import { useActionState, useState, useTransition } from "react"
 import { ArrowDown, ArrowUp, Eye, EyeOff, LoaderCircle, Pencil, Plus, Trash2 } from "lucide-react"
 import { Panel, btn, field } from "@/components/dashboard-ui"
+import { confirmAction, toast } from "@/components/feedback"
 import { type ReqTypeState, deleteRequirement, moveRequirement, saveRequirement, setRequirementActive } from "./actions"
 
 export type ReqType = { id: number; name: string; help: string | null; applies: string; sort: number; active: boolean; documents_count: number }
@@ -83,12 +84,14 @@ function Item({ slug, item, applies, first, last }: { slug: string; item: ReqTyp
                 type="button"
                 aria-label="Delete"
                 disabled={pending}
-                onClick={() => {
-                  if (!confirm(`Delete "${item.name}"?`)) return
+                onClick={async () => {
+                  const ok = await confirmAction({ title: `Delete "${item.name}"?`, body: "Buyers won't be asked for it anymore. Only requirements no buyer has sent yet can be deleted.", confirm: "Delete", danger: true })
+                  if (!ok) return
                   setError(null)
                   start(async () => {
                     const r = await deleteRequirement(slug, item.id)
                     if (r.error) setError(r.error)
+                    else toast(`"${item.name}" deleted`)
                   })
                 }}
                 className={`${icon} hover:!text-red-700`}

@@ -2,6 +2,7 @@
 
 import { useState } from "react"
 import { Check, Copy } from "lucide-react"
+import { confirmAction } from "./feedback"
 
 /** Copies a link to the clipboard; falls back to selecting it when the clipboard isn't available (http on a phone). */
 export function CopyButton({ text, label = "Copy link", className = "" }: { text: string; label?: string; className?: string }) {
@@ -10,7 +11,8 @@ export function CopyButton({ text, label = "Copy link", className = "" }: { text
     try {
       await navigator.clipboard.writeText(text)
     } catch {
-      window.prompt("Copy this link:", text)
+      await confirmAction({ title: "Copy this", body: "This browser didn't let the page copy it. Tap the box, select all and copy.", copy: text, confirm: "Done" })
+      return
     }
     setDone(true)
     setTimeout(() => setDone(false), 1800)

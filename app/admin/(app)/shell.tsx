@@ -4,6 +4,7 @@ import { useState } from "react"
 import Link from "next/link"
 import { usePathname } from "next/navigation"
 import { ArrowUpRight, Building2, FileText, Globe, LayoutDashboard, LogOut, Menu, Plus, Users, X } from "lucide-react"
+import { Feedback } from "@/components/feedback"
 import { type ViewRealty, RoleSwitch } from "@/components/role-switch"
 import type { AuthUser } from "@/lib/admin-auth"
 
@@ -180,6 +181,7 @@ export function AdminShell({ user, counts, realties, signOutAction, children }: 
           Powered by <Link href="/platform" className="font-medium text-[#8a847a] hover:text-[#17150f]">jvconline</Link>
         </p>
       </main>
+      <Feedback />
     </div>
   )
 }

@@ -4,6 +4,7 @@ import { useActionState, useState } from "react"
 import Link from "next/link"
 import { LoaderCircle, Pencil, Trash2 } from "lucide-react"
 import { Tag, btn } from "@/components/dashboard-ui"
+import { confirmSubmit, toast } from "@/components/feedback"
 import { php, shortDate, sqm } from "@/lib/format"
 import { type FormState, deleteUnit } from "./actions"
 import type { Unit, UnitStatusDetail } from "./types"
@@ -14,7 +15,11 @@ const TONE = { available: "good", reserved: "warn", sold: "neutral" } as const
 /** One unit in the project's list; staff can open it for editing or delete it. */
 export function UnitRow({ slug, projectId, unit, staff }: { slug: string; projectId: number; unit: Unit; staff: boolean }) {
   const [editing, setEditing] = useState(false)
-  const [del, remove, deleting] = useActionState<FormState>(deleteUnit.bind(null, slug, unit.id), {})
+  const [del, remove, deleting] = useActionState<FormState>(async () => {
+    const r = await deleteUnit(slug, unit.id)
+    if (!r.error) toast(`${unit.name} deleted`)
+    return r
+  }, {})
 
   if (editing) {
     return (
@@ -67,9 +72,7 @@ export function UnitRow({ slug, projectId, unit, staff }: { slug: string; projec
             </button>
             <form
               action={remove}
-              onSubmit={(e) => {
-                if (!confirm(`Delete "${unit.name}"? This can't be undone.`)) e.preventDefault()
-              }}
+              onSubmit={confirmSubmit({ title: `Delete ${unit.name}?`, body: "The unit is removed from the project for good. A unit that already has offers can't be deleted: mark it sold or reserved instead.", confirm: "Delete unit", danger: true })}
             >
               <button type="submit" disabled={deleting} aria-label={`Delete ${unit.name}`} className="rounded-md p-2 text-[#a39d92] transition hover:bg-red-50 hover:text-red-700 disabled:opacity-50">
                 {deleting ? <LoaderCircle className="h-4 w-4 animate-spin" /> : <Trash2 className="h-4 w-4" />}

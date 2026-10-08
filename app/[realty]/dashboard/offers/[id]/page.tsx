@@ -9,7 +9,7 @@ import { longDate, php, shortDate, sqm, timeAgo } from "@/lib/format"
 import { INCOME_SOURCES, type Requirement, type RequirementSummary } from "@/lib/requirements-types"
 import { type MilestoneInput, type ScheduleRow, pct } from "@/lib/schedule"
 import { requireRealtyUser } from "@/lib/realty-auth"
-import { voidOffer } from "../actions"
+import { VoidOfferButton } from "../void-button"
 import type { UnitHold } from "../actions"
 import { LoginPanel } from "../buyer-login"
 import { HashTabs } from "@/components/hash-tabs"
@@ -397,10 +397,12 @@ export default async function OfferDetailPage({ params }: { params: Promise<{ re
                   ))}
                 </ul>
                 {o.status === "active" && (
-                  <form action={voidOffer.bind(null, slug, o.id)} className="mt-6 border-t border-[#e6e2db] pt-4">
-                    <button type="submit" className="text-sm font-semibold text-[#8a847a] hover:text-red-700">Void this offer</button>
+                  <div className="mt-6 border-t border-[#e6e2db] pt-4">
+                    <VoidOfferButton slug={slug} id={o.id} buyer={o.buyer_name} className="text-sm font-semibold text-[#8a847a] hover:text-red-700">
+                      Void this offer
+                    </VoidOfferButton>
                     <p className="mt-1 text-xs text-[#a39d92]">The buyer&apos;s link stops working. Responses already received stay here.</p>
-                  </form>
+                  </div>
                 )}
               </Panel>
             ),

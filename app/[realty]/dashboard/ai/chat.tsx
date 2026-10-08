@@ -4,6 +4,7 @@ import { useEffect, useRef, useState } from "react"
 import Link from "next/link"
 import { useRouter } from "next/navigation"
 import { ArrowUp, Check, Copy, MessageSquare, Plus, Sparkles, Trash2, X } from "lucide-react"
+import { confirmAction, toast } from "@/components/feedback"
 import { Markdown } from "@/components/markdown"
 import { timeAgo } from "@/lib/format"
 import { type ChatMessage, type ChatSummary, deleteChat } from "./actions"
@@ -127,11 +128,13 @@ export function AssistantChat({ slug, name, firstName, isAgent, chats: initialCh
     }
   }
 
-  const remove = async (id: number) => {
-    if (!confirm("Delete this chat?")) return
+  const remove = async (id: number, title: string) => {
+    const ok = await confirmAction({ title: "Delete this chat?", body: `"${title}" and its answers will be gone for good.`, confirm: "Delete chat", danger: true })
+    if (!ok) return
     const r = await deleteChat(slug, id)
-    if (r.error) return setError(r.error)
+    if (r.error) return toast(r.error, "error")
     setChats((list) => list.filter((c) => c.id !== id))
+    toast("Chat deleted")
     if (id === chatId) router.push(base)
   }
 
@@ -158,7 +161,7 @@ export function AssistantChat({ slug, name, firstName, isAgent, chats: initialCh
               <p className={`truncate text-sm ${c.id === chatId ? "font-bold" : "font-semibold text-[#3d3a34]"}`}>{c.title}</p>
               <p className="text-xs text-[#8a847a]">{timeAgo(c.updated_at)}</p>
             </Link>
-            <button type="button" onClick={() => remove(c.id)} aria-label={`Delete "${c.title}"`} className="absolute right-1.5 top-1/2 -translate-y-1/2 p-1.5 text-[#a39d92] opacity-100 transition hover:text-red-700 lg:opacity-0 lg:group-hover:opacity-100">
+            <button type="button" onClick={() => remove(c.id, c.title)} aria-label={`Delete "${c.title}"`} className="absolute right-1.5 top-1/2 -translate-y-1/2 p-1.5 text-[#a39d92] opacity-100 transition hover:text-red-700 lg:opacity-0 lg:group-hover:opacity-100">
               <Trash2 className="h-4 w-4" />
             </button>
           </li>
