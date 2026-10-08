@@ -3,20 +3,22 @@
 import { useLayoutEffect, useRef, useState } from "react"
 import { ArrowUp, Check, Copy, CornerDownRight, Sparkles } from "lucide-react"
 import { Markdown, splitFollowUps } from "@/components/markdown"
-import type { ChatMessage, UnitCard } from "./actions"
-import { UnitCards } from "./unit-cards"
+import type { Card, ChatMessage } from "./actions"
+import { AnswerCards } from "./answer-cards"
 import { VoiceButton } from "./voice-button"
 
 /**
  * A conversation as the AI page and the Ask panel show it: questions, answers
- * (with unit cards), the answer still streaming in, and under the latest
+ * (with their cards), the answer still streaming in, and under the latest
  * answer the next questions the AI suggests, as buttons.
  */
-export function Thread({ slug, messages, pending, status, streaming, cards, onAsk }: { slug: string; messages: ChatMessage[]; pending: boolean; status: string; streaming: string | null; cards: UnitCard[]; onAsk: (question: string) => void }) {
+export function Thread({ slug, messages, pending, status, streaming, cards, onAsk }: { slug: string; messages: ChatMessage[]; pending: boolean; status: string; streaming: string | null; cards: Card[]; onAsk: (question: string) => void }) {
+  // A card's own question (an offer's "Write follow-up") works on any answer, once nothing is on its way.
+  const cardAsk = pending ? undefined : onAsk
   return (
     <div className="space-y-6">
       {messages.map((m, i) =>
-        m.role === "user" ? <Question key={m.id} text={m.content} /> : <Answer key={m.id} slug={slug} text={m.content} cards={m.cards} onAsk={!pending && i === messages.length - 1 ? onAsk : undefined} />,
+        m.role === "user" ? <Question key={m.id} text={m.content} /> : <Answer key={m.id} slug={slug} text={m.content} cards={m.cards} cardAsk={cardAsk} onAsk={!pending && i === messages.length - 1 ? onAsk : undefined} />,
       )}
       {pending && (streaming || cards.length > 0) ? (
         <Answer slug={slug} text={streaming ?? ""} cards={cards} streaming status={status} />
@@ -130,7 +132,7 @@ function Working({ status }: { status: string }) {
   )
 }
 
-function Answer({ slug, text, cards = [], streaming = false, status = "", onAsk }: { slug: string; text: string; cards?: UnitCard[]; streaming?: boolean; status?: string; onAsk?: (question: string) => void }) {
+function Answer({ slug, text, cards = [], streaming = false, status = "", onAsk, cardAsk }: { slug: string; text: string; cards?: Card[]; streaming?: boolean; status?: string; onAsk?: (question: string) => void; cardAsk?: (question: string) => void }) {
   const [copied, setCopied] = useState(false)
   const { body, followUps } = splitFollowUps(text)
 
@@ -140,7 +142,7 @@ function Answer({ slug, text, cards = [], streaming = false, status = "", onAsk 
       <div className="min-w-0 flex-1">
         {body ? <Markdown text={body} streaming={streaming} /> : streaming && <Working status={status} />}
         {streaming && body && <span aria-hidden className="mt-1 inline-block h-4 w-2 animate-pulse bg-[var(--accent)]" />}
-        {cards.length > 0 && <UnitCards slug={slug} cards={cards} />}
+        {cards.length > 0 && <AnswerCards slug={slug} cards={cards} onAsk={cardAsk} />}
         {!streaming && (
           <button
             type="button"

@@ -6,18 +6,25 @@ import { BadgeCheck, Clock, ExternalLink, KeyRound, LoaderCircle, Send } from "l
 import { CopyButton } from "@/components/copy-button"
 import { Alert, Label, fieldClass } from "@/components/form"
 import { byUnitName, php, sqm } from "@/lib/format"
-import { buildSchedule, pct } from "@/lib/schedule"
+import { type MilestoneInput, buildSchedule, pct } from "@/lib/schedule"
 import type { ProjectDetail } from "../projects/types"
 import { type OfferState, createOffer } from "./actions"
 import { LoginCard, LoginFields, firstWord, suggestPassword } from "./buyer-login"
 import { type TermRow, TermsEditor, rowsFrom, termsTotal, toMilestones } from "./terms-editor"
+
+/** Rows from percentages, with the last one taking the centavos so they add up to the price exactly. */
+function exactRows(rows: TermRow[], price: number): TermRow[] {
+  if (rows.length === 0) return rows
+  const others = rows.slice(0, -1).reduce((s, r) => s + (Number(r.amount) || 0), 0)
+  return [...rows.slice(0, -1), { ...rows[rows.length - 1], amount: String(Math.round((price - others) * 100) / 100) }]
+}
 
 /**
  * Project → unit → plan → buyer. The plan is one of the project's official
  * plans, or the agent's own custom terms, which a realty admin approves
  * before the buyer can open the offer. Shows the computed schedule before sending.
  */
-export function OfferForm({ slug, projects, initialProject, initialUnit, today, isStaff, realtyName }: { slug: string; projects: ProjectDetail[]; initialProject?: number; initialUnit?: number; today: string; isStaff: boolean; realtyName: string }) {
+export function OfferForm({ slug, projects, initialProject, initialUnit, initialPlan, initialTerms, initialDate, today, isStaff, realtyName }: { slug: string; projects: ProjectDetail[]; initialProject?: number; initialUnit?: number; initialPlan?: number; initialTerms?: MilestoneInput[]; initialDate?: string; today: string; isStaff: boolean; realtyName: string }) {
   const [state, setState] = useState<OfferState>({})
   const [pending, start] = useTransition()
   const [projectId, setProjectId] = useState<number>(initialProject ?? projects[0]?.id ?? 0)
@@ -29,11 +36,12 @@ export function OfferForm({ slug, projects, initialProject, initialUnit, today, 
   const unit = units.find((u) => u.id === unitId) ?? units[0]
   const unitGone = !!initialUnit && unitId === initialUnit && !units.some((u) => u.id === initialUnit)
   const price = Number(unit?.price ?? 0)
-  const [planId, setPlanId] = useState<number | "custom" | "">("")
+  // Terms worked out elsewhere ("Make offer with these terms" in the AI chat): one of the project's plans, or custom terms in pesos.
+  const [planId, setPlanId] = useState<number | "custom" | "">(() => (initialTerms?.length && price ? "custom" : initialPlan && project?.payment_plans.some((p) => p.id === initialPlan) ? initialPlan : ""))
   const custom = planId === "custom"
   const plan = custom ? undefined : (project?.payment_plans.find((p) => p.id === planId) ?? project?.payment_plans[0])
-  const [rows, setRows] = useState<TermRow[]>([])
-  const [date, setDate] = useState(today)
+  const [rows, setRows] = useState<TermRow[]>(() => (initialTerms?.length && price ? exactRows(rowsFrom(initialTerms, price), price) : []))
+  const [date, setDate] = useState(initialDate && initialDate >= today ? initialDate : today)
   // The buyer's login: the username follows the first name until the agent edits it; a password is suggested.
   const [buyerName, setBuyerName] = useState("")
   const [username, setUsername] = useState("")

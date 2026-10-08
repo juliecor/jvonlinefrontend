@@ -1,7 +1,7 @@
 "use client"
 
 import { useState } from "react"
-import type { ChatMessage, ChatSummary, UnitCard } from "./actions"
+import type { Card, ChatMessage, ChatSummary } from "./actions"
 
 /** What the assistant is doing while it looks things up, by lookup. */
 const STATUS: Record<string, string> = {
@@ -14,6 +14,8 @@ const STATUS: Record<string, string> = {
   buyer_responses: "Reading buyers' answers",
   list_agents: "Checking the team",
   show_units: "Getting the unit photos",
+  show_offers: "Getting the buyers' offers",
+  show_projects: "Getting the project photos",
   compute_payments: "Working out the payments",
   attention_today: "Checking what needs you",
 }
@@ -31,8 +33,8 @@ export function useAssistant({ slug, chatId, initial, onSaved }: { slug: string;
   const [error, setError] = useState("")
   // The answer as it streams in, until it's saved.
   const [streaming, setStreaming] = useState<string | null>(null)
-  // Units the answer shows as cards, as soon as the AI picks them.
-  const [cards, setCards] = useState<UnitCard[]>([])
+  // Cards the answer shows (units, offers, projects, payments), as soon as the AI picks them.
+  const [cards, setCards] = useState<Card[]>([])
 
   /**
    * Resolves true once the answer is saved; false when it failed (nothing is
