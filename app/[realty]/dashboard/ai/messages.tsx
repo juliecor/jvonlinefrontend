@@ -1,6 +1,6 @@
 "use client"
 
-import { useRef, useState } from "react"
+import { useLayoutEffect, useRef, useState } from "react"
 import { ArrowUp, Check, Copy, CornerDownRight, Sparkles } from "lucide-react"
 import { Markdown, splitFollowUps } from "@/components/markdown"
 import type { ChatMessage, UnitCard } from "./actions"
@@ -39,6 +39,16 @@ export function AskBox({ slug, name, pending, error, hint, onSend }: { slug: str
   const [text, setText] = useState("")
   const [recording, setRecording] = useState(false)
   const box = useRef<HTMLTextAreaElement>(null)
+  // What was typed before the mic started: the spoken words go after it.
+  const typed = useRef("")
+
+  // The box grows with what's in it (typed, or words coming in while talking), up to six lines.
+  useLayoutEffect(() => {
+    const el = box.current
+    if (!el) return
+    el.style.height = "auto"
+    el.style.height = `${Math.min(el.scrollHeight, 160)}px`
+  }, [text])
   const send = async () => {
     const q = text.trim()
     if (!q || pending) return
@@ -66,22 +76,26 @@ export function AskBox({ slug, name, pending, error, hint, onSend }: { slug: str
               void send()
             }
           }}
-          rows={Math.min(6, Math.max(1, text.split("\n").length))}
+          rows={1}
           maxLength={2000}
-          placeholder={recording ? "Listening… tap stop when you're done" : `Ask ${name}…`}
+          readOnly={recording}
+          placeholder={recording ? "Listening… your words show here as you talk" : `Ask ${name}…`}
           aria-label={`Ask ${name}`}
-          className="max-h-40 min-h-[44px] min-w-0 flex-1 resize-none bg-transparent px-2.5 py-2.5 text-[15px] outline-none"
+          className={`max-h-40 min-h-[44px] min-w-0 flex-1 resize-none bg-transparent px-2.5 py-2.5 text-[15px] outline-none ${recording ? "text-[#6b665d]" : ""}`}
         />
         <VoiceButton
           slug={slug}
           disabled={pending}
-          onRecording={setRecording}
-          onText={(said) => {
-            setText((t) => (t.trim() ? `${t.trim()} ${said}` : said))
-            box.current?.focus()
+          onRecording={(on) => {
+            if (on) typed.current = text.trim()
+            setRecording(on)
+          }}
+          onText={(said, final) => {
+            setText(typed.current && said ? `${typed.current} ${said}` : typed.current || said)
+            if (final) box.current?.focus()
           }}
         />
-        <button type="submit" disabled={pending || !text.trim()} aria-label="Send" className="flex h-11 w-11 shrink-0 items-center justify-center bg-[var(--accent)] text-white transition hover:brightness-110 disabled:opacity-40">
+        <button type="submit" disabled={pending || recording || !text.trim()} aria-label="Send" className="flex h-11 w-11 shrink-0 items-center justify-center bg-[var(--accent)] text-white transition hover:brightness-110 disabled:opacity-40">
           <ArrowUp className="h-5 w-5" strokeWidth={2.5} />
         </button>
       </div>
