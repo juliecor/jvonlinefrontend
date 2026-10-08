@@ -1,12 +1,12 @@
 "use client"
 
-import { useEffect, useRef, useState, useTransition } from "react"
+import { useEffect, useRef, useState } from "react"
 import Link from "next/link"
 import { useRouter } from "next/navigation"
 import { ArrowUp, Check, Copy, MessageSquare, Plus, Sparkles, Trash2, X } from "lucide-react"
 import { Markdown } from "@/components/markdown"
 import { timeAgo } from "@/lib/format"
-import { type ChatMessage, type ChatSummary, askAssistant, deleteChat } from "./actions"
+import { type ChatMessage, type ChatSummary, deleteChat } from "./actions"
 
 const STAFF_IDEAS = [
   "How many units are available in each project?",
@@ -23,6 +23,18 @@ const AGENT_IDEAS = [
   "What payment plans does each project have?",
 ]
 
+/** What the assistant is doing while it looks things up, by lookup. */
+const STATUS: Record<string, string> = {
+  overview: "Checking today's numbers",
+  list_projects: "Looking at the projects",
+  project_details: "Reading the project",
+  search_units: "Searching the units",
+  list_offers: "Checking the offers",
+  offer_details: "Opening the offer",
+  buyer_responses: "Reading buyers' answers",
+  list_agents: "Checking the team",
+}
+
 type Props = { slug: string; name: string; firstName: string; isAgent: boolean; chats: ChatSummary[]; chatId: number | null; initial: ChatMessage[] }
 
 /** The assistant's chat: past chats on the side, the conversation, and the question box. */
@@ -34,37 +46,85 @@ export function AssistantChat({ slug, name, firstName, isAgent, chats: initialCh
   const [text, setText] = useState("")
   const [error, setError] = useState("")
   const [showList, setShowList] = useState(false)
-  const [pending, start] = useTransition()
-  const bottom = useRef<HTMLDivElement>(null)
+  const [pending, setPending] = useState(false)
+  const [status, setStatus] = useState("")
+  // The answer as it streams in, until it's saved.
+  const [streaming, setStreaming] = useState<string | null>(null)
+  const scroller = useRef<HTMLDivElement>(null)
   const base = `/${slug}/dashboard/ai`
 
+  // Follow the answer as it grows, unless the person scrolled up to read something.
   useEffect(() => {
-    bottom.current?.scrollIntoView({ block: "end" })
-  }, [messages.length, pending])
+    const el = scroller.current
+    if (el && el.scrollHeight - el.scrollTop - el.clientHeight < 160) el.scrollTop = el.scrollHeight
+  }, [messages.length, pending, streaming])
 
-  const ask = (question: string) => {
+  const ask = async (question: string) => {
     const q = question.trim()
     if (!q || pending) return
     setError("")
     setText("")
+    setPending(true)
+    setStatus("Thinking")
+    setStreaming(null)
     setMessages((m) => [...m, { id: -Date.now(), role: "user", content: q, created_at: new Date().toISOString() }])
-    start(async () => {
-      const r = await askAssistant(slug, chatId, q)
-      if (!r.message || !r.chat) {
-        // Nothing was saved: take the question back so it can be sent again.
-        setMessages((m) => m.slice(0, -1))
-        setText(q)
-        setError(r.error ?? "Something went wrong. Try again.")
-        return
+    requestAnimationFrame(() => scroller.current?.scrollTo({ top: scroller.current.scrollHeight }))
+    // Nothing is saved when it fails: take the question back so it can be sent again.
+    const fail = (message: string) => {
+      setMessages((m) => m.slice(0, -1))
+      setText(q)
+      setError(message)
+    }
+
+    try {
+      const res = await fetch(`${base}/stream`, { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ chat_id: chatId, message: q }) })
+      if (!res.ok || !res.body) {
+        const data = await res.json().catch(() => null)
+        return fail(data?.message ?? "Something went wrong. Try again.")
       }
-      const saved = r.chat
-      setMessages((m) => [...m, r.message!])
-      setChats((list) => [saved, ...list.filter((c) => c.id !== saved.id)])
-      if (!chatId) {
-        setChatId(saved.id)
-        window.history.replaceState(null, "", `${base}?chat=${saved.id}`)
+      const reader = res.body.getReader()
+      const decoder = new TextDecoder()
+      let buffer = ""
+      let answer = ""
+      let finished = false
+      for (;;) {
+        const { value, done } = await reader.read()
+        if (done) break
+        buffer += decoder.decode(value, { stream: true })
+        let cut
+        while ((cut = buffer.indexOf("\n\n")) !== -1) {
+          const chunk = buffer.slice(0, cut)
+          buffer = buffer.slice(cut + 2)
+          const event = chunk.match(/^event: (.+)$/m)?.[1]
+          const data = chunk.match(/^data: (.*)$/m)?.[1]
+          if (!event || data === undefined) continue
+          const payload = JSON.parse(data)
+          if (event === "status") setStatus(STATUS[payload.tool] ?? "Looking it up")
+          else if (event === "delta") setStreaming((answer += payload.text))
+          else if (event === "reset") setStreaming((answer = "") || null)
+          else if (event === "error") {
+            finished = true
+            fail(payload.message)
+          } else if (event === "done") {
+            finished = true
+            const saved: ChatSummary = payload.chat
+            setMessages((m) => [...m, payload.message as ChatMessage])
+            setChats((list) => [saved, ...list.filter((c) => c.id !== saved.id)])
+            if (!chatId) {
+              setChatId(saved.id)
+              window.history.replaceState(null, "", `${base}?chat=${saved.id}`)
+            }
+          }
+        }
       }
-    })
+      if (!finished) fail("The answer was cut off. Try again.")
+    } catch {
+      fail("Couldn't reach the AI. Check your connection and try again.")
+    } finally {
+      setPending(false)
+      setStreaming(null)
+      setStatus("")
+    }
   }
 
   const remove = async (id: number) => {
@@ -138,7 +198,7 @@ export function AssistantChat({ slug, name, firstName, isAgent, chats: initialCh
           )}
         </header>
 
-        <div className="min-h-0 flex-1 overflow-y-auto px-4 py-6 sm:px-6">
+        <div ref={scroller} className="min-h-0 flex-1 overflow-y-auto px-4 py-6 sm:px-6">
           {messages.length === 0 ? (
             <div className="mx-auto flex max-w-2xl flex-col items-center pt-6 text-center sm:pt-12">
               <span className="flex h-14 w-14 items-center justify-center bg-[var(--accent)] text-white">
@@ -159,11 +219,13 @@ export function AssistantChat({ slug, name, firstName, isAgent, chats: initialCh
           ) : (
             <div className="mx-auto max-w-3xl space-y-6">
               {messages.map((m) => (m.role === "user" ? <Question key={m.id} text={m.content} /> : <Answer key={m.id} text={m.content} />))}
-              {pending && (
+              {pending && streaming ? (
+                <Answer text={streaming} streaming />
+              ) : pending ? (
                 <div className="flex gap-3">
                   <Avatar />
                   <p className="flex items-center gap-2 pt-1.5 text-sm font-semibold text-[#6b665d]">
-                    Looking it up
+                    {status}
                     <span className="flex gap-1">
                       {[0, 150, 300].map((d) => (
                         <span key={d} className="h-1.5 w-1.5 animate-bounce bg-[var(--accent)]" style={{ animationDelay: `${d}ms` }} />
@@ -171,10 +233,9 @@ export function AssistantChat({ slug, name, firstName, isAgent, chats: initialCh
                     </span>
                   </p>
                 </div>
-              )}
+              ) : null}
             </div>
           )}
-          <div ref={bottom} />
         </div>
 
         <form
@@ -224,13 +285,16 @@ function Question({ text }: { text: string }) {
   return <p className="ml-auto w-fit max-w-[85%] whitespace-pre-wrap bg-[#17150f] px-4 py-2.5 text-[15px] text-white">{text}</p>
 }
 
-function Answer({ text }: { text: string }) {
+function Answer({ text, streaming = false }: { text: string; streaming?: boolean }) {
   const [copied, setCopied] = useState(false)
   return (
     <div className="flex gap-3">
       <Avatar />
       <div className="min-w-0 flex-1">
         <Markdown text={text} />
+        {streaming ? (
+          <span aria-hidden className="mt-1 inline-block h-4 w-2 animate-pulse bg-[var(--accent)]" />
+        ) : (
         <button
           type="button"
           onClick={async () => {
@@ -242,6 +306,7 @@ function Answer({ text }: { text: string }) {
         >
           {copied ? <Check className="h-3.5 w-3.5" /> : <Copy className="h-3.5 w-3.5" />} {copied ? "Copied" : "Copy"}
         </button>
+        )}
       </div>
     </div>
   )

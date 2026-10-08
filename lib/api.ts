@@ -68,6 +68,16 @@ export async function api<T>(path: string, { method = "GET", body, token, header
 }
 
 /** A raw GET (a file, not JSON) — the caller streams the body on. */
+/** A POST whose answer streams back (the AI assistant); the caller reads or passes on the body. */
+export async function apiStream(path: string, token: string, body: unknown): Promise<Response> {
+  return fetch(`${base()}/api${path}`, {
+    method: "POST",
+    headers: { ...(await visitorHeaders()), Accept: "application/json", "Content-Type": "application/json", Authorization: `Bearer ${token}` },
+    body: JSON.stringify(body),
+    cache: "no-store",
+  })
+}
+
 export async function apiFile(path: string, token: string): Promise<Response> {
   return fetch(`${base()}/api${path}`, { headers: { ...(await visitorHeaders()), Authorization: `Bearer ${token}` }, cache: "no-store" })
 }

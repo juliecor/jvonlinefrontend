@@ -69,7 +69,9 @@ function parse(source: string): Block[] {
       blocks.push({ kind: "list", ordered, start, items })
       continue
     }
-    const para: string[] = []
+    // A paragraph always takes this line (so a lone "| …" row, half a table while an answer
+    // streams in, can't stall the loop), then the lines after it until something else starts.
+    const para: string[] = [lines[i++].trim()]
     while (i < lines.length && lines[i].trim() && !/^(#{1,6})\s/.test(lines[i]) && !bullet.test(lines[i]) && !lines[i].trim().startsWith("|")) para.push(lines[i++].trim())
     blocks.push({ kind: "paragraph", text: para.join(" ") })
   }
