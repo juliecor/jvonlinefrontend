@@ -1,9 +1,9 @@
 "use client"
 
-import { useEffect, useRef, useState } from "react"
+import { useCallback, useEffect, useRef, useState } from "react"
 import Image from "next/image"
 import Link from "next/link"
-import { AnimatePresence, animate, motion, useMotionValue, useMotionValueEvent, useReducedMotion, useScroll, useTransform, type MotionValue } from "framer-motion"
+import { AnimatePresence, animate, motion, useMotionValue, useMotionValueEvent, useReducedMotion, useTransform, type MotionValue } from "framer-motion"
 import { ArrowRight, ChevronDown, MapPin } from "lucide-react"
 import { CITIES, COMPANY, HERO_SLIDES } from "@/lib/johndorf/company"
 import { INK, Magnetic, ease, serif } from "./ui"
@@ -53,27 +53,76 @@ function layoutWord(w: number, h: number, family: string): Stage {
   return { w, h, fs, lines, baselines, family, tx: best.x, ty: best.y }
 }
 
-/** Zoom grows slowly, then rushes — scale 1 → 80 over the first half of the hero's scroll. */
+/**
+ * The opening is one gesture, not a scrubbed scroll. A single scroll (wheel tick, swipe, key or click on
+ * "Scroll to enter") plays the whole move by itself and lands on the headline; the page is then one screen
+ * tall and scrolls normally. Scrolling up once at the very top brings the big word back: not the zoom
+ * run backwards (giant letters sweeping past in a blink read as flicker) but a dip to the dark and the
+ * word fading up out of it.
+ *
+ *   intro → entering → entered → leaving → intro
+ */
+type Phase = "intro" | "entering" | "entered" | "leaving"
+
+/** The move runs from 0 (the word) to LANDED (the headline). */
+const LANDED = 1
+const ENTER_SECONDS = 2.6
+/** Way back: the hero dims into the dark, resets out of sight, and the word rises out of it. */
+const DIM_SECONDS = 0.6
+const RISE_SECONDS = 1.1
+/** A gentle start and a soft landing, with an even pace in between. */
+const GLIDE = [0.4, 0, 0.3, 1] as const
+/** The camera is inside the letter by here; the rest of the move is the headline settling in. */
+const ZOOM_UNTIL = 0.72
+
+/**
+ * The camera dollies into the word at a steady pace: scale 1 → 80, with the exponent moving evenly. The eye
+ * reads an exponential zoom as even speed, so the letters sweep past smoothly, forwards and backwards.
+ * (Squaring the exponent made the last stretch race: that is what looked like a flicker on the way back.)
+ */
 function zoomTransform(stage: Stage, progress: number, intro: number) {
-  const t = Math.min(1, Math.max(0, progress / 0.5))
-  const s = Math.pow(80, t * t) * intro
+  const t = Math.min(1, Math.max(0, progress / ZOOM_UNTIL))
+  const s = Math.pow(80, t) * intro
   return `translate(${stage.tx} ${stage.ty}) scale(${s}) translate(${-stage.tx} ${-stage.ty})`
 }
 
 export function Hero({ ready }: { ready: boolean }) {
   const reduce = useReducedMotion()
-  const section = useRef<HTMLElement>(null)
   const stageBox = useRef<HTMLDivElement>(null)
   const probe = useRef<HTMLSpanElement>(null)
   const maskG = useRef<SVGGElement>(null)
   const [stage, setStage] = useState<Stage | null>(null)
   const [slide, setSlide] = useState(0)
   const [live, setLive] = useState(false)
+  const [phase, setPhase] = useState<Phase>("intro")
+  const phaseNow = useRef<Phase>("intro") // what the event handlers read: state is a render behind
+  const glide = useRef<ReturnType<typeof animate> | null>(null)
+  const lastScrollAt = useRef(0)
   const intro = useMotionValue(1.18)
+  /** 0 = the word, LANDED = the headline. Driven by time, never by scroll position. */
+  const p = useMotionValue(0)
+  /** A veil of the dark ink over the stage: 1 hides everything, used to switch back to the word unseen. */
+  const veil = useMotionValue(0)
 
+  // The photos change every few seconds, but only while the page is on screen. A background tab keeps its
+  // timers running and pauses its animations, so the slideshow used to pile up photos that never finished
+  // fading out, and they all came back at once, ghosted over each other, when you returned to the tab.
   useEffect(() => {
-    const t = setInterval(() => setSlide((n) => (n + 1) % HERO_SLIDES.length), 5200)
-    return () => clearInterval(t)
+    let timer: ReturnType<typeof setInterval> | undefined
+    const stop = () => {
+      clearInterval(timer)
+      timer = undefined
+    }
+    const start = () => {
+      if (!timer && document.visibilityState === "visible") timer = setInterval(() => setSlide((n) => (n + 1) % HERO_SLIDES.length), 5200)
+    }
+    const onVisibility = () => (document.visibilityState === "visible" ? start() : stop())
+    start()
+    document.addEventListener("visibilitychange", onVisibility)
+    return () => {
+      stop()
+      document.removeEventListener("visibilitychange", onVisibility)
+    }
   }, [])
 
   // Lay the word out for this screen (again on resize), once the serif is loaded.
@@ -108,7 +157,135 @@ export function Hero({ ready }: { ready: boolean }) {
     return () => a.stop()
   }, [ready, intro, reduce])
 
-  const { scrollYProgress: p } = useScroll({ target: section, offset: ["start start", "end end"] })
+  const go = useCallback((next: Phase) => {
+    phaseNow.current = next
+    setPhase(next)
+  }, [])
+  const run = useCallback(
+    (to: number, seconds: number, during: Phase, done: Phase) => {
+      glide.current?.stop()
+      go(during)
+      glide.current = animate(p, to, { duration: seconds, ease: GLIDE, onComplete: () => go(done) })
+    },
+    [p, go],
+  )
+  const enter = useCallback(() => {
+    if (phaseNow.current === "intro") run(LANDED, ENTER_SECONDS, "entering", "entered")
+  }, [run])
+  const leave = useCallback(() => {
+    if (phaseNow.current !== "entered") return
+    glide.current?.stop()
+    go("leaving")
+    glide.current = animate(veil, 1, {
+      duration: DIM_SECONDS,
+      ease: "easeIn",
+      onComplete: () => {
+        p.set(0) // back to the word, behind the dark
+        glide.current = animate(veil, 0, { duration: RISE_SECONDS, ease: "easeOut", onComplete: () => go("intro") })
+      },
+    })
+  }, [go, p, veil])
+  /** Straight to the headline, no move: someone who jumped down the page, or prefers no motion. */
+  const skip = useCallback(() => {
+    glide.current?.stop()
+    veil.set(0)
+    p.set(LANDED)
+    go("entered")
+  }, [p, veil, go])
+
+  // Someone who asked for less motion gets the headline straight away (a frame later, off the render).
+  useEffect(() => {
+    if (!reduce) return
+    const frame = requestAnimationFrame(skip)
+    return () => cancelAnimationFrame(frame)
+  }, [reduce, skip])
+
+  // The one scroll. Until the headline has landed the page itself stays put: wheel, swipe and keys are
+  // taken as "go" (and ignored while it moves). After that nothing is intercepted, except one deliberate
+  // scroll up from the very top, which plays the opening again.
+  useEffect(() => {
+    if (!ready || reduce) return
+    // Arrived part-way down (reload, back button, a link to a section): no opening to play.
+    const restored = window.scrollY > 4 ? requestAnimationFrame(skip) : 0
+    lastScrollAt.current = Date.now()
+
+    // Resting at the top for a moment, so the tail of a fast scroll up doesn't replay the opening.
+    const atRest = () => window.scrollY <= 1 && Date.now() - lastScrollAt.current > 600
+    const typing = (t: EventTarget | null) => t instanceof HTMLElement && !!t.closest("input, textarea, select, [contenteditable='true']")
+    const pressable = (t: EventTarget | null) => t instanceof HTMLElement && !!t.closest("button, a, [role='button']")
+
+    const onWheel = (e: WheelEvent) => {
+      if (e.ctrlKey) return // pinch-zoom
+      const dy = e.deltaMode === 1 ? e.deltaY * 16 : e.deltaMode === 2 ? e.deltaY * 400 : e.deltaY
+      if (phaseNow.current === "entered") {
+        if (dy < -8 && atRest()) {
+          e.preventDefault()
+          leave()
+        }
+        return
+      }
+      e.preventDefault()
+      if (dy > 4) enter()
+    }
+
+    let touchY = 0
+    const onTouchStart = (e: TouchEvent) => {
+      touchY = e.touches[0]?.clientY ?? 0
+    }
+    const onTouchMove = (e: TouchEvent) => {
+      const dy = touchY - (e.touches[0]?.clientY ?? touchY) // positive: a swipe up, i.e. scrolling down
+      if (phaseNow.current === "entered") {
+        if (dy < -40 && atRest() && e.cancelable) {
+          e.preventDefault()
+          leave()
+        }
+        return
+      }
+      if (e.cancelable) e.preventDefault()
+      if (dy > 28) enter()
+    }
+
+    const onKey = (e: KeyboardEvent) => {
+      if (e.defaultPrevented || e.metaKey || e.ctrlKey || e.altKey || typing(e.target)) return
+      const space = e.key === " " || e.key === "Spacebar"
+      if (space && pressable(e.target)) return // a focused button or link uses the space bar itself
+      const down = ["ArrowDown", "PageDown"].includes(e.key) || (space && !e.shiftKey)
+      const up = ["ArrowUp", "PageUp"].includes(e.key) || (space && e.shiftKey)
+      if (phaseNow.current === "entered") {
+        if (up && atRest()) {
+          e.preventDefault()
+          leave()
+        }
+        return
+      }
+      if (e.key === "End") return skip() // asked for the bottom of the page: let it go there
+      if (down || up || e.key === "Home") e.preventDefault()
+      if (down) enter()
+    }
+
+    // Anything else that moves the page (a nav link, the scrollbar, a restored position) means they
+    // are going somewhere: skip the opening instead of fighting it.
+    const onScroll = () => {
+      lastScrollAt.current = Date.now()
+      if (phaseNow.current === "intro" && window.scrollY > 4) skip()
+    }
+
+    window.addEventListener("wheel", onWheel, { passive: false })
+    window.addEventListener("touchstart", onTouchStart, { passive: true })
+    window.addEventListener("touchmove", onTouchMove, { passive: false })
+    window.addEventListener("keydown", onKey)
+    window.addEventListener("scroll", onScroll, { passive: true })
+    return () => {
+      window.removeEventListener("wheel", onWheel)
+      window.removeEventListener("touchstart", onTouchStart)
+      window.removeEventListener("touchmove", onTouchMove)
+      window.removeEventListener("keydown", onKey)
+      window.removeEventListener("scroll", onScroll)
+      cancelAnimationFrame(restored)
+      glide.current?.stop()
+    }
+  }, [ready, reduce, enter, leave, skip])
+
   useEffect(() => {
     if (!stage) return
     const apply = () => {
@@ -123,23 +300,27 @@ export function Hero({ ready }: { ready: boolean }) {
       b()
     }
   }, [stage, p, intro])
-  useMotionValueEvent(p, "change", (v) => setLive(v > 0.5))
+  useMotionValueEvent(p, "change", (v) => setLive(v > ZOOM_UNTIL))
 
-  const inkOpacity = useTransform(p, [0.3, 0.48], [1, 0])
-  const photoScale = useTransform(p, [0, 0.55], [1.22, 1])
-  const cueOpacity = useTransform(p, [0, 0.07], [1, 0])
-  const contentOpacity = useTransform(p, [0.5, 0.62], [0, 1])
-  const contentY = useTransform(p, [0.5, 0.68], [70, 0])
-  const shadeOpacity = useTransform(p, [0.42, 0.6], [0, 1])
+  // The dark layer with the word cut out of it dissolves over a long stretch of the zoom (scale ~5 to ~50). A short
+  // fade there reads as a flash of black, most of all on the way back, when the letters are coming out of the photo.
+  const inkOpacity = useTransform(p, [0.28, 0.66], [1, 0])
+  // Once it is invisible it is not painted at all: a full-screen mask at 80x is the costliest thing on the page.
+  const inkDisplay = useTransform(inkOpacity, (o) => (o <= 0.002 ? "none" : "block"))
+  const photoScale = useTransform(p, [0, 0.8], [1.22, 1])
+  const cueOpacity = useTransform(p, [0, 0.08], [1, 0])
+  const contentOpacity = useTransform(p, [ZOOM_UNTIL, 0.88], [0, 1])
+  const contentY = useTransform(p, [ZOOM_UNTIL, 0.97], [70, 0])
+  const shadeOpacity = useTransform(p, [0.6, 0.85], [0, 1])
 
   const showMask = !reduce
 
   return (
-    <section id="top" ref={section} className="relative" style={{ height: showMask ? "280vh" : "100svh", backgroundColor: INK }}>
+    <section id="top" data-hero={phase} className="relative h-[100svh] overflow-hidden" style={{ backgroundColor: INK }}>
       <span ref={probe} aria-hidden className={`${serif} pointer-events-none absolute opacity-0`}>
         J
       </span>
-      <div ref={stageBox} className="sticky top-0 h-[100svh] overflow-hidden text-white">
+      <div ref={stageBox} className="relative h-full overflow-hidden text-white">
         {/* Photos — seen through the letters first, then full screen. */}
         <motion.div style={{ scale: showMask ? photoScale : 1 }} className="absolute inset-0">
           <AnimatePresence initial={false}>
@@ -157,7 +338,7 @@ export function Hero({ ready }: { ready: boolean }) {
 
         {/* The word: ink everywhere except the letters, which are windows onto the photos. */}
         {showMask && stage && (
-          <motion.svg style={{ opacity: inkOpacity }} width={stage.w} height={stage.h} viewBox={`0 0 ${stage.w} ${stage.h}`} className="pointer-events-none absolute inset-0" aria-hidden>
+          <motion.svg style={{ opacity: inkOpacity, display: inkDisplay }} width={stage.w} height={stage.h} viewBox={`0 0 ${stage.w} ${stage.h}`} className="pointer-events-none absolute inset-0" aria-hidden>
             <defs>
               <mask id="jd-hero-mask" maskUnits="userSpaceOnUse" x="0" y="0" width={stage.w} height={stage.h}>
                 <rect width={stage.w} height={stage.h} fill="white" />
@@ -186,22 +367,28 @@ export function Hero({ ready }: { ready: boolean }) {
             >
               {COMPANY.name} · Since {COMPANY.founded}
             </motion.p>
-            <motion.div
-              initial={{ opacity: 0 }}
-              animate={ready ? { opacity: 1 } : undefined}
-              transition={{ delay: 1.2, duration: 0.9 }}
-              className="absolute inset-x-0 bottom-[9%] flex flex-col items-center gap-2 text-[10px] font-semibold uppercase tracking-[0.36em] text-white/65"
-            >
-              Scroll to enter
-              <motion.span animate={{ y: [0, 7, 0] }} transition={{ duration: 1.6, repeat: Infinity, ease: "easeInOut" }}>
-                <ChevronDown className="h-4 w-4" />
-              </motion.span>
+            <motion.div initial={{ opacity: 0 }} animate={ready ? { opacity: 1 } : undefined} transition={{ delay: 1.2, duration: 0.9 }} className="absolute inset-x-0 bottom-[9%] flex justify-center">
+              <button
+                type="button"
+                onClick={enter}
+                disabled={phase !== "intro"}
+                data-cursor="Enter"
+                className={`flex flex-col items-center gap-2 px-6 py-2 text-[10px] font-semibold uppercase tracking-[0.36em] text-white/65 transition-colors hover:text-white ${phase === "intro" ? "pointer-events-auto" : "pointer-events-none"}`}
+              >
+                Scroll to enter
+                <motion.span animate={{ y: [0, 7, 0] }} transition={{ duration: 1.6, repeat: Infinity, ease: "easeInOut" }}>
+                  <ChevronDown className="h-4 w-4" />
+                </motion.span>
+              </button>
             </motion.div>
           </motion.div>
         )}
 
         {/* What the camera lands on. */}
         <HeroContent opacity={showMask ? contentOpacity : null} y={showMask ? contentY : null} live={live || !showMask} slide={slide} setSlide={setSlide} />
+
+        {/* The dark ink, drawn over everything while the stage switches back to the word. */}
+        {showMask && <motion.div aria-hidden style={{ opacity: veil, backgroundColor: INK }} className="pointer-events-none absolute inset-0" />}
       </div>
     </section>
   )
@@ -209,7 +396,7 @@ export function Hero({ ready }: { ready: boolean }) {
 
 function HeroContent({ opacity, y, live, slide, setSlide }: { opacity: MotionValue<number> | null; y: MotionValue<number> | null; live: boolean; slide: number; setSlide: (n: number) => void }) {
   return (
-    <motion.div style={{ opacity: opacity ?? 1, y: y ?? 0 }} className={`absolute inset-0 ${live ? "" : "pointer-events-none"}`}>
+    <motion.div inert={!live} style={{ opacity: opacity ?? 1, y: y ?? 0 }} className={`absolute inset-0 ${live ? "" : "pointer-events-none"}`}>
       <div className="mx-auto flex h-full max-w-[1400px] flex-col justify-end px-5 pb-8 sm:px-8 sm:pb-12">
         <p className="flex items-center gap-3 text-[11px] font-semibold uppercase tracking-[0.3em] text-[#f0b6b1]">
           <span className="h-px w-10 bg-[#f0b6b1]/70" />
