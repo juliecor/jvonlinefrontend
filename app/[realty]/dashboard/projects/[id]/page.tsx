@@ -4,7 +4,7 @@ import { ArrowLeft } from "lucide-react"
 import { Empty, PageHeader, Panel, btn } from "@/components/dashboard-ui"
 import { Alert } from "@/components/form"
 import { ApiError, api } from "@/lib/api"
-import { longDate } from "@/lib/format"
+import { byUnitName, longDate } from "@/lib/format"
 import { requireRealtyUser } from "@/lib/realty-auth"
 import { AddPlan, AddUnit } from "../add-dialog"
 import { PlanCard } from "../plan-card"
@@ -79,7 +79,7 @@ export default async function ProjectPage({ params, searchParams }: Props) {
         }
       >
         <ul className="divide-y divide-[#e6e2db]">
-          {project.units.map((u) => (
+          {[...project.units].sort(byUnitName).map((u) => (
             <UnitRow key={u.id} slug={slug} projectId={project.id} unit={u} staff={staff} />
           ))}
           {project.units.length === 0 && <li><Empty>No units yet.{staff ? " Use Add unit to add the first one." : ""}</Empty></li>}

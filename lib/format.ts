@@ -36,3 +36,8 @@ export const greeting = () => {
   const h = Number(new Date().toLocaleString("en-PH", { hour: "numeric", hour12: false, timeZone: "Asia/Manila" }))
   return h < 12 ? "Good morning" : h < 18 ? "Good afternoon" : "Good evening"
 }
+
+const unitNameCollator = new Intl.Collator("en", { numeric: true })
+
+/** Sorts "Bldg T · Unit 108" before "Bldg T · Unit 1037" — plain string order would put 1037 first. */
+export const byUnitName = (a: { name: string }, b: { name: string }) => unitNameCollator.compare(a.name, b.name)

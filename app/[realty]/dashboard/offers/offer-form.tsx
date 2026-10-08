@@ -5,7 +5,7 @@ import Link from "next/link"
 import { BadgeCheck, Clock, ExternalLink, KeyRound, LoaderCircle, Send } from "lucide-react"
 import { CopyButton } from "@/components/copy-button"
 import { Alert, Label, fieldClass } from "@/components/form"
-import { php, sqm } from "@/lib/format"
+import { byUnitName, php, sqm } from "@/lib/format"
 import { buildSchedule, pct } from "@/lib/schedule"
 import type { ProjectDetail } from "../projects/types"
 import { type OfferState, createOffer } from "./actions"
@@ -23,7 +23,7 @@ export function OfferForm({ slug, projects, initialProject, today, isStaff, real
   const [projectId, setProjectId] = useState<number>(initialProject ?? projects[0]?.id ?? 0)
   const project = projects.find((p) => p.id === projectId)
   // Only what can actually be offered: available, and with a price.
-  const units = useMemo(() => (project?.units ?? []).filter((u) => u.status === "available" && u.price !== null), [project])
+  const units = useMemo(() => (project?.units ?? []).filter((u) => u.status === "available" && u.price !== null).sort(byUnitName), [project])
   const [unitId, setUnitId] = useState<number>(0)
   const unit = units.find((u) => u.id === unitId) ?? units[0]
   const price = Number(unit?.price ?? 0)
