@@ -12,6 +12,7 @@ import { requireRealtyUser } from "@/lib/realty-auth"
 import { voidOffer } from "../actions"
 import type { UnitHold } from "../actions"
 import { LoginPanel } from "../buyer-login"
+import { HashTabs } from "@/components/hash-tabs"
 import { UnitStatusPanel } from "./unit-status"
 import { ApprovalPanel } from "./approval-panel"
 import { FollowUp, RequirementsPanel } from "./requirements-panel"
@@ -144,33 +145,6 @@ export default async function OfferDetailPage({ params }: { params: Promise<{ re
         }
       />
 
-      {o.approval_status && o.status === "active" && (
-        <ApprovalPanel
-          slug={slug}
-          offerId={o.id}
-          status={o.approval_status}
-          isStaff={staff}
-          canEdit={staff || o.agent_id === user.id}
-          agent={o.agent}
-          reason={o.approval_reason}
-          note={o.approval_note}
-          approvedBy={o.approved_by}
-          approvedAt={o.approved_at}
-          price={o.price}
-          projectName={o.project}
-          schedule={o.schedule}
-          customMilestones={o.custom_milestones ?? []}
-          officialPlans={o.official_plans}
-        />
-      )}
-
-      {o.status === "active" && (
-        <LoginPanel slug={slug} offerId={o.id} buyer={o.buyer_name} realty={user.realty.name} url={o.url} username={o.access_username} password={o.access_password} />
-      )}
-      {o.unit_hold && (o.status === "active" || o.unit_hold.this_offer) && (
-        <UnitStatusPanel slug={slug} offerId={o.id} unitName={o.unit_detail.name ?? o.unit ?? "Unit"} project={o.project} initial={o.unit_hold} canChange={staff} />
-      )}
-
       <Ledger
         items={[
           { label: "Opened", value: o.views ? `${o.views}×` : "Not yet", note: o.views ? `last ${timeAgo(o.last_viewed_at)}` : "the buyer hasn't opened the link" },
@@ -180,150 +154,241 @@ export default async function OfferDetailPage({ params }: { params: Promise<{ re
         ]}
       />
 
-      {o.requirements.length > 0 && (
-        <Panel title={`Requirements · ${req.submitted + (req.details ? 1 : 0)} of ${req.required + 1} in`} aside={req.to_review ? <span className="font-bold text-amber-700">{req.to_review} to review</span> : undefined}>
-          <div className="grid gap-x-10 gap-y-6 pt-5 lg:grid-cols-[1.6fr_1fr]">
-            <div>
-              <div className="flex flex-wrap items-center justify-between gap-3 border-b border-[#e6e2db] pb-5">
-                <div>
-                  <p className="text-lg font-bold">Buyer details</p>
-                  <p className="text-sm text-[#6b665d]">{o.details_submitted_at ? `Sent ${longDate(o.details_submitted_at)} · with Data Privacy consent` : "Not sent yet. The buyer fills these in on the offer page."}</p>
-                </div>
-                <span className={`border px-2.5 py-1 text-xs font-bold ${o.details_submitted_at ? "border-emerald-300 bg-emerald-50 text-emerald-800" : "border-[#d9d4cb] text-[#6b665d]"}`}>{o.details_submitted_at ? "Received" : "Missing"}</span>
-              </div>
-              <RequirementsPanel slug={slug} offerId={o.id} requirements={o.requirements} />
-            </div>
-            <div className="space-y-6">
-              <FollowUp
-                slug={slug}
-                offerId={o.id}
-                email={o.buyer_email_for_mail}
-                emailedAt={o.offer_emailed_at}
-                remindedAt={o.last_reminded_at}
-                reminders={o.reminders_sent}
-                viberText={viberText}
-                active={live}
-                nothingMissing={missingList.length === 0}
-              />
-            </div>
-          </div>
-        </Panel>
-      )}
 
-      {o.buyer_details && (
-        <Panel title="Buyer details" aside="Personal information: for this purchase only">
-          <div className="grid gap-x-10 gap-y-8 pt-5 sm:grid-cols-2 lg:grid-cols-4">
-            {DETAIL_GROUPS.map((g) => (
-              <div key={g.title}>
-                <p className="text-xs font-bold uppercase tracking-[0.16em] text-[#6b665d]">{g.title}</p>
-                <dl className="mt-2 space-y-2 text-sm">
-                  {g.rows.map(([k, l]) => {
-                    const v = detailValue(k, o.buyer_details?.[k])
-                    return v ? (
-                      <div key={k}>
-                        <dt className="text-[#8a847a]">{l}</dt>
-                        <dd className="break-words font-semibold">{v}</dd>
+      <HashTabs
+        tabs={[
+          {
+            id: "overview",
+            label: "Overview",
+            content: (
+              <>
+                {o.approval_status && o.status === "active" && (
+                  <ApprovalPanel
+                    slug={slug}
+                    offerId={o.id}
+                    status={o.approval_status}
+                    isStaff={staff}
+                    canEdit={staff || o.agent_id === user.id}
+                    agent={o.agent}
+                    reason={o.approval_reason}
+                    note={o.approval_note}
+                    approvedBy={o.approved_by}
+                    approvedAt={o.approved_at}
+                    price={o.price}
+                    projectName={o.project}
+                    schedule={o.schedule}
+                    customMilestones={o.custom_milestones ?? []}
+                    officialPlans={o.official_plans}
+                  />
+                )}
+                {o.status === "active" && (
+                  <LoginPanel slug={slug} offerId={o.id} buyer={o.buyer_name} realty={user.realty.name} url={o.url} username={o.access_username} password={o.access_password} />
+                )}
+                {o.unit_hold && (o.status === "active" || o.unit_hold.this_offer) && (
+                  <UnitStatusPanel slug={slug} offerId={o.id} unitName={o.unit_detail.name ?? o.unit ?? "Unit"} project={o.project} initial={o.unit_hold} canChange={staff} />
+                )}
+                {o.status === "active" && !awaiting && (
+                  <p className="mt-6 text-sm text-[#6b665d]">
+                    Next: send {first} the link and the login, then follow their answer in <a href="#responses" className="font-semibold text-[var(--accent)] hover:underline">Responses</a>
+                    {o.requirements.length > 0 && (
+                      <>
+                        {" "}and their documents in{" "}
+                        <a href="#requirements" className="font-semibold text-[var(--accent)] hover:underline">
+                          Requirements
+                        </a>
+                      </>
+                    )}
+                    .
+                  </p>
+                )}
+              </>
+            ),
+          },
+          ...(o.requirements.length > 0
+            ? [
+                {
+                  id: "requirements",
+                  label: "Requirements",
+                  short: "Docs",
+                  badge: req.to_review ? `${req.to_review} to review` : `${req.submitted + (req.details ? 1 : 0)}/${req.required + 1}`,
+                  tone: req.to_review ? ("accent" as const) : !req.missing && req.details ? ("good" as const) : ("neutral" as const),
+                  content: (
+
+                    <Panel className="!mt-6" title={`Requirements · ${req.submitted + (req.details ? 1 : 0)} of ${req.required + 1} in`} aside={req.to_review ? <span className="font-bold text-amber-700">{req.to_review} to review</span> : undefined}>
+                      <div className="grid gap-x-10 gap-y-6 pt-5 lg:grid-cols-[1.6fr_1fr]">
+                        <div>
+                          <div className="flex flex-wrap items-center justify-between gap-3 border-b border-[#e6e2db] pb-5">
+                            <div>
+                              <p className="text-lg font-bold">Buyer details</p>
+                              <p className="text-sm text-[#6b665d]">{o.details_submitted_at ? `Sent ${longDate(o.details_submitted_at)} · with Data Privacy consent` : "Not sent yet. The buyer fills these in on the offer page."}</p>
+                            </div>
+                            <span className={`border px-2.5 py-1 text-xs font-bold ${o.details_submitted_at ? "border-emerald-300 bg-emerald-50 text-emerald-800" : "border-[#d9d4cb] text-[#6b665d]"}`}>{o.details_submitted_at ? "Received" : "Missing"}</span>
+                          </div>
+                          <RequirementsPanel slug={slug} offerId={o.id} requirements={o.requirements} />
+                        </div>
+                        <div className="space-y-6">
+                          <FollowUp
+                            slug={slug}
+                            offerId={o.id}
+                            email={o.buyer_email_for_mail}
+                            emailedAt={o.offer_emailed_at}
+                            remindedAt={o.last_reminded_at}
+                            reminders={o.reminders_sent}
+                            viberText={viberText}
+                            active={live}
+                            nothingMissing={missingList.length === 0}
+                          />
+                        </div>
                       </div>
-                    ) : null
-                  })}
-                </dl>
+                    </Panel>
+                  ),
+                },
+              ]
+            : []),
+          {
+            id: "details",
+            label: "Buyer details",
+            short: "Details",
+            badge: o.buyer_details ? "✓" : null,
+            tone: "good",
+            content: o.buyer_details ? (
+
+                <Panel className="!mt-6" title="Buyer details" aside="Personal information: for this purchase only">
+                  <div className="grid gap-x-10 gap-y-8 pt-5 sm:grid-cols-2 lg:grid-cols-4">
+                    {DETAIL_GROUPS.map((g) => (
+                      <div key={g.title}>
+                        <p className="text-xs font-bold uppercase tracking-[0.16em] text-[#6b665d]">{g.title}</p>
+                        <dl className="mt-2 space-y-2 text-sm">
+                          {g.rows.map(([k, l]) => {
+                            const v = detailValue(k, o.buyer_details?.[k])
+                            return v ? (
+                              <div key={k}>
+                                <dt className="text-[#8a847a]">{l}</dt>
+                                <dd className="break-words font-semibold">{v}</dd>
+                              </div>
+                            ) : null
+                          })}
+                        </dl>
+                      </div>
+                    ))}
+                  </div>
+                </Panel>
+            ) : (
+              <div className="py-10">
+                <p className="text-lg font-bold">Not sent yet.</p>
+                <p className="mt-1 max-w-lg text-[15px] text-[#5a554d]">{first} fills in the buyer information form on the offer page, under Requirements. It shows up here, grouped the way they filled it in.</p>
               </div>
-            ))}
-          </div>
-        </Panel>
-      )}
-
-      <div className="grid gap-x-12 lg:grid-cols-[1.5fr_1fr]">
-        <Panel title={`Buyer responses · ${o.responses.length}`}>
-          {o.responses.length ? (
-            <ul className="divide-y divide-[#e6e2db]">
-              {o.responses.map((r) => (
-                <li key={r.id} className="py-6">
-                  <div className="flex flex-wrap items-center gap-2">
-                    <LeadTag kind={r.kind} label={r.label} />
-                    <span className="text-sm font-medium text-[#8a847a]">
-                      {timeAgo(r.created_at)} · {longDate(r.created_at)}
-                    </span>
+            ),
+          },
+          {
+            id: "responses",
+            label: "Responses",
+            badge: o.responses.length || null,
+            tone: hadNew ? "accent" : "neutral",
+            content: (
+              <Panel className="!mt-6" title={`Buyer responses · ${o.responses.length}`}>
+                {o.responses.length ? (
+                  <ul className="divide-y divide-[#e6e2db]">
+                    {o.responses.map((r) => (
+                      <li key={r.id} className="py-6">
+                        <div className="flex flex-wrap items-center gap-2">
+                          <LeadTag kind={r.kind} label={r.label} />
+                          <span className="text-sm font-medium text-[#8a847a]">
+                            {timeAgo(r.created_at)} · {longDate(r.created_at)}
+                          </span>
+                        </div>
+                        <p className="mt-2 text-xl font-bold tracking-tight">{r.name}</p>
+                        <p className="mt-1 text-[15px] text-[#3d3a34]">
+                          {[r.phone, r.email].filter(Boolean).join(" · ") || "No contact details left"}
+                          {r.contact_via && r.kind !== "not_interested" && <span className="text-[#8a847a]"> · prefers {VIA_LABEL[r.contact_via]}</span>}
+                        </p>
+                        {r.message && <blockquote className="mt-4 border-l-4 border-[var(--accent)] bg-[#f6f4f0] px-4 py-3 text-[15px] leading-relaxed text-[#17150f]">{r.message}</blockquote>}
+                        <div className="mt-4">
+                          <ContactButtons phone={r.phone} email={r.email} via={r.contact_via} />
+                        </div>
+                      </li>
+                    ))}
+                  </ul>
+                ) : (
+                  <div className="py-8">
+                    <p className="text-lg font-bold">No response yet.</p>
+                    <p className="mt-1 max-w-lg text-[15px] text-[#5a554d]">
+                      The offer page asks {o.buyer_name.split(" ")[0]} what they&apos;d like to do: they&apos;re interested, they have a question, or it&apos;s not for them. Their answer shows up here
+                      {o.agent ? `, and ${staff ? o.agent : "you"} get${staff ? "s" : ""} an email` : ""}.
+                    </p>
+                    {o.status === "active" && !o.views && <p className="mt-3 text-sm font-semibold text-amber-700">They haven&apos;t opened the link yet. Copy it and send it again?</p>}
                   </div>
-                  <p className="mt-2 text-xl font-bold tracking-tight">{r.name}</p>
-                  <p className="mt-1 text-[15px] text-[#3d3a34]">
-                    {[r.phone, r.email].filter(Boolean).join(" · ") || "No contact details left"}
-                    {r.contact_via && r.kind !== "not_interested" && <span className="text-[#8a847a]"> · prefers {VIA_LABEL[r.contact_via]}</span>}
-                  </p>
-                  {r.message && <blockquote className="mt-4 border-l-4 border-[var(--accent)] bg-[#f6f4f0] px-4 py-3 text-[15px] leading-relaxed text-[#17150f]">{r.message}</blockquote>}
-                  <div className="mt-4">
-                    <ContactButtons phone={r.phone} email={r.email} via={r.contact_via} />
-                  </div>
-                </li>
-              ))}
-            </ul>
-          ) : (
-            <div className="py-8">
-              <p className="text-lg font-bold">No response yet.</p>
-              <p className="mt-1 max-w-lg text-[15px] text-[#5a554d]">
-                The offer page asks {o.buyer_name.split(" ")[0]} what they&apos;d like to do: they&apos;re interested, they have a question, or it&apos;s not for them. Their answer shows up here
-                {o.agent ? `, and ${staff ? o.agent : "you"} get${staff ? "s" : ""} an email` : ""}.
-              </p>
-              {o.status === "active" && !o.views && <p className="mt-3 text-sm font-semibold text-amber-700">They haven&apos;t opened the link yet. Copy it and send it again?</p>}
-            </div>
-          )}
-        </Panel>
-
-        <div>
-          <Panel title="Activity">
-            <ol className="relative mt-4 space-y-5 border-l-2 border-[#e6e2db] pl-5">
-              {activity.map((a, i) => (
-                <li key={i} className="relative">
-                  <span aria-hidden className={`absolute -left-[27px] top-1.5 h-3 w-3 ${i === 0 ? "bg-[var(--accent)]" : "bg-[#d9d4cb]"}`} />
-                  <p className="text-[15px] font-semibold">{a.text}</p>
-                  <p className="text-sm text-[#8a847a]">
-                    {shortDate(a.at)} · {new Date(a.at).toLocaleTimeString("en-PH", { hour: "numeric", minute: "2-digit", timeZone: "Asia/Manila" })}
-                  </p>
-                </li>
-              ))}
-            </ol>
-          </Panel>
-
-          <Panel title="The offer">
-            <dl className="divide-y divide-[#e6e2db] text-[15px]">
-              {[
-                ["Unit", [o.unit_detail.name, o.unit_detail.unit_type].filter(Boolean).join(" · ") || "—"],
-                ["Floor area", sqm(o.unit_detail.area_sqm)],
-                ["Buyer email", o.buyer_email ?? "—"],
-                ["Buyer mobile", o.buyer_phone ?? "—"],
-                ["Purchase date", longDate(o.purchase_date)],
-              ].map(([k, v]) => (
-                <div key={k} className="flex justify-between gap-4 py-2.5">
-                  <dt className="text-[#8a847a]">{k}</dt>
-                  <dd className="text-right font-medium">{v}</dd>
-                </div>
-              ))}
-            </dl>
-            <h3 className="mt-6 text-xs font-bold uppercase tracking-[0.16em] text-[#6b665d]">Payment schedule · {o.custom ? "custom terms" : (o.plan_name ?? "full payment")}</h3>
-            <ul className="mt-2 divide-y divide-[#e6e2db] text-sm">
-              {o.schedule.map((s, i) => (
-                <li key={i} className="flex items-baseline justify-between gap-4 py-2">
-                  <span className="min-w-0">
-                    <span className="font-semibold">{s.label}</span>
-                    <span className="text-[#8a847a]">
-                      {" "}
-                      · {pct(s.percent)}
-                      {s.months && s.end_date ? ` · ${s.months} × ${php(s.monthly)}, ${shortDate(s.date)} – ${shortDate(s.end_date)}` : s.date ? ` · ${shortDate(s.date)}` : " · on completion"}
-                    </span>
-                  </span>
-                  <span className="shrink-0 font-bold tabular-nums">{php(s.amount)}</span>
-                </li>
-              ))}
-            </ul>
-            {o.status === "active" && (
-              <form action={voidOffer.bind(null, slug, o.id)} className="mt-6 border-t border-[#e6e2db] pt-4">
-                <button type="submit" className="text-sm font-semibold text-[#8a847a] hover:text-red-700">Void this offer</button>
-                <p className="mt-1 text-xs text-[#a39d92]">The buyer&apos;s link stops working. Responses already received stay here.</p>
-              </form>
-            )}
-          </Panel>
-        </div>
-      </div>
+                )}
+              </Panel>
+            ),
+          },
+          {
+            id: "offer",
+            label: "Offer & payment",
+            short: "Offer",
+            content: (
+              <Panel className="!mt-6" title="The offer">
+                <dl className="divide-y divide-[#e6e2db] text-[15px]">
+                  {[
+                    ["Unit", [o.unit_detail.name, o.unit_detail.unit_type].filter(Boolean).join(" · ") || "—"],
+                    ["Floor area", sqm(o.unit_detail.area_sqm)],
+                    ["Buyer email", o.buyer_email ?? "—"],
+                    ["Buyer mobile", o.buyer_phone ?? "—"],
+                    ["Purchase date", longDate(o.purchase_date)],
+                  ].map(([k, v]) => (
+                    <div key={k} className="flex justify-between gap-4 py-2.5">
+                      <dt className="text-[#8a847a]">{k}</dt>
+                      <dd className="text-right font-medium">{v}</dd>
+                    </div>
+                  ))}
+                </dl>
+                <h3 className="mt-6 text-xs font-bold uppercase tracking-[0.16em] text-[#6b665d]">Payment schedule · {o.custom ? "custom terms" : (o.plan_name ?? "full payment")}</h3>
+                <ul className="mt-2 divide-y divide-[#e6e2db] text-sm">
+                  {o.schedule.map((s, i) => (
+                    <li key={i} className="flex items-baseline justify-between gap-4 py-2">
+                      <span className="min-w-0">
+                        <span className="font-semibold">{s.label}</span>
+                        <span className="text-[#8a847a]">
+                          {" "}
+                          · {pct(s.percent)}
+                          {s.months && s.end_date ? ` · ${s.months} × ${php(s.monthly)}, ${shortDate(s.date)} – ${shortDate(s.end_date)}` : s.date ? ` · ${shortDate(s.date)}` : " · on completion"}
+                        </span>
+                      </span>
+                      <span className="shrink-0 font-bold tabular-nums">{php(s.amount)}</span>
+                    </li>
+                  ))}
+                </ul>
+                {o.status === "active" && (
+                  <form action={voidOffer.bind(null, slug, o.id)} className="mt-6 border-t border-[#e6e2db] pt-4">
+                    <button type="submit" className="text-sm font-semibold text-[#8a847a] hover:text-red-700">Void this offer</button>
+                    <p className="mt-1 text-xs text-[#a39d92]">The buyer&apos;s link stops working. Responses already received stay here.</p>
+                  </form>
+                )}
+              </Panel>
+            ),
+          },
+          {
+            id: "activity",
+            label: "Activity",
+            badge: activity.length,
+            content: (
+              <Panel className="!mt-6" title="Activity">
+                <ol className="relative mt-4 space-y-5 border-l-2 border-[#e6e2db] pl-5">
+                  {activity.map((a, i) => (
+                    <li key={i} className="relative">
+                      <span aria-hidden className={`absolute -left-[27px] top-1.5 h-3 w-3 ${i === 0 ? "bg-[var(--accent)]" : "bg-[#d9d4cb]"}`} />
+                      <p className="text-[15px] font-semibold">{a.text}</p>
+                      <p className="text-sm text-[#8a847a]">
+                        {shortDate(a.at)} · {new Date(a.at).toLocaleTimeString("en-PH", { hour: "numeric", minute: "2-digit", timeZone: "Asia/Manila" })}
+                      </p>
+                    </li>
+                  ))}
+                </ol>
+              </Panel>
+            ),
+          },
+        ]}
+      />
     </div>
   )
 }
