@@ -25,12 +25,15 @@ export function UnitRow({ slug, projectId, unit, staff }: { slug: string; projec
     )
   }
 
+  // The house's photo; the floor plan only when there is no photo at all.
+  const thumb = unit.photo ?? unit.floor_plan_url
+
   return (
     <li className="flex flex-col gap-3 py-4 sm:flex-row sm:items-center sm:justify-between">
       <div className="flex min-w-0 items-center gap-4">
-        {unit.floor_plan_url ? (
+        {thumb ? (
           // eslint-disable-next-line @next/next/no-img-element
-          <img src={unit.floor_plan_url} alt="" className="h-14 w-14 shrink-0 rounded-md border border-[#e6e2db] object-cover" />
+          <img src={thumb} alt="" className="h-14 w-14 shrink-0 rounded-md border border-[#e6e2db] object-cover" />
         ) : (
           <div className="h-14 w-14 shrink-0 rounded-md bg-[#efece6]" />
         )}
@@ -41,6 +44,14 @@ export function UnitRow({ slug, projectId, unit, staff }: { slug: string; projec
           </div>
           <p className="mt-0.5 text-sm text-[#6b665d]">
             {[unit.unit_type !== unit.name ? unit.unit_type : null, unit.category, unit.floor, unit.area_sqm ? sqm(unit.area_sqm) : null].filter(Boolean).join(" · ")}
+            {unit.floor_plan_url && (
+              <>
+                {" · "}
+                <a href={unit.floor_plan_url} target="_blank" rel="noreferrer" className="font-semibold underline underline-offset-2 hover:text-[var(--accent)]">
+                  Floor plan
+                </a>
+              </>
+            )}
           </p>
           {unit.status !== "available" && unit.status_detail && <StatusLine slug={slug} status={unit.status} d={unit.status_detail} />}
           {unit.buyer_notes && <p className="mt-1 max-w-2xl text-sm font-semibold text-[#3d3a34]">On the offer: {unit.buyer_notes}</p>}

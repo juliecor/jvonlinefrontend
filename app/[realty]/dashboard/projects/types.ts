@@ -16,6 +16,8 @@ export type Unit = {
   buyer_notes: string | null
   /** Who a reserved or sold unit went to (the buyer only for realty admins). */
   status_detail?: UnitStatusDetail | null
+  /** The house model's picture, else the project's photo (added by the project page API). */
+  photo?: string | null
 }
 
 export type UnitStatusDetail = { offer_id: number | null; offer_code: string | null; buyer: string | null; agent: string | null; by: string | null; at: string | null }

@@ -129,7 +129,8 @@ export default async function OfferPage({ params }: Props) {
   const dueToday = (m: Milestone) => m.date === offer.purchase_date
   const specs = model?.specs ?? null
   const area = unit.area_sqm ?? (specs?.usable_floor_area ? Number(specs.usable_floor_area) : null)
-  const modelImages = [...(model?.images ?? []), ...(unit.floor_plan_url ? [unit.floor_plan_url] : [])]
+  // The model's renders, then the unit's floor plan — once, since the plan is usually one of the renders too.
+  const modelImages = Array.from(new Set([...(model?.images ?? []), ...(unit.floor_plan_url ? [unit.floor_plan_url] : [])]))
   const projectPage = project.page_slug && realty.slug === SITE_REALTY ? `/projects/${project.page_slug}` : null
   const asterisk = Object.values(specs ?? {}).some((v) => v?.includes("*"))
   const mailto = agent?.email ? `mailto:${agent.email}?subject=${encodeURIComponent(`Sales offer ${offer.code}`)}` : null
