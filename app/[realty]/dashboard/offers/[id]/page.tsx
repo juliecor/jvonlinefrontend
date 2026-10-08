@@ -10,7 +10,9 @@ import { INCOME_SOURCES, type Requirement, type RequirementSummary } from "@/lib
 import { type MilestoneInput, type ScheduleRow, pct } from "@/lib/schedule"
 import { requireRealtyUser } from "@/lib/realty-auth"
 import { voidOffer } from "../actions"
+import type { UnitHold } from "../actions"
 import { LoginPanel } from "../buyer-login"
+import { UnitStatusPanel } from "./unit-status"
 import { ApprovalPanel } from "./approval-panel"
 import { FollowUp, RequirementsPanel } from "./requirements-panel"
 import { SyncCounts } from "./sync"
@@ -38,6 +40,7 @@ type OfferDetail = {
   schedule: ScheduleRow[]
   fee_notes: string | null
   unit_detail: { name: string | null; unit_type: string | null; area_sqm: number | null; status: string | null }
+  unit_hold: UnitHold | null
   responses: Lead[]
   buyer_phone: string | null
   buyer_details: Record<string, string | boolean | null> | null
@@ -163,6 +166,9 @@ export default async function OfferDetailPage({ params }: { params: Promise<{ re
 
       {o.status === "active" && (
         <LoginPanel slug={slug} offerId={o.id} buyer={o.buyer_name} realty={user.realty.name} url={o.url} username={o.access_username} password={o.access_password} />
+      )}
+      {o.unit_hold && (o.status === "active" || o.unit_hold.this_offer) && (
+        <UnitStatusPanel slug={slug} offerId={o.id} unitName={o.unit_detail.name ?? o.unit ?? "Unit"} project={o.project} initial={o.unit_hold} canChange={staff} />
       )}
 
       <Ledger

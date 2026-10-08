@@ -1,11 +1,12 @@
 "use client"
 
 import { useActionState, useState } from "react"
+import Link from "next/link"
 import { LoaderCircle, Pencil, Trash2 } from "lucide-react"
 import { Tag, btn } from "@/components/dashboard-ui"
-import { php, sqm } from "@/lib/format"
+import { php, shortDate, sqm } from "@/lib/format"
 import { type FormState, deleteUnit } from "./actions"
-import type { Unit } from "./types"
+import type { Unit, UnitStatusDetail } from "./types"
 import { UnitForm } from "./unit-form"
 
 const TONE = { available: "good", reserved: "warn", sold: "neutral" } as const
@@ -41,6 +42,7 @@ export function UnitRow({ slug, projectId, unit, staff }: { slug: string; projec
           <p className="mt-0.5 text-sm text-[#6b665d]">
             {[unit.unit_type !== unit.name ? unit.unit_type : null, unit.category, unit.floor, unit.area_sqm ? sqm(unit.area_sqm) : null].filter(Boolean).join(" · ")}
           </p>
+          {unit.status !== "available" && unit.status_detail && <StatusLine slug={slug} status={unit.status} d={unit.status_detail} />}
           {unit.buyer_notes && <p className="mt-1 max-w-2xl text-sm font-semibold text-[#3d3a34]">On the offer: {unit.buyer_notes}</p>}
           {unit.notes && <p className="mt-1 line-clamp-2 max-w-2xl text-xs text-[#8a847a]">Internal: {unit.notes}</p>}
         </div>
@@ -67,5 +69,28 @@ export function UnitRow({ slug, projectId, unit, staff }: { slug: string; projec
       </div>
       {del.error && <p className="w-full text-xs text-red-700 sm:text-right">{del.error}</p>}
     </li>
+  )
+}
+
+/** Who has a reserved or sold unit: the buyer (admins see the name), the agent and the offer, and who marked it. */
+function StatusLine({ slug, status, d }: { slug: string; status: Unit["status"]; d: UnitStatusDetail }) {
+  return (
+    <p className={`mt-1.5 max-w-2xl border-l-4 py-0.5 pl-2.5 text-sm font-semibold ${status === "sold" ? "border-[#17150f] text-[#17150f]" : "border-amber-500 text-amber-900"}`}>
+      <span className="capitalize">{status}</span>
+      {d.buyer ? ` to ${d.buyer}` : ""}
+      {d.agent ? ` · agent ${d.agent}` : ""}
+      {d.offer_id && (
+        <>
+          {" · "}
+          <Link href={`/${slug}/dashboard/offers/${d.offer_id}`} className="underline underline-offset-2 hover:text-[var(--accent)]">
+            offer {d.offer_code}
+          </Link>
+        </>
+      )}
+      <span className="font-normal text-[#6b665d]">
+        {d.by ? ` · marked by ${d.by}` : ""}
+        {d.at ? `, ${shortDate(d.at)}` : ""}
+      </span>
+    </p>
   )
 }

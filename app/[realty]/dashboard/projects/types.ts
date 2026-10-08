@@ -14,7 +14,11 @@ export type Unit = {
   floor_plan_url: string | null
   notes: string | null
   buyer_notes: string | null
+  /** Who a reserved or sold unit went to (the buyer only for realty admins). */
+  status_detail?: UnitStatusDetail | null
 }
+
+export type UnitStatusDetail = { offer_id: number | null; offer_code: string | null; buyer: string | null; agent: string | null; by: string | null; at: string | null }
 
 export type PaymentPlan = { id: number; name: string; milestones: Milestone[] }
 

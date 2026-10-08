@@ -3,6 +3,7 @@
 import { revalidatePath } from "next/cache"
 import { api, errorMessage } from "@/lib/api"
 import { requireRealtyUser } from "@/lib/realty-auth"
+import type { UnitStatusDetail } from "../projects/types"
 
 export type OfferState = { error?: string; url?: string; code?: string; id?: number; emailed?: string | null; approval?: string | null; emailOnApproval?: boolean; buyer?: string; username?: string; password?: string }
 
@@ -49,6 +50,20 @@ export async function setBuyerLogin(slug: string, offerId: number, access_userna
   }
   revalidatePath(`/${slug}/dashboard`, "layout")
   return {}
+}
+
+export type UnitHold = { status: "available" | "reserved" | "sold"; this_offer: boolean; detail: UnitStatusDetail | null }
+
+/** A realty admin marks the offer's unit reserved or sold to this buyer, or available again. */
+export async function setUnitStatus(slug: string, offerId: number, status: UnitHold["status"]): Promise<{ hold?: UnitHold; error?: string }> {
+  const { token } = await requireRealtyUser(slug)
+  try {
+    const hold = await api<UnitHold>(`/realty/offers/${offerId}/unit-status`, { method: "POST", token, body: { status } })
+    revalidatePath(`/${slug}/dashboard`, "layout")
+    return { hold }
+  } catch (e) {
+    return { error: errorMessage(e) }
+  }
 }
 
 export async function voidOffer(slug: string, id: number): Promise<void> {

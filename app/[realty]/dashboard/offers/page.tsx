@@ -32,6 +32,8 @@ type Offer = {
   latest_response: { kind: LeadKind; label: string; at: string } | null
   requirements: RequirementSummary
   custom: boolean
+  /** The unit is reserved or sold through this offer. */
+  unit_status: "reserved" | "sold" | null
   approval_status: "pending" | "approved" | "rejected" | null
   approval_note: string | null
 }
@@ -66,6 +68,8 @@ export default async function OffersPage({ params }: { params: Promise<{ realty:
                   <Link href={`/${slug}/dashboard/offers/${o.id}`} className="text-lg font-bold hover:text-[var(--accent)]">{o.buyer_name}</Link>
                   <span className="font-mono text-xs text-[#a39d92]">{o.code}</span>
                   {o.status === "void" && <Tag>Void</Tag>}
+                  {o.unit_status === "sold" && <span className="bg-[#17150f] px-1.5 py-0.5 text-[10px] font-bold uppercase tracking-[0.14em] text-white">Sold</span>}
+                  {o.unit_status === "reserved" && <Tag tone="warn">Reserved</Tag>}
                   {o.status === "active" && o.approval_status === "pending" && <Tag tone="warn">Waiting for approval</Tag>}
                   {o.status === "active" && o.approval_status === "rejected" && <Tag tone="bad">Sent back</Tag>}
                   {o.approval_status === "approved" && <Tag>Custom terms</Tag>}
