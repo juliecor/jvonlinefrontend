@@ -3,7 +3,7 @@
 import { useEffect, useRef, useState } from "react"
 import Link from "next/link"
 import { usePathname } from "next/navigation"
-import { ArrowUpRight, BadgeCheck, Building2, ChevronDown, ClipboardCheck, FileText, Globe, Landmark, LayoutDashboard, LogOut, Menu, Plus, Sparkles, UsersRound, Users, X } from "lucide-react"
+import { ArrowUpRight, BadgeCheck, Building2, ChevronDown, ClipboardCheck, FileText, Globe, Landmark, LayoutDashboard, LogOut, Menu, Plus, Settings, Sparkles, UsersRound, Users, X } from "lucide-react"
 import { Feedback } from "@/components/feedback"
 import { AskPanel } from "./ai/ask-panel"
 import { RealtyMark } from "@/components/form"
@@ -38,6 +38,7 @@ const tint = (pct: number) => `color-mix(in srgb, var(--accent) ${pct}%, white)`
 export function DashboardShell({ slug, user, counts, superAdmin, signOutAction, children }: { slug: string; user: RealtyUser; counts: ShellCounts | null; superAdmin: SuperAdminNav | null; signOutAction: () => Promise<void>; children: React.ReactNode }) {
   const path = usePathname()
   const [open, setOpen] = useState(false)
+  const account = `/${slug}/dashboard/account`
   const realty = user.realty
   const staff = user.role === "realty"
   const isSite = slug === SITE_REALTY
@@ -170,12 +171,16 @@ export function DashboardShell({ slug, user, counts, superAdmin, signOutAction, 
       </div>
 
       {/* Account */}
-      <div className="flex items-center gap-3 border-t border-[#e6e2db] px-5 py-4">
-        <span aria-hidden className="flex h-11 w-11 shrink-0 items-center justify-center bg-[var(--accent)] text-[15px] font-bold text-white">{initials(user.name)}</span>
-        <div className="min-w-0 flex-1">
-          <p className="truncate text-[15px] font-bold text-[#17150f]">{user.name}</p>
-          <p className="truncate text-sm text-[#6b665d]">{user.email}</p>
-        </div>
+      <div className="flex items-center gap-1 border-t border-[#e6e2db] px-3 py-3">
+        <Link href={account} onClick={() => setOpen(false)} title="My account" className={`group flex min-w-0 flex-1 items-center gap-3 px-2 py-1.5 outline-none transition hover:bg-[#f6f4f0] focus-visible:ring-2 focus-visible:ring-[var(--accent)] ${path === account ? "bg-[#f6f4f0]" : ""}`}>
+          <span aria-hidden className="flex h-11 w-11 shrink-0 items-center justify-center bg-[var(--accent)] text-[15px] font-bold text-white">{initials(user.name)}</span>
+          <span className="min-w-0 flex-1">
+            <span className="block truncate text-[15px] font-bold text-[#17150f]">{user.name}</span>
+            <span className="flex items-center gap-1 truncate text-sm text-[#6b665d] group-hover:text-[var(--accent)]">
+              <Settings className="h-3.5 w-3.5 shrink-0" /> My account
+            </span>
+          </span>
+        </Link>
         <form action={signOutAction}>
           <button type="submit" title="Sign out" aria-label="Sign out" className="flex h-10 w-10 items-center justify-center text-[#6b665d] outline-none transition hover:bg-[#f6f4f0] hover:text-[var(--accent)] focus-visible:ring-2 focus-visible:ring-[var(--accent)]">
             <LogOut className="h-5 w-5" />
