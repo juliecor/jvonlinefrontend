@@ -104,6 +104,28 @@ function parse(source: string): Block[] {
   return blocks
 }
 
+/**
+ * An answer without its ```followups block (the next questions the AI
+ * suggests, shown as buttons instead), and those questions. While the answer
+ * streams in, a ``` that may be the start of that block is held back too.
+ */
+export function splitFollowUps(text: string): { body: string; followUps: string[] } {
+  const block = text.match(/(^|\n)[ \t]*```[ \t]*follow-?ups\b[^\n]*(?:\n([\s\S]*?))?(?:\n[ \t]*```[ \t]*(?=\n|$)|$)/i)
+  if (block?.index !== undefined) {
+    const body = (text.slice(0, block.index) + text.slice(block.index + block[0].length)).trimEnd()
+    const followUps = (block[2] ?? "")
+      .split("\n")
+      .map((l) => l.replace(/^\s*(?:[-*•]|\d+[.)])\s*/, "").trim())
+      .filter((l) => l && !l.startsWith("```"))
+      .slice(0, 3)
+    return { body, followUps }
+  }
+  const lines = text.split("\n")
+  const partial = lines[lines.length - 1].match(/^[ \t]*```[ \t]*([a-z-]*)$/i)?.[1].toLowerCase()
+  if (partial !== undefined && ("followups".startsWith(partial) || "follow-ups".startsWith(partial))) return { body: lines.slice(0, -1).join("\n").trimEnd(), followUps: [] }
+  return { body: text, followUps: [] }
+}
+
 /** **bold**, `code` and [links](/path or https://…); a lone *word* is shown plain. */
 function Inline({ text }: { text: string }) {
   const parts = text.split(/(\*\*[^*]+\*\*|`[^`]+`|\[[^\]]+\]\([^)\s]+\))/g)

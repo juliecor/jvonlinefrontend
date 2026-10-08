@@ -5,6 +5,7 @@ import Link from "next/link"
 import { usePathname } from "next/navigation"
 import { ArrowUpRight, BadgeCheck, Building2, ChevronDown, ClipboardCheck, FileText, Globe, Landmark, LayoutDashboard, LogOut, Menu, Plus, Sparkles, UsersRound, Users, X } from "lucide-react"
 import { Feedback } from "@/components/feedback"
+import { AskPanel } from "./ai/ask-panel"
 import { RealtyMark } from "@/components/form"
 import { assistantName } from "@/lib/assistant-name"
 import { type ViewRealty, RoleSwitch } from "@/components/role-switch"
@@ -225,6 +226,7 @@ export function DashboardShell({ slug, user, counts, superAdmin, signOutAction, 
           Powered by <Link href="/platform" className="font-medium text-[#8a847a] hover:text-[#17150f]">jvconline</Link>
         </p>
       </main>
+      <AskPanel slug={slug} name={assistantName(realty.name)} isAgent={user.role === "agent"} />
       <Feedback />
     </div>
   )

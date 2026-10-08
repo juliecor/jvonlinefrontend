@@ -11,8 +11,9 @@ export async function POST(request: Request, { params }: { params: Promise<{ rea
   const session = await currentRealtyUser()
   if (!session || session.user.realty.slug !== slug) return Response.json({ message: "Your session ended. Sign in again." }, { status: 401 })
 
-  const { chat_id, message } = (await request.json().catch(() => ({}))) as { chat_id?: number | null; message?: string }
-  const upstream = await apiStream("/realty/assistant/stream", session.token, { chat_id: chat_id ?? null, message: message ?? "" })
+  const { chat_id, message, page } = (await request.json().catch(() => ({}))) as { chat_id?: number | null; message?: string; page?: string | null }
+  // page: the dashboard page it's asked from (the Ask panel), so "this project" means something.
+  const upstream = await apiStream("/realty/assistant/stream", session.token, { chat_id: chat_id ?? null, message: message ?? "", page: page ?? null })
 
   // Problems before the answer starts (too many questions, a bad chat) come back as JSON.
   if (!upstream.ok || !upstream.body || !upstream.headers.get("content-type")?.includes("text/event-stream")) {

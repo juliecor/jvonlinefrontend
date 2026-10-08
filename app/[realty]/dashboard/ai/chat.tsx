@@ -3,12 +3,12 @@
 import { useEffect, useRef, useState } from "react"
 import Link from "next/link"
 import { useRouter } from "next/navigation"
-import { ArrowRight, ArrowUp, BellRing, Check, Copy, MessageSquare, Plus, Sparkles, Trash2, X } from "lucide-react"
+import { ArrowRight, BellRing, MessageSquare, Plus, Sparkles, Trash2, X } from "lucide-react"
 import { confirmAction, toast } from "@/components/feedback"
-import { Markdown } from "@/components/markdown"
 import { timeAgo } from "@/lib/format"
-import { type ChatMessage, type ChatSummary, type UnitCard, deleteChat } from "./actions"
-import { UnitCards } from "./unit-cards"
+import { type ChatMessage, type ChatSummary, deleteChat } from "./actions"
+import { AskBox, Thread } from "./messages"
+import { useAssistant } from "./use-assistant"
 
 const TODAY = "What needs my attention today?"
 const STAFF_IDEAS = [
@@ -26,39 +26,24 @@ const AGENT_IDEAS = [
   "What payment plans does each project have?",
 ]
 
-/** What the assistant is doing while it looks things up, by lookup. */
-const STATUS: Record<string, string> = {
-  overview: "Checking today's numbers",
-  list_projects: "Looking at the projects",
-  project_details: "Reading the project",
-  search_units: "Searching the units",
-  list_offers: "Checking the offers",
-  offer_details: "Opening the offer",
-  buyer_responses: "Reading buyers' answers",
-  list_agents: "Checking the team",
-  show_units: "Getting the unit photos",
-  attention_today: "Checking what needs you",
-}
-
 type Props = { slug: string; name: string; firstName: string; isAgent: boolean; chats: ChatSummary[]; chatId: number | null; initial: ChatMessage[]; attention: number | null }
 
 /** The assistant's chat: past chats on the side, the conversation, and the question box. */
 export function AssistantChat({ slug, name, firstName, isAgent, chats: initialChats, chatId: initialId, initial, attention }: Props) {
   const router = useRouter()
   const [chats, setChats] = useState(initialChats)
-  const [chatId, setChatId] = useState(initialId)
-  const [messages, setMessages] = useState(initial)
-  const [text, setText] = useState("")
-  const [error, setError] = useState("")
   const [showList, setShowList] = useState(false)
-  const [pending, setPending] = useState(false)
-  const [status, setStatus] = useState("")
-  // The answer as it streams in, until it's saved.
-  const [streaming, setStreaming] = useState<string | null>(null)
-  // Units the answer shows as cards, as soon as the AI picks them.
-  const [cards, setCards] = useState<UnitCard[]>([])
   const scroller = useRef<HTMLDivElement>(null)
   const base = `/${slug}/dashboard/ai`
+  const { chat: chatId, messages, pending, status, error, streaming, cards, ask: send } = useAssistant({
+    slug,
+    chatId: initialId,
+    initial,
+    onSaved: (saved, isNew) => {
+      setChats((list) => [saved, ...list.filter((c) => c.id !== saved.id)])
+      if (isNew) window.history.replaceState(null, "", `${base}?chat=${saved.id}`)
+    },
+  })
 
   // Follow the answer as it grows, unless the person scrolled up to read something.
   useEffect(() => {
@@ -66,78 +51,9 @@ export function AssistantChat({ slug, name, firstName, isAgent, chats: initialCh
     if (el && messages.length > 0 && el.scrollHeight - el.scrollTop - el.clientHeight < 160) el.scrollTop = el.scrollHeight
   }, [messages.length, pending, streaming, cards])
 
-  const ask = async (question: string) => {
-    const q = question.trim()
-    if (!q || pending) return
-    setError("")
-    setText("")
-    setPending(true)
-    setStatus("Thinking")
-    setStreaming(null)
-    setCards([])
-    setMessages((m) => [...m, { id: -Date.now(), role: "user", content: q, created_at: new Date().toISOString() }])
+  const ask = (question: string) => {
     requestAnimationFrame(() => scroller.current?.scrollTo({ top: scroller.current.scrollHeight }))
-    // Nothing is saved when it fails: take the question back so it can be sent again.
-    const fail = (message: string) => {
-      setMessages((m) => m.slice(0, -1))
-      setText(q)
-      setError(message)
-    }
-
-    try {
-      const res = await fetch(`${base}/stream`, { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ chat_id: chatId, message: q }) })
-      if (!res.ok || !res.body) {
-        const data = await res.json().catch(() => null)
-        return fail(data?.message ?? "Something went wrong. Try again.")
-      }
-      const reader = res.body.getReader()
-      const decoder = new TextDecoder()
-      let buffer = ""
-      let answer = ""
-      let finished = false
-      for (;;) {
-        const { value, done } = await reader.read()
-        if (done) break
-        buffer += decoder.decode(value, { stream: true })
-        let cut
-        while ((cut = buffer.indexOf("\n\n")) !== -1) {
-          const chunk = buffer.slice(0, cut)
-          buffer = buffer.slice(cut + 2)
-          const event = chunk.match(/^event: (.+)$/m)?.[1]
-          const data = chunk.match(/^data: (.*)$/m)?.[1]
-          if (!event || data === undefined) continue
-          const payload = JSON.parse(data)
-          if (event === "status") setStatus(STATUS[payload.tool] ?? "Looking it up")
-          else if (event === "delta") setStreaming((answer += payload.text))
-          else if (event === "reset") setStreaming((answer = "") || null)
-          else if (event === "cards") {
-            setCards(payload.cards)
-            setStatus("Writing the answer")
-          }
-          else if (event === "error") {
-            finished = true
-            fail(payload.message)
-          } else if (event === "done") {
-            finished = true
-            const saved: ChatSummary = payload.chat
-            setMessages((m) => [...m, payload.message as ChatMessage])
-            setChats((list) => [saved, ...list.filter((c) => c.id !== saved.id)])
-            if (!chatId) {
-              setChatId(saved.id)
-              window.history.replaceState(null, "", `${base}?chat=${saved.id}`)
-            }
-          }
-        }
-      }
-      if (!finished) fail("The answer was cut off. Try again.")
-    } catch {
-      fail("Couldn't reach the AI. Check your connection and try again.")
-    } finally {
-      setPending(false)
-      setStreaming(null)
-      setCards([])
-      setStatus("")
-    }
+    return send(question)
   }
 
   const remove = async (id: number, title: string) => {
@@ -221,7 +137,7 @@ export function AssistantChat({ slug, name, firstName, isAgent, chats: initialCh
               </span>
               <h2 className="mt-4 text-2xl font-bold tracking-tight sm:text-3xl">Hi {firstName}, what do you want to know?</h2>
               <p className="mt-2 max-w-md text-[15px] text-[#5a554d]">
-                Ask about projects, units and prices, payment plans, {isAgent ? "your offers and your buyers" : "offers, buyers and agents"}. {name} looks it up in your dashboard as you ask.
+                Ask about projects, units and prices, payment plans, {isAgent ? "your offers and your buyers" : "offers, buyers and agents"}. Type or tap the mic. {name} looks it up in your dashboard as you ask.
               </p>
               <button type="button" onClick={() => ask(TODAY)} className="group mt-7 flex w-full items-center gap-4 bg-[#17150f] px-4 py-4 text-left text-white transition hover:bg-black sm:px-5">
                 <span className="flex h-11 w-11 shrink-0 items-center justify-center bg-[var(--accent)]">
@@ -249,104 +165,14 @@ export function AssistantChat({ slug, name, firstName, isAgent, chats: initialCh
               </div>
             </div>
           ) : (
-            <div className="mx-auto max-w-3xl space-y-6">
-              {messages.map((m) => (m.role === "user" ? <Question key={m.id} text={m.content} /> : <Answer key={m.id} slug={slug} text={m.content} cards={m.cards} />))}
-              {pending && (streaming || cards.length > 0) ? (
-                <Answer slug={slug} text={streaming ?? ""} cards={cards} streaming status={status} />
-              ) : pending ? (
-                <div className="flex gap-3">
-                  <Avatar />
-                  <Working status={status} />
-                </div>
-              ) : null}
+            <div className="mx-auto max-w-3xl">
+              <Thread slug={slug} messages={messages} pending={pending} status={status} streaming={streaming} cards={cards} onAsk={ask} />
             </div>
           )}
         </div>
 
-        <form
-          onSubmit={(e) => {
-            e.preventDefault()
-            ask(text)
-          }}
-          className="border-t border-[#e6e2db] p-3 sm:p-4"
-        >
-          {error && <p className="mb-2 text-sm font-bold text-red-700">{error}</p>}
-          <div className="flex items-end gap-2 border border-[#d9d4cb] bg-white p-1.5 focus-within:border-[var(--accent)]">
-            <textarea
-              value={text}
-              onChange={(e) => setText(e.target.value)}
-              onKeyDown={(e) => {
-                if (e.key === "Enter" && !e.shiftKey && !e.nativeEvent.isComposing) {
-                  e.preventDefault()
-                  ask(text)
-                }
-              }}
-              rows={Math.min(6, Math.max(1, text.split("\n").length))}
-              maxLength={2000}
-              placeholder={`Ask ${name}…`}
-              aria-label={`Ask ${name}`}
-              className="max-h-40 min-h-[44px] flex-1 resize-none bg-transparent px-2.5 py-2.5 text-[15px] outline-none"
-            />
-            <button type="submit" disabled={pending || !text.trim()} aria-label="Send" className="flex h-11 w-11 shrink-0 items-center justify-center bg-[var(--accent)] text-white transition hover:brightness-110 disabled:opacity-40">
-              <ArrowUp className="h-5 w-5" strokeWidth={2.5} />
-            </button>
-          </div>
-          <p className="mt-2 text-center text-xs text-[#8a847a]">{name} reads your dashboard and can&apos;t change anything. Check prices before you send them to a buyer.</p>
-        </form>
+        <AskBox slug={slug} name={name} pending={pending} error={error} onSend={ask} hint={`${name} reads your dashboard and can't change anything. Check prices before you send them to a buyer.`} />
       </section>
-    </div>
-  )
-}
-
-function Avatar() {
-  return (
-    <span className="flex h-8 w-8 shrink-0 items-center justify-center bg-[var(--accent)] text-white">
-      <Sparkles className="h-4 w-4" />
-    </span>
-  )
-}
-
-function Question({ text }: { text: string }) {
-  return <p className="ml-auto w-fit max-w-[85%] whitespace-pre-wrap bg-[#17150f] px-4 py-2.5 text-[15px] text-white">{text}</p>
-}
-
-/** What the assistant is doing while there's no text yet, e.g. "Searching the units". */
-function Working({ status }: { status: string }) {
-  return (
-    <p className="flex items-center gap-2 pt-1.5 text-sm font-semibold text-[#6b665d]">
-      {status}
-      <span className="flex gap-1">
-        {[0, 150, 300].map((d) => (
-          <span key={d} className="h-1.5 w-1.5 animate-bounce bg-[var(--accent)]" style={{ animationDelay: `${d}ms` }} />
-        ))}
-      </span>
-    </p>
-  )
-}
-
-function Answer({ slug, text, cards = [], streaming = false, status = "" }: { slug: string; text: string; cards?: UnitCard[]; streaming?: boolean; status?: string }) {
-  const [copied, setCopied] = useState(false)
-  return (
-    <div className="flex gap-3">
-      <Avatar />
-      <div className="min-w-0 flex-1">
-        {text ? <Markdown text={text} streaming={streaming} /> : streaming && <Working status={status} />}
-        {streaming && text && <span aria-hidden className="mt-1 inline-block h-4 w-2 animate-pulse bg-[var(--accent)]" />}
-        {cards.length > 0 && <UnitCards slug={slug} cards={cards} />}
-        {!streaming && (
-          <button
-            type="button"
-            onClick={async () => {
-              await navigator.clipboard.writeText(text).catch(() => {})
-              setCopied(true)
-              setTimeout(() => setCopied(false), 1500)
-            }}
-            className="mt-2 inline-flex items-center gap-1.5 text-xs font-semibold text-[#8a847a] transition hover:text-[#17150f]"
-          >
-            {copied ? <Check className="h-3.5 w-3.5" /> : <Copy className="h-3.5 w-3.5" />} {copied ? "Copied" : "Copy"}
-          </button>
-        )}
-      </div>
     </div>
   )
 }
