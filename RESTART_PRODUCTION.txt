@@ -1,0 +1,8 @@
+cd /var/www/frontend
+npm run build
+pm2 restart frontend
+
+cd /var/www/frontend && npm run build && pm2 restart frontend
+
+BACKEND:
+cd /var/www/backend && php artisan config:clear
