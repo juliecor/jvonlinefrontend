@@ -10,6 +10,7 @@ import { INCOME_SOURCES, type Requirement, type RequirementSummary } from "@/lib
 import { type MilestoneInput, type ScheduleRow, pct } from "@/lib/schedule"
 import { requireRealtyUser } from "@/lib/realty-auth"
 import { voidOffer } from "../actions"
+import { LoginPanel } from "../buyer-login"
 import { ApprovalPanel } from "./approval-panel"
 import { FollowUp, RequirementsPanel } from "./requirements-panel"
 import { SyncCounts } from "./sync"
@@ -47,6 +48,8 @@ type OfferDetail = {
   last_reminded_at: string | null
   reminders_sent: number
   buyer_email_for_mail: string | null
+  access_username: string | null
+  access_password: string | null
   agent_id: number | null
   custom: boolean
   custom_milestones: MilestoneInput[] | null
@@ -156,6 +159,10 @@ export default async function OfferDetailPage({ params }: { params: Promise<{ re
           customMilestones={o.custom_milestones ?? []}
           officialPlans={o.official_plans}
         />
+      )}
+
+      {o.status === "active" && (
+        <LoginPanel slug={slug} offerId={o.id} buyer={o.buyer_name} realty={user.realty.name} url={o.url} username={o.access_username} password={o.access_password} />
       )}
 
       <Ledger

@@ -2,13 +2,14 @@
 
 import { useMemo, useState, useTransition } from "react"
 import Link from "next/link"
-import { BadgeCheck, Clock, ExternalLink, LoaderCircle, Send } from "lucide-react"
+import { BadgeCheck, Clock, ExternalLink, KeyRound, LoaderCircle, Send } from "lucide-react"
 import { CopyButton } from "@/components/copy-button"
 import { Alert, Label, fieldClass } from "@/components/form"
 import { php, sqm } from "@/lib/format"
 import { buildSchedule, pct } from "@/lib/schedule"
 import type { ProjectDetail } from "../projects/types"
 import { type OfferState, createOffer } from "./actions"
+import { LoginCard, LoginFields, firstWord, suggestPassword } from "./buyer-login"
 import { type TermRow, TermsEditor, rowsFrom, termsTotal, toMilestones } from "./terms-editor"
 
 /**
@@ -31,6 +32,16 @@ export function OfferForm({ slug, projects, initialProject, today, isStaff, real
   const plan = custom ? undefined : (project?.payment_plans.find((p) => p.id === planId) ?? project?.payment_plans[0])
   const [rows, setRows] = useState<TermRow[]>([])
   const [date, setDate] = useState(today)
+  // The buyer's login: the username follows the first name until the agent edits it; a password is suggested.
+  const [buyerName, setBuyerName] = useState("")
+  const [username, setUsername] = useState("")
+  const [usernameEdited, setUsernameEdited] = useState(false)
+  const [password, setPassword] = useState("")
+  const typeBuyerName = (v: string) => {
+    setBuyerName(v)
+    if (!usernameEdited) setUsername(firstWord(v))
+    if (!password && v.trim()) setPassword(suggestPassword())
+  }
 
   const chooseTerms = (v: string) => {
     if (v === "custom") {
@@ -60,6 +71,11 @@ export function OfferForm({ slug, projects, initialProject, today, isStaff, real
         </p>
         <p className="mt-2 text-lg font-bold text-[#17150f]">Your custom terms are with {realtyName}&apos;s admins.</p>
         <p className="mt-1 text-sm text-[#5a554d]">You&apos;ll get an email when they approve them. Until then the buyer can&apos;t open the link{state.emailOnApproval ? "; it will be emailed to them as soon as it's approved" : ""}.</p>
+        {state.username && state.password && (
+          <p className="mt-3 text-sm font-semibold text-[#17150f]">
+            Buyer&apos;s login: <span className="font-mono">{state.username}</span> / <span className="font-mono">{state.password}</span>. Send it with the link once it&apos;s approved.
+          </p>
+        )}
         <div className="mt-4 flex flex-wrap gap-2">
           <Link href={`/${slug}/dashboard/offers/${state.id}`} className="inline-flex items-center bg-[#17150f] px-4 py-2.5 text-sm font-bold text-white hover:bg-[#3d3a34]">
             Track this offer
@@ -79,6 +95,15 @@ export function OfferForm({ slug, projects, initialProject, today, isStaff, real
         <p className="mt-2 text-lg font-bold text-[#17150f]">{state.emailed ? `Emailed to ${state.emailed}` : "Send this link to the buyer"}</p>
         {state.emailed && <p className="mt-1 text-sm text-slate-600">You can also copy the link below and send it by Viber or text.</p>}
         <p className="mt-3 break-all border border-emerald-200 bg-white px-3.5 py-2.5 font-mono text-sm text-[#17150f]">{state.url}</p>
+        {state.username && state.password && (
+          <div className="mt-4 border border-emerald-200 bg-white p-4">
+            <p className="mb-3 flex items-center gap-2 text-xs font-bold uppercase tracking-[0.14em] text-[#17150f]">
+              <KeyRound className="h-4 w-4 text-[var(--accent)]" /> The buyer opens it with
+            </p>
+            <LoginCard buyer={state.buyer ?? ""} realty={realtyName} url={state.url} username={state.username} password={state.password} />
+            <p className="mt-3 text-xs text-[#6b665d]">Send the link and the login by Viber or text. The emailed offer doesn&apos;t include the login.</p>
+          </div>
+        )}
         <div className="mt-4 flex flex-wrap gap-2">
           <CopyButton text={state.url} className="bg-white" />
           <a href={state.url} target="_blank" rel="noreferrer" className="inline-flex items-center gap-1.5 border border-[#d9d4cb] bg-white px-3.5 py-2.5 text-sm font-bold text-[#17150f] hover:border-[#17150f]">
@@ -172,7 +197,7 @@ export function OfferForm({ slug, projects, initialProject, today, isStaff, real
         <div className="grid gap-5 sm:grid-cols-2">
           <label className="block">
             <Label>Buyer&apos;s name</Label>
-            <input name="buyer_name" required placeholder="Full name" className={fieldClass} />
+            <input name="buyer_name" required value={buyerName} onChange={(e) => typeBuyerName(e.target.value)} placeholder="Full name" className={fieldClass} />
           </label>
           <label className="block">
             <Label>Buyer&apos;s mobile (optional)</Label>
@@ -183,6 +208,21 @@ export function OfferForm({ slug, projects, initialProject, today, isStaff, real
             <input name="buyer_email" type="email" placeholder="buyer@example.com" className={fieldClass} />
             <span className="mt-1 block text-xs text-slate-500">Needed to email the offer and requirement reminders.</span>
           </label>
+        </div>
+        <div className="border border-[#e0dcd5] bg-[#faf8f5] p-4 sm:p-5">
+          <p className="flex items-center gap-2 text-sm font-bold text-[#17150f]">
+            <KeyRound className="h-4 w-4 text-[var(--accent)]" /> Buyer&apos;s login
+          </p>
+          <p className="mb-4 mt-1 text-sm text-[#5a554d]">The offer is private: the buyer types these to open the link. You send them by Viber or text.</p>
+          <LoginFields
+            username={username}
+            password={password}
+            onUsername={(v) => {
+              setUsername(v)
+              setUsernameEdited(true)
+            }}
+            onPassword={setPassword}
+          />
         </div>
         <label className="flex items-center gap-3 text-sm font-medium text-slate-800">
           <input type="checkbox" name="email_buyer" defaultChecked className="h-4 w-4 accent-[var(--accent)]" />

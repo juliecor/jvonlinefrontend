@@ -1,7 +1,7 @@
 import type { Metadata } from "next"
 import Link from "next/link"
 import { cache } from "react"
-import { ArrowRight, ArrowUpRight, Bath, BedDouble, CalendarDays, Car, Check, Info, Layers, Mail, MapPin, Phone, Ruler, SquareDashed, Tag as TagIcon } from "lucide-react"
+import { ArrowRight, ArrowUpRight, Bath, Lock, BedDouble, CalendarDays, Car, Check, Info, Layers, Mail, MapPin, Phone, Ruler, SquareDashed, Tag as TagIcon } from "lucide-react"
 import { RealtyMark } from "@/components/form"
 import { ApiError, api } from "@/lib/api"
 import { longDate, php, phpExact, shortDate, sqm } from "@/lib/format"
@@ -13,7 +13,9 @@ import { realtyIcons } from "@/lib/realty-icon"
 import { PrintButton, Zoomable } from "./parts"
 import { RequirementsSection } from "./requirements"
 import { RespondSection } from "./respond"
+import { offerAccessHeaders } from "./access"
 import { OfferTabs } from "./tabs"
+import { UnlockForm } from "./unlock-form"
 
 type Milestone = ScheduleRow
 type Specs = { usable_floor_area: string | null; typical_floor_area: string | null; bedrooms: string | null; baths: string | null; floors: string | null; parking: string | null }
@@ -49,24 +51,36 @@ type Offer = {
   buyer_contact: { email: string | null; phone: string | null }
   /** Set when one of the realty's people previews custom terms that aren't approved yet. */
   preview: "pending" | "rejected" | null
+  /** The realty's own people looking at a private offer: buyers need the login. */
+  private?: boolean
+}
+
+/** A private offer before the buyer signs in: just enough for the sign-in page. */
+type Locked = {
+  locked: true
+  code: string
+  realty: { name: string; slug: string; logo_url: string | null; accent_color: string | null }
+  project: { name: string | null; location: string | null; photo: string | null }
+  agent: string | null
 }
 
 type Props = { params: Promise<{ code: string }> }
 
 /** One load per request, shared by the page and its metadata (each load counts as a buyer view). */
-const loadOffer = cache(async (code: string): Promise<{ offer: Offer | null; problem: string | null }> => {
+const loadOffer = cache(async (code: string): Promise<{ offer: Offer | null; locked: Locked | null; problem: string | null }> => {
   try {
-    return { offer: await api<Offer>(`/offers/${encodeURIComponent(code)}`, { token: await realtyToken() }), problem: null }
+    const data = await api<Offer | Locked>(`/offers/${encodeURIComponent(code)}`, { token: await realtyToken(), headers: await offerAccessHeaders(code) })
+    return "locked" in data ? { offer: null, locked: data, problem: null } : { offer: data, locked: null, problem: null }
   } catch (e) {
     const problem = e instanceof ApiError && [404, 410, 423].includes(e.status) ? (e.status === 404 ? "We couldn't find this offer. Please check the link with your agent." : e.message) : "We couldn't load this offer right now. Please try again in a moment."
-    return { offer: null, problem }
+    return { offer: null, locked: null, problem }
   }
 })
 
 /** The realty's own tab icon, like its dashboard. */
 export async function generateMetadata({ params }: Props): Promise<Metadata> {
-  const { offer } = await loadOffer((await params).code)
-  const slug = offer?.realty.slug
+  const { offer, locked } = await loadOffer((await params).code)
+  const slug = (offer ?? locked)?.realty.slug
   return {
     title: "Sales offer",
     robots: { index: false, follow: false },
@@ -92,7 +106,9 @@ function Heading({ n, title, aside }: { n: string; title: string; aside?: React.
 /** jvconline.ph/offer/<code> — the buyer's sales offer. Public, unlisted, printable. */
 export default async function OfferPage({ params }: Props) {
   const { code } = await params
-  const { offer, problem } = await loadOffer(code)
+  const { offer, locked, problem } = await loadOffer(code)
+
+  if (locked) return <SignIn data={locked} />
 
   if (!offer) {
     return (
@@ -146,6 +162,11 @@ export default async function OfferPage({ params }: Props) {
 
   return (
     <main className="min-h-screen bg-[#ece9e4] pb-16 text-[#17150f] [print-color-adjust:exact] print:bg-white print:pb-0" style={{ ["--accent" as string]: accent }}>
+      {offer.private && !offer.preview && (
+        <div className="bg-[#17150f] px-4 py-2.5 text-center text-sm font-bold text-white print:hidden">
+          Private offer: you can see it because you&apos;re signed in to {realty.name}. The buyer opens it with the username and password you set.
+        </div>
+      )}
       {offer.preview && (
         <div className="bg-amber-400 px-4 py-2.5 text-center text-sm font-bold text-[#17150f] print:hidden">
           Preview: these custom terms {offer.preview === "pending" ? "are waiting for approval" : "were sent back"}. The buyer can&apos;t open this page yet.
@@ -561,6 +582,65 @@ export default async function OfferPage({ params }: Props) {
           </p>
         </footer>
       </OfferTabs>
+    </main>
+  )
+}
+
+/** A private offer's door: the project and the realty on one side, the buyer's sign-in on the other. */
+function SignIn({ data }: { data: Locked }) {
+  const { realty, project, agent } = data
+  const who = agent ?? realty.name
+  return (
+    <main style={{ ["--accent" as string]: realty.accent_color ?? "#1f2937" }} className="min-h-screen bg-[#f6f4f0] text-[#17150f] lg:grid lg:grid-cols-[minmax(0,1.05fr)_minmax(0,1fr)]">
+      <aside className="relative isolate flex flex-col justify-between gap-8 overflow-hidden bg-[var(--accent)] px-5 pb-7 pt-6 text-white sm:px-10 sm:pb-10 sm:pt-8 lg:sticky lg:top-0 lg:h-screen lg:gap-10 lg:px-14 lg:py-12">
+        {project.photo && (
+          <>
+            {/* eslint-disable-next-line @next/next/no-img-element */}
+            <img src={project.photo} alt="" className="absolute inset-0 -z-10 h-full w-full object-cover" />
+            <div aria-hidden className="absolute inset-0 -z-10 bg-gradient-to-t from-[#120d0c] via-[#120d0c]/70 to-[#120d0c]/30" />
+          </>
+        )}
+        <div aria-hidden className="absolute inset-x-0 top-0 h-1.5 bg-[var(--accent)]" />
+        <span className="inline-flex self-start bg-white px-4 py-3 shadow-[0_10px_30px_-12px_rgba(0,0,0,0.5)]">
+          <RealtyMark name={realty.name} logo={realty.logo_url} className="h-9 sm:h-11 lg:h-14" />
+        </span>
+        <div>
+          <p className="text-xs font-bold uppercase tracking-[0.22em] text-white/75">Private sales offer</p>
+          {project.name && <h2 className="mt-3 max-w-xl text-[1.75rem] font-bold leading-[1.08] tracking-tight sm:text-5xl">{project.name}</h2>}
+          {project.location && (
+            <p className="mt-3 inline-flex items-center gap-2 text-base font-semibold text-white/85">
+              <MapPin className="h-4 w-4" /> {project.location}
+            </p>
+          )}
+        </div>
+      </aside>
+
+      <section className="flex items-center justify-center px-5 py-10 sm:px-10 sm:py-14 lg:px-14">
+        <div className="w-full max-w-[440px]">
+          <p className="text-xs font-bold uppercase tracking-[0.2em] text-[var(--accent)]">Sales offer · {data.code}</p>
+          <h1 className="mt-2 text-3xl font-bold tracking-tight sm:text-4xl">This offer is just for you.</h1>
+          <p className="mt-3 text-[15px] leading-relaxed text-[#5a554d]">
+            Enter the username and password <strong className="font-bold text-[#17150f]">{who}</strong> gave you to open it.
+          </p>
+          <div className="mt-8">
+            <UnlockForm code={data.code} />
+          </div>
+          <div className="mt-8 border-t border-[#e0dcd5] pt-6 text-sm leading-relaxed text-[#5a554d]">
+            <p>
+              <span className="font-bold text-[#17150f]">Don&apos;t have them?</span> Ask {who}. They sent you this link with your login.
+            </p>
+          </div>
+          <p className="mt-8 flex items-center gap-2 text-xs text-[#8a847a]">
+            <Lock className="h-3.5 w-3.5 shrink-0" />
+            <span>
+              Only you and {realty.name} can open this offer · Powered by{" "}
+              <Link href="/platform" className="font-semibold text-[#6b665d] hover:text-[#17150f]">
+                jvconline
+              </Link>
+            </span>
+          </p>
+        </div>
+      </section>
     </main>
   )
 }

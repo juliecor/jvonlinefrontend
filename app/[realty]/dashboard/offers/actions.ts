@@ -4,7 +4,7 @@ import { revalidatePath } from "next/cache"
 import { api, errorMessage } from "@/lib/api"
 import { requireRealtyUser } from "@/lib/realty-auth"
 
-export type OfferState = { error?: string; url?: string; code?: string; id?: number; emailed?: string | null; approval?: string | null; emailOnApproval?: boolean }
+export type OfferState = { error?: string; url?: string; code?: string; id?: number; emailed?: string | null; approval?: string | null; emailOnApproval?: boolean; buyer?: string; username?: string; password?: string }
 
 /** Agent (or staff) prepares an offer: unit + plan + buyer → a link to send. */
 export async function createOffer(slug: string, _: OfferState, formData: FormData): Promise<OfferState> {
@@ -21,18 +21,34 @@ export async function createOffer(slug: string, _: OfferState, formData: FormDat
   const custom = plan === "custom"
   const custom_milestones = custom ? JSON.parse(String(formData.get("custom_milestones") ?? "[]")) : undefined
   const approval_reason = String(formData.get("approval_reason") ?? "").trim() || null
+  // The buyer's login: they type it to open the link.
+  const access_username = String(formData.get("access_username") ?? "").trim()
+  const access_password = String(formData.get("access_password") ?? "")
+  if (!access_username || !access_password) return { error: "Give the buyer a username and password to open the offer with." }
 
   try {
     const res = await api<{ id: number; code: string; url: string; emailed_to: string | null; approval_status: string | null }>("/realty/offers", {
       method: "POST",
       token,
-      body: { unit_id, payment_plan_id: plan && !custom ? Number(plan) : null, buyer_name, buyer_email: buyer_email || null, buyer_phone: buyer_phone || null, purchase_date, email_buyer, custom, custom_milestones, approval_reason },
+      body: { unit_id, payment_plan_id: plan && !custom ? Number(plan) : null, buyer_name, buyer_email: buyer_email || null, buyer_phone: buyer_phone || null, purchase_date, email_buyer, custom, custom_milestones, approval_reason, access_username, access_password },
     })
     revalidatePath(`/${slug}/dashboard`, "layout")
-    return { url: res.url, code: res.code, id: res.id, emailed: res.emailed_to, approval: res.approval_status, emailOnApproval: email_buyer }
+    return { url: res.url, code: res.code, id: res.id, emailed: res.emailed_to, approval: res.approval_status, emailOnApproval: email_buyer, buyer: buyer_name, username: access_username, password: access_password }
   } catch (e) {
     return { error: errorMessage(e) }
   }
+}
+
+/** Set or change the buyer's username and password; a new password signs the buyer out of the old one. */
+export async function setBuyerLogin(slug: string, offerId: number, access_username: string, access_password: string): Promise<{ error?: string }> {
+  const { token } = await requireRealtyUser(slug)
+  try {
+    await api(`/realty/offers/${offerId}/login`, { method: "POST", token, body: { access_username, access_password } })
+  } catch (e) {
+    return { error: errorMessage(e) }
+  }
+  revalidatePath(`/${slug}/dashboard`, "layout")
+  return {}
 }
 
 export async function voidOffer(slug: string, id: number): Promise<void> {

@@ -24,7 +24,7 @@ export class ApiError extends Error {
   }
 }
 
-type Options = { method?: "GET" | "POST" | "PATCH" | "DELETE"; body?: unknown; token?: string | null }
+type Options = { method?: "GET" | "POST" | "PATCH" | "DELETE"; body?: unknown; token?: string | null; headers?: Record<string, string> }
 
 /**
  * The visitor's IP, passed to Laravel with the shared key so its rate limits
@@ -44,7 +44,7 @@ async function visitorHeaders(): Promise<Record<string, string>> {
 }
 
 /** `body` may be a FormData (sent as multipart, for uploads) or anything JSON-serialisable. */
-export async function api<T>(path: string, { method = "GET", body, token }: Options = {}): Promise<T> {
+export async function api<T>(path: string, { method = "GET", body, token, headers: extra }: Options = {}): Promise<T> {
   const multipart = body instanceof FormData
   const res = await fetch(`${base()}/api${path}`, {
     method,
@@ -53,6 +53,7 @@ export async function api<T>(path: string, { method = "GET", body, token }: Opti
       Accept: "application/json",
       ...(body !== undefined && !multipart ? { "Content-Type": "application/json" } : {}),
       ...(token ? { Authorization: `Bearer ${token}` } : {}),
+      ...extra,
     },
     body: multipart ? body : body !== undefined ? JSON.stringify(body) : undefined,
     cache: "no-store",
