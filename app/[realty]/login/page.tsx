@@ -1,14 +1,14 @@
 import type { Metadata } from "next"
 import Link from "next/link"
 import { redirect } from "next/navigation"
-import { Check, CircleCheck, Lock, MapPin } from "lucide-react"
+import { Check, CircleCheck, Info, Lock, MapPin } from "lucide-react"
 import { COMPANY, STATS } from "@/lib/johndorf/company"
 import { SITE_REALTY } from "@/lib/public-projects-types"
 import { currentRealtyUser, realtyBySlug } from "@/lib/realty-auth"
 import { realtyIcons } from "@/lib/realty-icon"
 import { RealtyLoginForm } from "./login-form"
 
-type Props = { params: Promise<{ realty: string }>; searchParams: Promise<{ registered?: string; joined?: string; applied?: string }> }
+type Props = { params: Promise<{ realty: string }>; searchParams: Promise<{ registered?: string; joined?: string; applied?: string; ended?: string }> }
 
 export async function generateMetadata({ params }: Props): Promise<Metadata> {
   const realty = await realtyBySlug((await params).realty)
@@ -111,6 +111,13 @@ export default async function RealtyLoginPage({ params, searchParams }: Props) {
           {notice && (
             <p role="status" className="mt-6 flex gap-3 border-l-4 border-emerald-600 bg-emerald-50 px-4 py-3 text-[15px] font-semibold text-emerald-900">
               <CircleCheck className="mt-0.5 h-5 w-5 shrink-0 text-emerald-700" /> {notice}
+            </p>
+          )}
+
+          {/* A pending applicant whose session ended (rejected, or timed out): signing in tells them which. */}
+          {query.ended && !notice && (
+            <p role="status" className="mt-6 flex gap-3 border-l-4 border-[#8a847a] bg-[#faf8f5] px-4 py-3 text-[15px] font-semibold text-[#3d3a34]">
+              <Info className="mt-0.5 h-5 w-5 shrink-0 text-[#6b665d]" /> Your session ended. If you applied to join, sign in to see where your application stands.
             </p>
           )}
 

@@ -71,6 +71,22 @@ export async function currentRealtyUser(): Promise<{ user: RealtyUser; token: st
   }
 }
 
+/**
+ * An agent who applied and is waiting (or was turned down): signed in, but with no dashboard yet.
+ * The pending page follows their application with this; everything else treats them as signed out.
+ */
+export async function applicantSession(): Promise<{ user: RealtyUser; token: string } | null> {
+  const token = await realtyToken()
+  if (!token) return null
+  try {
+    const user = await api<AuthUser & { realty: PublicRealty | null }>("/auth/me", { token })
+    if (user.role !== "agent" || !user.realty) return null
+    return { user: user as RealtyUser, token }
+  } catch {
+    return null
+  }
+}
+
 /** For pages under /<slug>/dashboard: the signed-in member of *this* realty, or off to its login. */
 export async function requireRealtyUser(slug: string): Promise<{ user: RealtyUser; token: string }> {
   const session = await currentRealtyUser()
