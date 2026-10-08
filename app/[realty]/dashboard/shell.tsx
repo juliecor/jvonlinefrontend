@@ -3,8 +3,9 @@
 import { useEffect, useRef, useState } from "react"
 import Link from "next/link"
 import { usePathname } from "next/navigation"
-import { ArrowUpRight, BadgeCheck, Building2, ChevronDown, ClipboardCheck, FileText, Globe, Landmark, LayoutDashboard, LogOut, Menu, Plus, UsersRound, Users, X } from "lucide-react"
+import { ArrowUpRight, BadgeCheck, Building2, ChevronDown, ClipboardCheck, FileText, Globe, Landmark, LayoutDashboard, LogOut, Menu, Plus, Sparkles, UsersRound, Users, X } from "lucide-react"
 import { RealtyMark } from "@/components/form"
+import { assistantName } from "@/lib/assistant-name"
 import { type ViewRealty, RoleSwitch } from "@/components/role-switch"
 import { SITE_REALTY } from "@/lib/public-projects-types"
 import type { RealtyUser } from "@/lib/realty-auth"
@@ -43,7 +44,14 @@ export function DashboardShell({ slug, user, counts, superAdmin, signOutAction, 
   const waiting = (counts?.newResponses ?? 0) + (counts?.toApprove ?? 0) + (staff ? (counts?.agentsPending ?? 0) : 0)
 
   const groups: { title: string; items: Item[] }[] = [
-    { title: "Workspace", items: [{ href: `/${slug}/dashboard`, label: "Overview", icon: LayoutDashboard, exact: true }] },
+    {
+      title: "Workspace",
+      items: [
+        { href: `/${slug}/dashboard`, label: "Overview", icon: LayoutDashboard, exact: true },
+        // The AI assistant: answers from this realty's data.
+        { href: `/${slug}/dashboard/ai`, label: assistantName(realty.name), icon: Sparkles },
+      ],
+    },
     {
       title: "Sales",
       items: [
