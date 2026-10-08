@@ -43,7 +43,7 @@ export async function createProject(slug: string, _: FormState, formData: FormDa
     await api(`/realty/projects/${id}/page/media`, { method: "POST", token, body: media }).catch((e) => (planError = errorMessage(e)))
   }
   refresh(slug)
-  redirect(`/${slug}/dashboard/projects/${id}${planError ? `?plan_error=${encodeURIComponent(planError)}#site-plan` : ""}`)
+  redirect(`/${slug}/dashboard/projects/${id}${planError ? `?plan_error=${encodeURIComponent(planError)}#website` : ""}`)
 }
 
 export async function updateProject(slug: string, id: number, _: FormState, formData: FormData): Promise<FormState> {

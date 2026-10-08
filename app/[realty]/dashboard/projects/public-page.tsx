@@ -30,8 +30,10 @@ const SPECS: [keyof NonNullable<PublicUnitType["specs"]>, string, string][] = [
   ["parking", "Parking", "1"],
 ]
 
-/** Everything on the project's public page, editable in place. Only realty staff see this. */
-export function PublicPageEditor({ slug, projectId, projectName, data }: { slug: string; projectId: number; projectName: string; data: PageData }) {
+type EditorProps = { slug: string; projectId: number; projectName: string; data: PageData }
+
+/** The project's public page: its settings, hero photos and site plan, editable in place. Only realty staff see this. */
+export function WebsiteEditor({ slug, projectId, projectName, data }: EditorProps) {
   const live = data.is_public && data.slug
   return (
     <>
@@ -61,7 +63,14 @@ export function PublicPageEditor({ slug, projectId, projectName, data }: { slug:
           <MediaGrid slug={slug} projectId={projectId} kind="plan" urls={data.site_plan_urls} />
         </Panel>
       </div>
+    </>
+  )
+}
 
+/** The house models (renders and spec sheets) and the construction photos by month. */
+export function ModelsEditor({ slug, projectId, data }: Omit<EditorProps, "projectName">) {
+  return (
+    <>
       <Panel title={`House & unit models · ${data.unit_types.length}`} aside="Each model with its renders and spec sheet">
         <ul className="divide-y divide-[#e6e2db]">
           {data.unit_types.map((u) => (

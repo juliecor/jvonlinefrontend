@@ -44,7 +44,7 @@ export function UnitRow({ slug, projectId, unit, staff }: { slug: string; projec
           </p>
           {unit.status !== "available" && unit.status_detail && <StatusLine slug={slug} status={unit.status} d={unit.status_detail} />}
           {unit.buyer_notes && <p className="mt-1 max-w-2xl text-sm font-semibold text-[#3d3a34]">On the offer: {unit.buyer_notes}</p>}
-          {unit.notes && <p className="mt-1 line-clamp-2 max-w-2xl text-xs text-[#8a847a]">Internal: {unit.notes}</p>}
+          {unit.notes && <p className="mt-1 line-clamp-1 max-w-2xl text-xs text-[#8a847a]" title={unit.notes}>Internal: {unit.notes}</p>}
         </div>
       </div>
       <div className="flex shrink-0 items-center gap-4 sm:justify-end">
