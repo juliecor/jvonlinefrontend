@@ -1,65 +1,161 @@
 "use client"
 
-import { useState, useTransition } from "react"
-import { AlertCircle, Check, CheckCircle2, Clock, ExternalLink, FileText, LoaderCircle, Mail, RotateCcw, Send, Undo2, X } from "lucide-react"
+import { useEffect, useRef, useState, useTransition } from "react"
+import { AlertCircle, CheckCircle2, ExternalLink, FileText, IdCard, LoaderCircle, Mail, Paperclip, Send, Undo2, User, X } from "lucide-react"
 import { CopyButton } from "@/components/copy-button"
 import { type Requirement, STATE_LABEL, fileSize } from "@/lib/requirements-types"
+import { longDate } from "@/lib/format"
 import { type MailState, emailOffer, remindBuyer, reviewDocument } from "../actions"
 
+/** Status pill: a dot plus a word, tinted by state. */
 const STATE_STYLE = {
-  missing: "border-[#d9d4cb] text-[#6b665d]",
-  review: "border-amber-300 bg-amber-50 text-amber-800",
-  approved: "border-emerald-300 bg-emerald-50 text-emerald-800",
-  rejected: "border-red-300 bg-red-50 text-red-700",
+  missing: "border-red-200 bg-red-50 text-red-700",
+  review: "border-amber-200 bg-amber-50 text-amber-700",
+  approved: "border-emerald-200 bg-emerald-50 text-emerald-700",
+  rejected: "border-red-200 bg-red-50 text-red-700",
 } as const
+const DOT = { missing: "bg-red-600", review: "bg-amber-500", approved: "bg-emerald-600", rejected: "bg-red-600" } as const
 
-const STATE_ICON = { missing: null, review: Clock, approved: CheckCircle2, rejected: AlertCircle } as const
+function StatusPill({ state }: { state: Requirement["state"] }) {
+  return (
+    <span className={`inline-flex h-7 shrink-0 items-center gap-2 border px-2.5 text-xs font-bold ${STATE_STYLE[state]}`}>
+      <span className={`h-1.5 w-1.5 ${DOT[state]}`} />
+      {state === "rejected" ? "Needs re-upload" : STATE_LABEL[state]}
+    </span>
+  )
+}
+
+/** A required item the buyer still has to send (or send again). */
+const stillNeeded = (r: Requirement) => r.needed === "required" && (r.state === "missing" || r.state === "rejected")
+
+/** An ID-type requirement gets the card icon; everything else a document. */
+const isIdDoc = (name: string) => /\bid\b|passport|license|umid|sss/i.test(name)
+
+const CARD = "border bg-white px-5 py-5 transition-colors"
+/** Picked from the "Still missing" chips: that card's border turns red. */
+const picking = (on: boolean) => (on ? "border-red-500 ring-4 ring-red-200 shadow-[0_0_0_10px_rgba(239,68,68,0.12)]" : "border-[#e0dcd5]")
 
 /** Each requirement with the buyer's files: preview, open, approve or send back with a reason. */
-export function RequirementsPanel({ slug, offerId, requirements, canReview = true }: { slug: string; offerId: number; requirements: Requirement[]; canReview?: boolean }) {
+export function RequirementsPanel({ slug, offerId, requirements, detailsSentAt, canReview = true }: { slug: string; offerId: number; requirements: Requirement[]; detailsSentAt: string | null; canReview?: boolean }) {
   const shown = requirements.filter((r) => r.needed !== "not_needed" || r.files.length > 0)
   const skipped = requirements.length - shown.length
+  const needed = [...(detailsSentAt ? [] : [{ key: "details", name: "Buyer details" }]), ...shown.filter(stillNeeded).map((r) => ({ key: `req-${r.id}`, name: r.name }))]
+  const toReview = shown.filter((r) => r.state === "review").length
+  const [picked, setPicked] = useState<string | null>(null)
+  const rowId = (key: string) => `requirement-${key}`
+  const jump = (key: string) => {
+    setPicked(key)
+    document.getElementById(rowId(key))?.scrollIntoView({ behavior: "smooth", block: "center" })
+  }
   return (
-    <div>
-      <ul className="divide-y divide-[#e6e2db]">
-        {shown.map((r) => (
-          <RequirementRow key={r.id} slug={slug} offerId={offerId} req={r} canReview={canReview} />
-        ))}
-      </ul>
-      {skipped > 0 && <p className="pt-3 text-sm text-[#8a847a]">{skipped} item{skipped === 1 ? "" : "s"} on your list {skipped === 1 ? "doesn't" : "don't"} apply to this buyer, going by their details.</p>}
+    <div className="space-y-4 pt-5">
+      {needed.length > 0 ? (
+        <div className="flex gap-4 border border-red-200 border-l-4 border-l-red-500 bg-red-50 px-5 py-4">
+          <span className="mt-0.5 flex h-7 w-7 shrink-0 items-center justify-center bg-red-600 text-white">
+            <AlertCircle className="h-4 w-4" />
+          </span>
+          <div className="min-w-0">
+            <p className="text-lg font-bold text-red-800">Still missing · {needed.length} {needed.length === 1 ? "item" : "items"}</p>
+            <p className="mt-0.5 text-sm text-[#6b665d]">Complete the following requirements to proceed.</p>
+            <ul className="mt-3 flex flex-wrap gap-2">
+              {needed.map((n) => (
+                <li key={n.key}>
+                  <button type="button" onClick={() => jump(n.key)} className={`border bg-white px-3.5 py-1.5 text-sm font-bold text-red-700 transition hover:border-red-500 ${picked === n.key ? "border-red-500" : "border-red-200"}`}>
+                    {n.name}
+                  </button>
+                </li>
+              ))}
+            </ul>
+          </div>
+        </div>
+      ) : (
+        <div className="flex items-center gap-4 border border-emerald-200 border-l-4 border-l-emerald-600 bg-emerald-50 px-5 py-4">
+          <span className="flex h-7 w-7 shrink-0 items-center justify-center bg-emerald-600 text-white">
+            <CheckCircle2 className="h-4 w-4" />
+          </span>
+          <p className="text-lg font-bold text-emerald-800">Nothing missing. {toReview ? `${toReview} to review.` : "Every required item is in."}</p>
+        </div>
+      )}
+
+      {/* The buyer form comes first: the list of files depends on what they answered. */}
+      <div id={rowId("details")} className={`${CARD} ${picking(picked === "details")}`}>
+        <div className="flex gap-4">
+          <span className="flex h-14 w-14 shrink-0 items-center justify-center bg-[#f6f4f0] text-[#17150f]">
+            <User className="h-6 w-6" />
+          </span>
+          <div className="flex min-h-14 min-w-0 flex-1 flex-col justify-between">
+            <p className="line-clamp-2 text-lg font-bold leading-7">Buyer details</p>
+            <div>
+              <StatusPill state={detailsSentAt ? "approved" : "missing"} />
+            </div>
+          </div>
+        </div>
+        <p className="mt-3 text-sm text-[#6b665d]">{detailsSentAt ? `Sent ${longDate(detailsSentAt)} · with Data Privacy consent` : "Not sent yet. The buyer fills these in on the offer page."}</p>
+      </div>
+
+      {shown.map((r) => (
+        <RequirementRow key={r.id} id={rowId(`req-${r.id}`)} slug={slug} offerId={offerId} req={r} canReview={canReview} picked={picked === `req-${r.id}`} />
+      ))}
+      {skipped > 0 && <p className="pt-1 text-sm text-[#8a847a]">{skipped} item{skipped === 1 ? "" : "s"} on your list {skipped === 1 ? "doesn't" : "don't"} apply to this buyer, going by their details.</p>}
     </div>
   )
 }
 
-function RequirementRow({ slug, offerId, req, canReview }: { slug: string; offerId: number; req: Requirement; canReview: boolean }) {
-  const Icon = STATE_ICON[req.state]
+function RequirementRow({ id, slug, offerId, req, canReview, picked }: { id: string; slug: string; offerId: number; req: Requirement; canReview: boolean; picked: boolean }) {
+  const required = req.needed === "required"
+  // The title is at most two lines (28px each, the icon's height). When it needs both,
+  // the tag moves out from under it to below the icon.
+  const titleRef = useRef<HTMLParagraphElement>(null)
+  const [twoLines, setTwoLines] = useState(false)
+  useEffect(() => {
+    const el = titleRef.current
+    if (!el) return
+    const ro = new ResizeObserver(() => setTwoLines(el.getBoundingClientRect().height > 40))
+    ro.observe(el)
+    return () => ro.disconnect()
+  }, [])
+  const tag = (
+    <div className="flex flex-wrap items-center gap-2">
+      <span className={`inline-flex h-7 items-center border px-2.5 text-xs font-bold ${required ? "border-[var(--accent)] text-[var(--accent)]" : "border-[#e6e2db] text-[#6b665d]"}`}>
+        {required ? "Required" : req.needed === "optional" ? "If Applicable" : "Not Needed for This Buyer"}
+      </span>
+      <StatusPill state={req.state} />
+    </div>
+  )
   return (
-    <li className="py-5">
-      <div className="flex flex-wrap items-start justify-between gap-3">
-        <div className="min-w-0">
-          <div className="flex flex-wrap items-center gap-2">
-            <p className="text-lg font-bold">{req.name}</p>
-            <span className={`text-[11px] font-bold uppercase tracking-[0.12em] ${req.needed === "required" ? "text-[var(--accent)]" : "text-[#8a847a]"}`}>
-              {req.needed === "required" ? "Required" : req.needed === "optional" ? "If applicable" : "Not needed for this buyer"}
-            </span>
-          </div>
-          {req.help && <p className="mt-0.5 max-w-2xl text-sm text-[#6b665d]">{req.help}</p>}
-        </div>
-        <span className={`inline-flex shrink-0 items-center gap-1.5 border px-2.5 py-1 text-xs font-bold ${STATE_STYLE[req.state]}`}>
-          {Icon && <Icon className="h-3.5 w-3.5" />}
-          {req.state === "rejected" ? "Sent back" : STATE_LABEL[req.state]}
+    <div id={id} className={`${CARD} ${picking(picked)}`}>
+      <div className="flex gap-4">
+        <span className={`flex h-14 w-14 shrink-0 items-center justify-center bg-[#f6f4f0] ${required ? "text-[var(--accent)]" : "text-[#6b665d]"}`}>
+          {isIdDoc(req.name) ? <IdCard className="h-6 w-6" /> : <FileText className="h-6 w-6" />}
         </span>
+        <div className="flex min-h-14 min-w-0 flex-1 flex-col justify-between">
+          <p ref={titleRef} className="line-clamp-2 text-lg font-bold leading-7">
+            {req.name}
+          </p>
+          {!twoLines && tag}
+        </div>
       </div>
-      {req.files.length === 0 ? (
-        <p className="mt-3 text-sm font-semibold text-[#a39d92]">Nothing uploaded yet.</p>
-      ) : (
+      {twoLines && <div className="mt-3">{tag}</div>}
+      {req.state === "rejected" && req.note && (
+        <p className="mt-3 border-l-4 border-red-500 bg-red-50 px-3 py-2 text-sm font-semibold text-red-800">
+          <span className="text-xs font-bold uppercase tracking-[0.12em] text-red-700">Asked to fix · </span>
+          {req.note}
+        </p>
+      )}
+      {req.help && <p className="mt-3 text-sm text-[#6b665d]">{req.help}</p>}
+      {req.files.length > 0 && (
         <ul className="mt-4 grid gap-3 sm:grid-cols-2">
           {req.files.map((f) => (
             <FileCard key={f.id} slug={slug} offerId={offerId} file={f} canReview={canReview} />
           ))}
         </ul>
       )}
-    </li>
+      {req.files.length === 0 && (
+        <p className="mt-3 inline-flex h-7 items-center gap-2 whitespace-nowrap border border-dashed border-[#d9d4cb] bg-[#f6f4f0] px-2.5 text-xs font-bold text-[#8a847a]">
+          <Paperclip className="h-3.5 w-3.5" /> Nothing uploaded yet.
+        </p>
+      )}
+    </div>
   )
 }
 
@@ -97,7 +193,7 @@ function FileCard({ slug, offerId, file, canReview }: { slug: string; offerId: n
           </span>
           {file.status !== "pending" && file.reviewed_by && (
             <span className="mt-0.5 block text-xs text-[#8a847a]">
-              {file.status === "approved" ? "Approved" : "Sent back"} by {file.reviewed_by}
+              {file.status === "approved" ? "Approved" : "Re-upload requested"} by {file.reviewed_by}
             </span>
           )}
         </span>
@@ -109,10 +205,10 @@ function FileCard({ slug, offerId, file, canReview }: { slug: string; offerId: n
         {file.status === "pending" && !rejecting && (
           <>
             <button type="button" disabled={pending} onClick={() => act("approved")} className="inline-flex items-center gap-1.5 bg-emerald-700 px-3 py-2 text-xs font-bold text-white hover:bg-emerald-800 disabled:opacity-60">
-              {pending ? <LoaderCircle className="h-3.5 w-3.5 animate-spin" /> : <Check className="h-3.5 w-3.5" strokeWidth={3} />} Approve
+              {pending && <LoaderCircle className="h-3.5 w-3.5 animate-spin" />} Approve
             </button>
             <button type="button" disabled={pending} onClick={() => setRejecting(true)} className="inline-flex items-center gap-1.5 border border-[#d9d4cb] px-3 py-2 text-xs font-bold text-[#17150f] hover:border-red-400 hover:text-red-700">
-              <RotateCcw className="h-3.5 w-3.5" /> Send back
+              Request re-upload
             </button>
           </>
         )}
@@ -132,7 +228,7 @@ function FileCard({ slug, offerId, file, canReview }: { slug: string; offerId: n
             <input autoFocus value={note} onChange={(e) => setNote(e.target.value)} required maxLength={300} placeholder="What should they fix? e.g. The photo is blurry" className="w-full border border-[#d9d4cb] px-3 py-2 text-sm outline-none focus:border-[var(--accent)]" />
             <div className="flex gap-2">
               <button type="submit" disabled={pending} className="inline-flex items-center gap-1.5 bg-red-700 px-3 py-2 text-xs font-bold text-white hover:bg-red-800 disabled:opacity-60">
-                {pending && <LoaderCircle className="h-3.5 w-3.5 animate-spin" />} Send back to buyer
+                {pending && <LoaderCircle className="h-3.5 w-3.5 animate-spin" />} Request re-upload
               </button>
               <button type="button" onClick={() => setRejecting(false)} className="inline-flex items-center gap-1 px-2 py-2 text-xs font-semibold text-[#8a847a] hover:text-[#17150f]">
                 <X className="h-3.5 w-3.5" /> Cancel

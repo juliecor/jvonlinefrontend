@@ -121,7 +121,7 @@ export async function reviewDocument(slug: string, offerId: number, docId: numbe
     return { error: errorMessage(e) }
   }
   revalidatePath(`/${slug}/dashboard`, "layout")
-  return { ok: status === "approved" ? "Approved." : status === "rejected" ? "Sent back to the buyer." : "Marked for review again." }
+  return { ok: status === "approved" ? "Approved." : status === "rejected" ? "Re-upload requested. The buyer sees your reason on their offer page." : "Marked for review again." }
 }
 
 /** Email the buyer what's still missing. */

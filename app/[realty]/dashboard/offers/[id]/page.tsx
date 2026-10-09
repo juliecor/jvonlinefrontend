@@ -267,14 +267,7 @@ export default async function OfferDetailPage({ params }: { params: Promise<{ re
                     <Panel className="!mt-6" title={`Requirements · ${req.submitted + (req.details ? 1 : 0)} of ${req.required + 1} in`} aside={req.to_review ? <span className="font-bold text-amber-700">{req.to_review} to review</span> : undefined}>
                       <div className="grid gap-x-10 gap-y-6 pt-5 lg:grid-cols-[1.6fr_1fr]">
                         <div>
-                          <div className="flex flex-wrap items-center justify-between gap-3 border-b border-[#e6e2db] pb-5">
-                            <div>
-                              <p className="text-lg font-bold">Buyer details</p>
-                              <p className="text-sm text-[#6b665d]">{o.details_submitted_at ? `Sent ${longDate(o.details_submitted_at)} · with Data Privacy consent` : "Not sent yet. The buyer fills these in on the offer page."}</p>
-                            </div>
-                            <span className={`border px-2.5 py-1 text-xs font-bold ${o.details_submitted_at ? "border-emerald-300 bg-emerald-50 text-emerald-800" : "border-[#d9d4cb] text-[#6b665d]"}`}>{o.details_submitted_at ? "Received" : "Missing"}</span>
-                          </div>
-                          <RequirementsPanel slug={slug} offerId={o.id} requirements={o.requirements} canReview={canReview} />
+                          <RequirementsPanel slug={slug} offerId={o.id} requirements={o.requirements} detailsSentAt={o.details_submitted_at} canReview={canReview} />
                         </div>
                         <div className="space-y-6">
                           <FollowUp
