@@ -1,12 +1,12 @@
 import Link from "next/link"
 import { notFound, redirect } from "next/navigation"
-import { ArrowLeft, ExternalLink, FileText } from "lucide-react"
+import { ArrowLeft } from "lucide-react"
 import { PageHeader, Panel, Tag } from "@/components/dashboard-ui"
 import { ApiError, api } from "@/lib/api"
 import { longDate, shortDate } from "@/lib/format"
-import { fileSize } from "@/lib/requirements-types"
 import { requireRealtyUser } from "@/lib/realty-auth"
 import { isDeveloperStaff } from "@/lib/realty-roles"
+import { DocumentsGallery } from "./documents-gallery"
 import { DecisionPanel } from "./decision-panel"
 
 type Accreditation = {
@@ -135,29 +135,8 @@ export default async function AccreditationReviewPage({ params }: { params: Prom
         />
       </Panel>
 
-      <Panel title={`Documents · ${a.documents.length}`} aside="Open in a new tab. Only you can see these.">
-        {a.documents.length === 0 ? (
-          <p className="py-6 text-sm text-[#8a847a]">No documents were attached.</p>
-        ) : (
-          <ul className="divide-y divide-[#e6e2db]">
-            {a.documents.map((doc) => (
-              <li key={doc.id}>
-                <a href={`/${slug}/dashboard/realties/${a.id}/documents/${doc.id}`} target="_blank" rel="noreferrer" className="group flex items-start gap-4 py-5">
-                  <span className="flex h-14 w-14 shrink-0 items-center justify-center border border-[#e6e2db] bg-[#f6f4f0] text-[#8a847a]">
-                    <FileText className="h-6 w-6" />
-                  </span>
-                  <span className="min-w-0 flex-1">
-                    <span className="block text-[15px] leading-relaxed text-[#17150f]">{doc.label}</span>
-                    <span className="mt-1 flex items-center gap-1.5 text-sm font-bold text-[var(--accent)] group-hover:underline">
-                      <span className="truncate">{doc.original_name}</span> <ExternalLink className="h-3.5 w-3.5 shrink-0" />
-                    </span>
-                    <span className="mt-0.5 block text-xs text-[#8a847a]">{fileSize(doc.size)}</span>
-                  </span>
-                </a>
-              </li>
-            ))}
-          </ul>
-        )}
+      <Panel title={`Documents · ${a.documents.length}`} aside="Click a picture to enlarge it. Only you can see these.">
+        {a.documents.length === 0 ? <p className="py-6 text-sm text-[#8a847a]">No documents were attached.</p> : <DocumentsGallery base={`/${slug}/dashboard/realties/${a.id}/documents`} docs={a.documents} />}
       </Panel>
       <p className="mt-6 text-xs text-[#a39d92]">{a.submitted_at ? `Form received ${shortDate(a.submitted_at)}.` : null}</p>
     </div>
