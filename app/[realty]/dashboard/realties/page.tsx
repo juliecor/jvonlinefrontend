@@ -8,7 +8,7 @@ import { isDeveloperStaff } from "@/lib/realty-roles"
 import { InviteRealtyForm } from "./invite-form"
 import { ResendInviteButton } from "./resend-invite-button"
 
-export const metadata = { title: "Realties" }
+export const metadata = { title: "Realty Company Invitation" }
 
 type Overview = {
   pending: { id: number; firm_name: string; business_type: "corporation" | "sole_proprietor"; representative_name: string; email: string; submitted_at: string; documents_count: number }[]
@@ -28,7 +28,7 @@ export default async function RealtiesPage({ params }: { params: Promise<{ realt
 
   return (
     <div>
-      <PageHeader eyebrow="Team" title="Realties" lede={`Realties accredited under ${user.realty.name} sell your projects and units through their own agents. Invite one by email, read its form, then accept it.`} />
+      <PageHeader eyebrow="Team" title="Realty Company Invitation" lede={`Realties accredited under ${user.realty.name} sell your projects and units through their own agents. Invite one by email, read its form, then accept it.`} />
 
       <Panel title="Invite a realty" aside="They get an email with a link to the accreditation form. It works for 7 days.">
         <div className="pt-5">
