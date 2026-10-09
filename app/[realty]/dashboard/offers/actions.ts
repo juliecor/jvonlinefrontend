@@ -18,6 +18,8 @@ export async function createOffer(slug: string, _: OfferState, formData: FormDat
   // Only when there's an address to send to; otherwise the agent shares the link themselves.
   const email_buyer = formData.get("email_buyer") === "on" && buyer_email !== ""
   const purchase_date = String(formData.get("purchase_date") ?? "")
+  // How long the buyer can open it, in hours.
+  const valid_hours = Number(formData.get("valid_hours")) || null
   if (!unit_id || !buyer_name || !purchase_date) return { error: "Pick a unit, enter the buyer's name and the purchase date." }
   const custom = plan === "custom"
   const custom_milestones = custom ? JSON.parse(String(formData.get("custom_milestones") ?? "[]")) : undefined
@@ -31,13 +33,25 @@ export async function createOffer(slug: string, _: OfferState, formData: FormDat
     const res = await api<{ id: number; code: string; url: string; emailed_to: string | null; approval_status: string | null }>("/realty/offers", {
       method: "POST",
       token,
-      body: { unit_id, payment_plan_id: plan && !custom ? Number(plan) : null, buyer_name, buyer_email: buyer_email || null, buyer_phone: buyer_phone || null, purchase_date, email_buyer, custom, custom_milestones, approval_reason, access_username, access_password },
+      body: { unit_id, payment_plan_id: plan && !custom ? Number(plan) : null, buyer_name, buyer_email: buyer_email || null, buyer_phone: buyer_phone || null, purchase_date, email_buyer, custom, custom_milestones, approval_reason, access_username, access_password, valid_hours },
     })
     revalidatePath(`/${slug}/dashboard`, "layout")
     return { url: res.url, code: res.code, id: res.id, emailed: res.emailed_to, approval: res.approval_status, emailOnApproval: email_buyer, buyer: buyer_name, username: access_username, password: access_password }
   } catch (e) {
     return { error: errorMessage(e) }
   }
+}
+
+/** Open an offer again, or longer: it is valid for this many hours from now. The same link works again. */
+export async function extendOffer(slug: string, id: number, valid_hours: number): Promise<{ error?: string }> {
+  const { token } = await requireRealtyUser(slug)
+  try {
+    await api(`/realty/offers/${id}/extend`, { method: "POST", token, body: { valid_hours } })
+  } catch (e) {
+    return { error: errorMessage(e) }
+  }
+  revalidatePath(`/${slug}/dashboard`, "layout")
+  return {}
 }
 
 /** Set or change the buyer's username and password; a new password signs the buyer out of the old one. */
@@ -70,6 +84,19 @@ export async function voidOffer(slug: string, id: number): Promise<{ error?: str
   const { token } = await requireRealtyUser(slug)
   try {
     await api(`/realty/offers/${id}/void`, { method: "POST", token })
+  } catch (e) {
+    return { error: errorMessage(e) }
+  }
+  revalidatePath(`/${slug}/dashboard`, "layout")
+  return {}
+}
+
+/** Delete an offer for good: its link, the buyer's answers and uploaded files. Staff only. */
+export async function deleteOffer(slug: string, id: number): Promise<{ error?: string }> {
+  const { token, user } = await requireRealtyUser(slug)
+  if (user.role !== "realty") return { error: "Only realty staff can delete offers." }
+  try {
+    await api(`/realty/offers/${id}`, { method: "DELETE", token })
   } catch (e) {
     return { error: errorMessage(e) }
   }

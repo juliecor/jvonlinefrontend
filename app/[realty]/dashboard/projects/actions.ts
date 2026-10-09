@@ -93,6 +93,18 @@ export async function deleteUnit(slug: string, unitId: number): Promise<FormStat
   return { ok: "Unit deleted." }
 }
 
+/** Delete a project that has no offers. With offers the server says so, and the project is archived instead. */
+export async function deleteProject(slug: string, id: number): Promise<FormState> {
+  const token = await staff(slug)
+  try {
+    await api(`/realty/projects/${id}`, { method: "DELETE", token })
+  } catch (e) {
+    return { error: errorMessage(e) }
+  }
+  refresh(slug)
+  return { ok: "Project deleted." }
+}
+
 /* ─── Payment plans ─── */
 
 /** Milestone rows come as label[], percent[], days[], months[] (blank months = one payment). */

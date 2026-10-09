@@ -6,6 +6,8 @@ import { api } from "@/lib/api"
 import { php, shortDate, timeAgo } from "@/lib/format"
 import { requireRealtyUser } from "@/lib/realty-auth"
 import { isDeveloperStaff } from "@/lib/realty-roles"
+import { DeleteButton } from "../delete-button"
+import { deleteOffer } from "../offers/actions"
 
 export const metadata = { title: "Approvals" }
 
@@ -46,9 +48,17 @@ export default async function ApprovalsPage({ params }: { params: Promise<{ real
         </p>
         <p className="mt-0.5 text-xs font-medium text-[#8a847a]">Made {shortDate(o.created_at)} ({timeAgo(o.created_at)}){o.approval_status === "rejected" && o.approval_note ? ` · "${o.approval_note}"` : ""}</p>
       </div>
-      <Link href={`/${slug}/dashboard/offers/${o.id}`} className={o.approval_status === "pending" ? btn.primary : btn.ghost}>
-        {action} <ChevronRight className="h-4 w-4" />
-      </Link>
+      <div className="flex shrink-0 items-center gap-2">
+        <Link href={`/${slug}/dashboard/offers/${o.id}`} className={o.approval_status === "pending" ? btn.primary : btn.ghost}>
+          {action} <ChevronRight className="h-4 w-4" />
+        </Link>
+        <DeleteButton
+          action={deleteOffer.bind(null, slug, o.id)}
+          title={`Delete the offer for ${o.buyer_name}?`}
+          body="The offer, the buyer's answers and any uploaded files are deleted for good. This can't be undone."
+          success={`Offer for ${o.buyer_name} deleted`}
+        />
+      </div>
     </Row>
   )
 

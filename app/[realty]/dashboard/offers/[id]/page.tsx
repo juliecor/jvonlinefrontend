@@ -5,11 +5,12 @@ import { CopyButton } from "@/components/copy-button"
 import { Panel, Tag, btn } from "@/components/dashboard-ui"
 import { ContactButtons, LeadTag, VIA_LABEL, type Lead } from "@/components/leads"
 import { ApiError, api } from "@/lib/api"
-import { longDate, php, shortDate, sqm, timeAgo } from "@/lib/format"
+import { dateTime, longDate, php, shortDate, sqm, timeAgo } from "@/lib/format"
 import { INCOME_SOURCES, type Requirement, type RequirementSummary } from "@/lib/requirements-types"
 import { type MilestoneInput, type ScheduleRow, pct } from "@/lib/schedule"
 import { requireRealtyUser } from "@/lib/realty-auth"
 import { isDeveloperMember, isDeveloperStaff } from "@/lib/realty-roles"
+import { ExtendOffer } from "../extend-offer"
 import { VoidOfferButton } from "../void-button"
 import type { UnitHold } from "../actions"
 import { LoginPanel } from "../buyer-login"
@@ -32,6 +33,8 @@ type OfferDetail = {
   price: number
   views: number
   created_at: string
+  expires_at: string | null
+  expired: boolean
   project: string | null
   unit: string | null
   agent: string | null
@@ -148,6 +151,7 @@ export default async function OfferDetailPage({ params }: { params: Promise<{ re
               <div className="flex flex-wrap items-center gap-2">
                 <p className="text-xs font-bold uppercase tracking-[0.18em] text-[var(--accent)]">Sales offer · {o.code}</p>
                 {o.status === "void" && <Tag tone="bad">Void</Tag>}
+                {o.status === "active" && o.expired && <Tag tone="bad">Expired</Tag>}
                 {o.unit_hold?.this_offer && o.unit_hold.status === "sold" && <span className="bg-[#17150f] px-1.5 py-0.5 text-[10px] font-bold uppercase tracking-[0.14em] text-white">Sold</span>}
                 {o.unit_hold?.this_offer && o.unit_hold.status === "reserved" && <Tag tone="warn">Reserved</Tag>}
                 {o.approval_status === "approved" && <Tag>Custom terms</Tag>}
@@ -381,6 +385,7 @@ export default async function OfferDetailPage({ params }: { params: Promise<{ re
                     ["Buyer email", o.buyer_email ?? "—"],
                     ["Buyer mobile", o.buyer_phone ?? "—"],
                     ["Purchase date", longDate(o.purchase_date)],
+                    ["Open until", o.expires_at ? `${dateTime(o.expires_at)}${o.expired ? " (expired)" : ""}` : "No expiry"],
                   ].map(([k, v]) => (
                     <div key={k} className="flex justify-between gap-4 py-2.5">
                       <dt className="text-[#8a847a]">{k}</dt>
@@ -406,6 +411,9 @@ export default async function OfferDetailPage({ params }: { params: Promise<{ re
                 </ul>
                 {o.status === "active" && (
                   <div className="mt-6 border-t border-[#e6e2db] pt-4">
+                    <p className="mb-2 text-xs font-bold uppercase tracking-[0.14em] text-[#6b665d]">{o.expired ? "Expired: open it again" : "Give the buyer more time"}</p>
+                    <ExtendOffer slug={slug} id={o.id} expired={o.expired} />
+                    <p className="mb-4 mt-1 text-xs text-[#a39d92]">Counts from now, on the same link and login.</p>
                     <VoidOfferButton slug={slug} id={o.id} buyer={o.buyer_name} className="text-sm font-semibold text-[#8a847a] hover:text-red-700">
                       Void this offer
                     </VoidOfferButton>

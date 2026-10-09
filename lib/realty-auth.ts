@@ -11,7 +11,8 @@ import { ApiError, api } from "./api"
  */
 
 export const REALTY_COOKIE = "jv_realty"
-export const REALTY_SESSION_SECONDS = 12 * 60 * 60
+/** Signed in until they log out: Laravel never expires the token, and a cookie cannot be infinite, so ten years. */
+export const REALTY_SESSION_SECONDS = 10 * 365 * 24 * 60 * 60
 
 export type PublicRealty = {
   id: number

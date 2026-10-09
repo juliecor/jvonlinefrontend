@@ -56,3 +56,24 @@ body {
     transform: none;
   }
 }
+
+/* What a buyer still has to fill in, marked when they arrive from a reminder email; it stops once they do (offer/[code]/requirements.tsx). */
+@keyframes jv-pulse {
+  0%,
+  100% {
+    box-shadow: 0 0 0 0 color-mix(in srgb, var(--accent, #b4241c) 55%, transparent);
+  }
+  50% {
+    box-shadow: 0 0 0 7px color-mix(in srgb, var(--accent, #b4241c) 0%, transparent);
+  }
+}
+.jv-pulse {
+  border-color: var(--accent, #b4241c) !important;
+  animation: jv-pulse 1.6s ease-in-out infinite;
+}
+@media (prefers-reduced-motion: reduce) {
+  .jv-pulse {
+    animation: none;
+    box-shadow: 0 0 0 3px color-mix(in srgb, var(--accent, #b4241c) 30%, transparent);
+  }
+}

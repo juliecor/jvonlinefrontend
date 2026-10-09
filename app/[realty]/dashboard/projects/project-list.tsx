@@ -4,6 +4,8 @@ import { useState } from "react"
 import Link from "next/link"
 import { ArrowRight, MapPin, Search, X } from "lucide-react"
 import { Tag } from "@/components/dashboard-ui"
+import { DeleteButton } from "../delete-button"
+import { deleteProject } from "./actions"
 import { type Filters, NO_FILTERS, type Project, STAGES } from "./types"
 import { Photo } from "@/components/photo"
 
@@ -59,7 +61,7 @@ export function ProjectList({ slug, projects, staff, initial }: { slug: string; 
 
       <ul className="mt-5 grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
         {shown.map((p) => (
-          <li key={p.id}>
+          <li key={p.id} className="relative">
             <Link href={`/${slug}/dashboard/projects/${p.id}`} className={`group flex h-full flex-col overflow-hidden border border-[#e6e2db] bg-white transition hover:border-[var(--accent)] ${p.status === "archived" ? "opacity-75 hover:opacity-100" : ""}`}>
               <div className="relative">
                 {p.cover_url ? (
@@ -93,6 +95,15 @@ export function ProjectList({ slug, projects, staff, initial }: { slug: string; 
                 </span>
               </div>
             </Link>
+            {staff && (
+              <DeleteButton
+                action={() => deleteProject(slug, p.id)}
+                title={`Delete ${p.name}?`}
+                body={`${p.name}, its ${p.units_count} unit${p.units_count === 1 ? "" : "s"}, payment plans and public page pictures are deleted for good. A project that has offers can't be deleted: archive it instead. This can't be undone.`}
+                success={`${p.name} deleted`}
+                className="absolute right-2 top-2 border border-[#d9d4cb] bg-white/95 px-2.5 py-1.5 text-xs font-bold text-[#17150f] shadow-sm hover:border-red-400 hover:text-red-700"
+              />
+            )}
           </li>
         ))}
         {shown.length === 0 && (

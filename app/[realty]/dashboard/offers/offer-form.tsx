@@ -1,6 +1,7 @@
 "use client"
 
 import { useMemo, useState, useTransition } from "react"
+import { DEFAULT_VALIDITY, VALIDITY } from "./validity"
 import Link from "next/link"
 import { BadgeCheck, Clock, ExternalLink, KeyRound, LoaderCircle, Send } from "lucide-react"
 import { CopyButton } from "@/components/copy-button"
@@ -239,10 +240,23 @@ export function OfferForm({ slug, projects, initialProject, initialUnit, initial
           <input type="checkbox" name="email_buyer" defaultChecked className="h-4 w-4 accent-[var(--accent)]" />
           {custom && !isStaff ? "Email the offer to the buyer once it's approved (if you entered their email)" : "Email the offer to the buyer now (if you entered their email)"}
         </label>
-        <label className="block sm:max-w-xs">
-          <Label>Purchase / reservation date</Label>
-          <input name="purchase_date" type="date" required value={date} onChange={(e) => setDate(e.target.value)} className={fieldClass} />
-        </label>
+        <div className="grid gap-5 sm:grid-cols-2">
+          <label className="block">
+            <Label>Purchase / reservation date</Label>
+            <input name="purchase_date" type="date" required value={date} onChange={(e) => setDate(e.target.value)} className={fieldClass} />
+          </label>
+          <label className="block">
+            <Label>Offer valid for</Label>
+            <select name="valid_hours" defaultValue={DEFAULT_VALIDITY} className={fieldClass}>
+              {VALIDITY.map((v) => (
+                <option key={v.hours} value={v.hours}>
+                  {v.label}
+                </option>
+              ))}
+            </select>
+            <span className="mt-1 block text-xs text-slate-500">After this the buyer&apos;s link stops opening. You can extend it any time.</span>
+          </label>
+        </div>
         {state.error && <Alert kind="error">{state.error}</Alert>}
         <button type="submit" disabled={pending || !unit || !termsOk} className="inline-flex items-center gap-2 bg-[var(--accent)] px-6 py-3.5 text-[15px] font-bold text-white transition hover:brightness-110 disabled:opacity-60">
           {pending ? <LoaderCircle className="h-4 w-4 animate-spin" /> : <Send className="h-4 w-4" />}

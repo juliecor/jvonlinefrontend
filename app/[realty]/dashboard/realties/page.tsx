@@ -6,6 +6,8 @@ import { shortDate } from "@/lib/format"
 import { requireRealtyUser } from "@/lib/realty-auth"
 import { isDeveloperStaff } from "@/lib/realty-roles"
 import { InviteRealtyForm } from "./invite-form"
+import { DeleteButton } from "../delete-button"
+import { deleteAccreditation, deleteBroker } from "./actions"
 import { ResendInviteButton } from "./resend-invite-button"
 
 export const metadata = { title: "Realty Company Invitation" }
@@ -75,7 +77,16 @@ export default async function RealtiesPage({ params }: { params: Promise<{ realt
                     {i.invited_by && <> by {i.invited_by}</>} · {i.expired ? "expired" : "works until"} {shortDate(i.expires_at)}
                   </p>
                 </div>
-                <ResendInviteButton slug={slug} id={i.id} />
+                <div className="flex flex-wrap items-start gap-2 sm:justify-end">
+                  <ResendInviteButton slug={slug} id={i.id} />
+                  <DeleteButton
+                    action={deleteAccreditation.bind(null, slug, i.id)}
+                    title={`Delete the invite to ${i.email}?`}
+                    body="Their link stops working. You can invite the same email again later."
+                    success="Invite deleted"
+                    className="border border-[#d9d4cb] bg-white px-3 py-2 text-xs font-bold text-[#17150f] hover:border-red-400 hover:text-red-700"
+                  />
+                </div>
               </Row>
             ))}
           </Rows>
@@ -108,6 +119,13 @@ export default async function RealtiesPage({ params }: { params: Promise<{ realt
                     Its form
                   </Link>
                 )}
+                <DeleteButton
+                  action={deleteBroker.bind(null, slug, b.id)}
+                  title={`Delete ${b.name}?`}
+                  body={`${b.name}'s ${b.agents_count} agent${b.agents_count === 1 ? "" : "s"} and staff lose their sign-in for good, and its accreditation form is removed. A realty that has sold offers can't be deleted. This can't be undone.`}
+                  success={`${b.name} deleted`}
+                  className="border border-[#d9d4cb] bg-white px-3 py-2 text-xs font-bold text-[#17150f] hover:border-red-400 hover:text-red-700"
+                />
               </div>
             </Row>
           ))}
@@ -134,9 +152,18 @@ export default async function RealtiesPage({ params }: { params: Promise<{ realt
                   </p>
                   {r.review_note && <p className="mt-1 text-sm text-[#3d3a34]">&ldquo;{r.review_note}&rdquo;</p>}
                 </div>
-                <Link href={`/${slug}/dashboard/realties/${r.id}`} className="text-sm font-bold text-[var(--accent)] hover:underline">
-                  View
-                </Link>
+                <div className="flex shrink-0 items-center gap-4">
+                  <Link href={`/${slug}/dashboard/realties/${r.id}`} className="text-sm font-bold text-[var(--accent)] hover:underline">
+                    View
+                  </Link>
+                  <DeleteButton
+                    action={deleteAccreditation.bind(null, slug, r.id)}
+                    title={`Delete ${r.firm_name}'s form?`}
+                    body="The form and the files they attached are removed. This can't be undone."
+                    success="Form deleted"
+                    className="border border-[#d9d4cb] bg-white px-3 py-2 text-xs font-bold text-[#17150f] hover:border-red-400 hover:text-red-700"
+                  />
+                </div>
               </Row>
             ))}
           </Rows>

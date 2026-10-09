@@ -56,3 +56,21 @@ export async function reviewApplication(slug: string, id: number, decision: "app
   revalidatePath(`/${slug}/dashboard`, "layout")
   return {}
 }
+
+/** Remove an agent who has joined. Their offers stay, without an agent on them. Staff only. */
+export async function deleteAgent(slug: string, id: number): Promise<ReviewState> {
+  return reviewApplication(slug, id, "delete")
+}
+
+/** Take back an open invitation: its link stops working. Staff only. */
+export async function deleteInvitation(slug: string, id: number): Promise<ReviewState> {
+  const { token, user } = await requireRealtyUser(slug)
+  if (user.role !== "realty") return { error: "Only realty staff can delete invitations." }
+  try {
+    await api(`/realty/agents/invitations/${id}`, { method: "DELETE", token })
+  } catch (e) {
+    return { error: errorMessage(e) }
+  }
+  revalidatePath(`/${slug}/dashboard`, "layout")
+  return {}
+}

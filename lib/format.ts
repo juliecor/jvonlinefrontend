@@ -12,6 +12,10 @@ export const longDate = (iso: string | null | undefined) =>
 export const shortDate = (iso: string | null | undefined) =>
   iso ? new Date(iso.length === 10 ? `${iso}T00:00:00+08:00` : iso).toLocaleDateString("en-PH", { month: "short", day: "numeric", year: "numeric", timeZone: "Asia/Manila" }) : "—"
 
+/** "Oct 12, 3:30 PM" in Manila: when an offer closes. */
+export const dateTime = (iso: string | null | undefined) =>
+  iso ? new Date(iso).toLocaleString("en-PH", { month: "short", day: "numeric", year: "numeric", hour: "numeric", minute: "2-digit", timeZone: "Asia/Manila" }) : "—"
+
 export const sqm = (n: number | string | null | undefined) => (n === null || n === undefined || n === "" ? "—" : `${Number(n).toLocaleString("en-PH", { maximumFractionDigits: 2 })} sqm`)
 
 /** Today's date as YYYY-MM-DD in Manila, for date inputs. */

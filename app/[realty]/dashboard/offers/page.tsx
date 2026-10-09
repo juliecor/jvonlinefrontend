@@ -4,10 +4,13 @@ import { CopyButton } from "@/components/copy-button"
 import { Empty, PageHeader, Panel, Row, Rows, Tag, btn } from "@/components/dashboard-ui"
 import { api } from "@/lib/api"
 import { LeadTag, NewTag, type LeadKind } from "@/components/leads"
-import { php, shortDate, timeAgo } from "@/lib/format"
+import { dateTime, php, shortDate, timeAgo } from "@/lib/format"
 import type { RequirementSummary } from "@/lib/requirements-types"
 import { requireRealtyUser } from "@/lib/realty-auth"
 import { ReqChip } from "./req-chip"
+import { DeleteButton } from "../delete-button"
+import { deleteOffer } from "./actions"
+import { ExtendOffer } from "./extend-offer"
 import { VoidOfferButton } from "./void-button"
 import { Photo } from "@/components/photo"
 
@@ -23,6 +26,8 @@ type Offer = {
   price: number
   views: number
   created_at: string
+  expires_at: string | null
+  expired: boolean
   project: string | null
   unit: string | null
   agent: string | null
@@ -84,6 +89,7 @@ export default async function OffersPage({ params }: { params: Promise<{ realty:
                   <Link href={`/${slug}/dashboard/offers/${o.id}`} className="text-base font-bold hover:text-[var(--accent)] sm:text-lg">{o.buyer_name}</Link>
                   <span className="font-mono text-xs text-[#a39d92]">{o.code}</span>
                   {o.status === "void" && <Tag>Void</Tag>}
+                  {o.status === "active" && o.expired && <Tag tone="bad">Expired</Tag>}
                   {o.unit_status === "sold" && <span className="bg-[#17150f] px-1.5 py-0.5 text-[10px] font-bold uppercase tracking-[0.14em] text-white">Sold</span>}
                   {o.unit_status === "reserved" && <Tag tone="warn">Reserved</Tag>}
                   {o.status === "active" && o.approval_status === "pending" && <Tag tone="warn">Waiting for approval</Tag>}
@@ -99,7 +105,7 @@ export default async function OffersPage({ params }: { params: Promise<{ realty:
                   {o.broker && <> · {o.broker}</>}
                 </p>
                 <p className="mt-1 flex flex-wrap items-center gap-x-1.5 text-xs font-medium text-[#8a847a]">
-                  Sent {shortDate(o.created_at)} ·
+                  Sent {shortDate(o.created_at)}{o.status === "active" && o.expires_at && !o.expired ? ` · open until ${dateTime(o.expires_at)}` : ""} ·
                   {o.views > 0 ? (
                     <span className="inline-flex items-center gap-1 text-[#3d3a34]">
                       <Eye className="h-3.5 w-3.5" /> Opened {o.views}× · last {timeAgo(o.last_viewed_at)}
@@ -125,10 +131,19 @@ export default async function OffersPage({ params }: { params: Promise<{ realty:
                 <Link href={`/${slug}/dashboard/offers/${o.id}`} className={btn.ghost}>
                   {o.responses_count ? `${o.responses_count} response${o.responses_count === 1 ? "" : "s"}` : "Details"} <ChevronRight className="h-3.5 w-3.5" />
                 </Link>
+                {o.status === "active" && o.expired && <ExtendOffer slug={slug} id={o.id} expired />}
                 {o.status === "active" && (
                   <VoidOfferButton slug={slug} id={o.id} buyer={o.buyer_name} className="px-2 py-1.5 text-xs font-semibold text-[#8a847a] hover:text-red-700">
                     Void
                   </VoidOfferButton>
+                )}
+                {staff && (
+                  <DeleteButton
+                    action={deleteOffer.bind(null, slug, o.id)}
+                    title={`Delete the offer for ${o.buyer_name}?`}
+                    body="The buyer's link stops working, and their answers and uploaded files are deleted for good. If it was holding the unit, the unit goes back to available. This can't be undone."
+                    success={`Offer for ${o.buyer_name} deleted`}
+                  />
                 )}
               </div>
             </Row>

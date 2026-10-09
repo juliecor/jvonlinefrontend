@@ -5,11 +5,11 @@ import { api } from "./api"
 
 /**
  * The admin's session: Laravel's Sanctum token in an httpOnly cookie that only
- * the Next.js server reads. Laravel expires the token after 12 hours too.
+ * the Next.js server reads. The token never expires; it lasts until they sign out.
  */
 
 export const ADMIN_COOKIE = "jv_admin"
-export const ADMIN_SESSION_SECONDS = 12 * 60 * 60
+export const ADMIN_SESSION_SECONDS = 10 * 365 * 24 * 60 * 60
 
 /** `is_superadmin`: a platform admin who can switch into any realty's dashboard; there `role` is the role they're viewing as. */
 export type AuthUser = {

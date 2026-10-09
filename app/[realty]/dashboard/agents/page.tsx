@@ -4,6 +4,8 @@ import { ContactButtons } from "@/components/leads"
 import { api } from "@/lib/api"
 import { shortDate } from "@/lib/format"
 import { requireRealtyUser } from "@/lib/realty-auth"
+import { DeleteButton } from "../delete-button"
+import { deleteAgent, deleteInvitation } from "./actions"
 import { ApplicationActions } from "./application-actions"
 import { InviteAgentForm } from "./invite-form"
 import { NewLinkButton } from "./resend-button"
@@ -69,7 +71,16 @@ export default async function RealtyAgentsPage({ params }: { params: Promise<{ r
                     · link made {shortDate(i.invited_at)}
                   </p>
                 </div>
-                <NewLinkButton slug={slug} id={i.id} />
+                <div className="flex flex-wrap items-start gap-2 sm:justify-end">
+                  <NewLinkButton slug={slug} id={i.id} />
+                  <DeleteButton
+                    action={deleteInvitation.bind(null, slug, i.id)}
+                    title={`Delete ${i.name}'s invitation?`}
+                    body="Their link stops working. You can make a new invite for them later."
+                    success="Invitation deleted"
+                    className="border border-[#d9d4cb] bg-white px-3 py-2 text-xs font-bold text-[#17150f] hover:border-red-400 hover:text-red-700"
+                  />
+                </div>
               </Row>
             ))}
           </Rows>
@@ -104,7 +115,15 @@ export default async function RealtyAgentsPage({ params }: { params: Promise<{ r
                   )}
                 </p>
               </div>
-              <p className="text-xs text-[#8a847a]">{a.offers_count} active offer{a.offers_count === 1 ? "" : "s"} · joined {shortDate(a.joined_at)}</p>
+              <div className="flex shrink-0 flex-wrap items-center gap-x-4 gap-y-2">
+                <p className="text-xs text-[#8a847a]">{a.offers_count} active offer{a.offers_count === 1 ? "" : "s"} · joined {shortDate(a.joined_at)}</p>
+                <DeleteButton
+                  action={deleteAgent.bind(null, slug, a.id)}
+                  title={`Delete ${a.name}?`}
+                  body="They can no longer sign in. Their offers stay, but without an agent on them. They can be invited again later. This can't be undone."
+                  success={`${a.name} deleted`}
+                />
+              </div>
             </Row>
           ))}
           {agents.length === 0 && <li><Empty>No agents yet. Make the first invite link above.</Empty></li>}

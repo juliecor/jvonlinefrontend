@@ -85,3 +85,29 @@ export async function resendLoginDetails(slug: string, id: number): Promise<{ er
     return { error: errorMessage(e) }
   }
 }
+
+/** Delete an invite or a form that was turned down, with its attached files. */
+export async function deleteAccreditation(slug: string, id: number): Promise<{ error?: string }> {
+  const session = await staff(slug)
+  if (!session) return { error: "Only the developer's admins can delete these." }
+  try {
+    await api(`/realty/realties/accreditations/${id}`, { method: "DELETE", token: session.token })
+  } catch (e) {
+    return { error: errorMessage(e) }
+  }
+  revalidatePath(`/${slug}/dashboard`, "layout")
+  return {}
+}
+
+/** Delete an accredited realty with its people. Not possible once it has sold offers. */
+export async function deleteBroker(slug: string, id: number): Promise<{ error?: string }> {
+  const session = await staff(slug)
+  if (!session) return { error: "Only the developer's admins can delete a realty." }
+  try {
+    await api(`/realty/realties/${id}`, { method: "DELETE", token: session.token })
+  } catch (e) {
+    return { error: errorMessage(e) }
+  }
+  revalidatePath(`/${slug}/dashboard`, "layout")
+  return {}
+}

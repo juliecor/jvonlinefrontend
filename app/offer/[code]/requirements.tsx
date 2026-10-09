@@ -1,6 +1,6 @@
 "use client"
 
-import { useRef, useState, useTransition } from "react"
+import { createContext, useContext, useEffect, useRef, useState, useTransition } from "react"
 import { AlertCircle, Camera, Check, CheckCircle2, ChevronDown, Clock, FileText, LoaderCircle, Lock, UserRound, X } from "lucide-react"
 import { INCOME_SOURCES, type Requirement, STATE_LABEL, fileSize } from "@/lib/requirements-types"
 import { type ReqResult, removeDocument, submitDetails, uploadDocuments } from "./actions"
@@ -18,14 +18,33 @@ const STATE_STYLE = {
 type Prefill = { name: string; email: string | null; phone: string | null }
 
 /**
+ * Coming from a reminder email, what's still missing pulses until the buyer fills it in. In the details form
+ * that is each required field that is empty; `filled` is the names that have something in them right now.
+ */
+const Pulse = createContext<{ guided: boolean; filled: Set<string> }>({ guided: false, filled: new Set() })
+const usePulse = (name: string, required: boolean) => {
+  const { guided, filled } = useContext(Pulse)
+  return guided && required && !filled.has(name)
+}
+
+/**
  * "Your requirements" on the buyer's offer: their details (the fields of the
  * realty's reservation form), then each document, uploaded from the phone.
  * Files go to the realty only; this page never shows them back.
  */
-export function RequirementsSection({ code, initial, detailsAt: initialDetailsAt, prefill, realtyName }: { code: string; initial: Requirement[]; detailsAt: string | null; prefill: Prefill; realtyName: string }) {
+export function RequirementsSection({ code, initial, detailsAt: initialDetailsAt, prefill, realtyName, guided = false }: { code: string; initial: Requirement[]; detailsAt: string | null; prefill: Prefill; realtyName: string; guided?: boolean }) {
   const [reqs, setReqs] = useState(initial)
   const [detailsAt, setDetailsAt] = useState(initialDetailsAt)
-  const [editing, setEditing] = useState(false)
+  // From a reminder email the form is already open, so the empty fields are right there.
+  const [editing, setEditing] = useState(guided && !initialDetailsAt)
+  const root = useRef<HTMLDivElement>(null)
+
+  // Bring the first thing that's missing into view. The tab opens (and scrolls to the top) a moment after the page loads, so wait for it.
+  useEffect(() => {
+    if (!guided) return
+    const t = setTimeout(() => root.current?.querySelector("[data-pulse]")?.scrollIntoView({ behavior: "smooth", block: "center" }), 450)
+    return () => clearTimeout(t)
+  }, [guided])
 
   const apply = (r: ReqResult) => {
     if (r.requirements) setReqs(r.requirements)
@@ -39,7 +58,7 @@ export function RequirementsSection({ code, initial, detailsAt: initialDetailsAt
   const allApproved = !!detailsAt && required.every((r) => r.state === "approved")
 
   return (
-    <div>
+    <div ref={root}>
       {/* Progress */}
       <div className="border border-[#e0dcd5] bg-white p-5 sm:p-6">
         <div className="flex flex-wrap items-baseline justify-between gap-2">
@@ -69,7 +88,8 @@ export function RequirementsSection({ code, initial, detailsAt: initialDetailsAt
             type="button"
             onClick={() => setEditing((v) => !v)}
             aria-expanded={editing}
-            className={`inline-flex items-center gap-2 px-4 py-2.5 text-sm font-bold transition ${detailsAt ? "border border-[#d9d4cb] text-[#17150f] hover:border-[#17150f]" : "bg-[var(--accent)] text-white hover:brightness-110"}`}
+            {...(guided && !detailsAt && !editing ? { "data-pulse": "" } : {})}
+            className={`inline-flex items-center gap-2 px-4 py-2.5 text-sm font-bold transition ${detailsAt ? "border border-[#d9d4cb] text-[#17150f] hover:border-[#17150f]" : "bg-[var(--accent)] text-white hover:brightness-110"} ${guided && !detailsAt && !editing ? "jv-pulse" : ""}`}
           >
             {editing ? "Close" : detailsAt ? "Update my details" : "Fill in my details"}
             <ChevronDown className={`h-4 w-4 transition ${editing ? "rotate-180" : ""}`} />
@@ -77,6 +97,7 @@ export function RequirementsSection({ code, initial, detailsAt: initialDetailsAt
         </div>
         {editing && (
           <DetailsForm
+            guided={guided}
             code={code}
             prefill={prefill}
             realtyName={realtyName}
@@ -92,7 +113,7 @@ export function RequirementsSection({ code, initial, detailsAt: initialDetailsAt
       {/* Step 2: documents */}
       <ul className="mt-4 space-y-4">
         {shown.map((r) => (
-          <DocumentItem key={r.id} code={code} req={r} onChange={apply} />
+          <DocumentItem key={r.id} code={code} req={r} onChange={apply} guided={guided} />
         ))}
       </ul>
       {reqs.length > shown.length && (
@@ -109,7 +130,7 @@ export function RequirementsSection({ code, initial, detailsAt: initialDetailsAt
   )
 }
 
-function DocumentItem({ code, req, onChange }: { code: string; req: Requirement; onChange: (r: ReqResult) => void }) {
+function DocumentItem({ code, req, onChange, guided }: { code: string; req: Requirement; onChange: (r: ReqResult) => void; guided: boolean }) {
   const [pending, start] = useTransition()
   const [error, setError] = useState<string | null>(null)
   const fileRef = useRef<HTMLInputElement>(null)
@@ -134,9 +155,11 @@ function DocumentItem({ code, req, onChange }: { code: string; req: Requirement;
     })
 
   const canUpload = req.state !== "approved"
+  // Pulses until the file is sent (then it is "in review").
+  const pulse = guided && req.needed === "required" && (req.state === "missing" || req.state === "rejected")
 
   return (
-    <li className={`border bg-white p-5 sm:p-6 ${req.state === "rejected" ? "border-red-300" : "border-[#e0dcd5]"}`}>
+    <li {...(pulse ? { "data-pulse": "" } : {})} className={`border bg-white p-5 sm:p-6 ${req.state === "rejected" ? "border-red-300" : "border-[#e0dcd5]"} ${pulse ? "jv-pulse" : ""}`}>
       <div className="flex flex-wrap items-start justify-between gap-3">
         <div className="w-full min-w-0 sm:w-auto sm:flex-1">
           <div className="flex flex-wrap items-center gap-2">
@@ -192,15 +215,28 @@ function DocumentItem({ code, req, onChange }: { code: string; req: Requirement;
   )
 }
 
-function DetailsForm({ code, prefill, realtyName, update, onDone }: { code: string; prefill: Prefill; realtyName: string; update: boolean; onDone: (r: ReqResult) => void }) {
+function DetailsForm({ code, prefill, realtyName, update, onDone, guided }: { code: string; prefill: Prefill; realtyName: string; update: boolean; onDone: (r: ReqResult) => void; guided: boolean }) {
   const [pending, start] = useTransition()
   const [error, setError] = useState<string | null>(null)
   const [fields, setFields] = useState<Record<string, string>>({})
   const [civil, setCivil] = useState("")
   const [home, setHome] = useState("")
   const [co, setCo] = useState(false)
+  const form = useRef<HTMLFormElement>(null)
   const parts = prefill.name.trim().split(/\s+/)
   const guess = { first: parts.length > 1 ? parts.slice(0, -1).join(" ") : parts[0] ?? "", last: parts.length > 1 ? parts[parts.length - 1] : "" }
+  // The fields that start with something in them (the buyer's own name, contact and citizenship), so they never pulse.
+  const [filled, setFilled] = useState<Set<string>>(() => new Set([guess.first && "first_name", guess.last && "last_name", prefill.email && "email", prefill.phone && "phone", "citizenship"].filter((n): n is string => !!n)))
+
+  // Which fields have something in them now, so a field stops pulsing as soon as the buyer types in it.
+  const sync = () => {
+    const next = new Set<string>()
+    for (const el of Array.from(form.current?.elements ?? [])) {
+      if (!(el instanceof HTMLInputElement || el instanceof HTMLSelectElement || el instanceof HTMLTextAreaElement) || !el.name) continue
+      if (el instanceof HTMLInputElement && el.type === "checkbox" ? el.checked : el.value.trim() !== "") next.add(el.name)
+    }
+    setFilled(next)
+  }
 
   const submit = (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault()
@@ -219,7 +255,8 @@ function DetailsForm({ code, prefill, realtyName, update, onDone }: { code: stri
   }
 
   return (
-    <form onSubmit={submit} className="space-y-6 border-t border-[#e0dcd5] bg-[#fbfaf8] p-5 sm:p-6">
+    <Pulse.Provider value={{ guided, filled }}>
+    <form ref={form} onSubmit={submit} onInput={sync} onChange={sync} className="space-y-6 border-t border-[#e0dcd5] bg-[#fbfaf8] p-5 sm:p-6">
       <p className="text-sm text-[#5a554d]">
         {update ? "Fill in the form again to replace what you sent. " : ""}For required information that doesn&apos;t apply to you, write <strong>N/A</strong>.
       </p>
@@ -272,7 +309,7 @@ function DetailsForm({ code, prefill, realtyName, update, onDone }: { code: stri
         )}
       </fieldset>
 
-      <label className={`flex items-start gap-3 border p-4 text-sm leading-relaxed ${fields.consent ? "border-red-400 bg-red-50" : "border-[#e0dcd5] bg-white"}`}>
+      <label {...(guided && !filled.has("consent") ? { "data-pulse": "" } : {})} className={`flex items-start gap-3 border p-4 text-sm leading-relaxed ${fields.consent ? "border-red-400 bg-red-50" : "border-[#e0dcd5] bg-white"} ${guided && !filled.has("consent") ? "jv-pulse" : ""}`}>
         <input type="checkbox" name="consent" required className="mt-0.5 h-5 w-5 shrink-0 accent-[var(--accent)]" />
         <span>
           I agree that {realtyName} may collect and use my personal information and documents to process this purchase and my financing, under the Data Privacy Act of 2012 (RA 10173).
@@ -288,19 +325,21 @@ function DetailsForm({ code, prefill, realtyName, update, onDone }: { code: stri
         {pending && <LoaderCircle className="h-5 w-5 animate-spin" />} {update ? "Send my updated details" : "Send my details"}
       </button>
     </form>
+    </Pulse.Provider>
   )
 }
 
 type FieldProps = { name: string; text: string; type?: string; req?: boolean; def?: string | null; ph?: string; span?: boolean; error?: string }
 
 function Field({ name, text, type = "text", req = true, def, ph, span, error }: FieldProps) {
+  const pulse = usePulse(name, req)
   return (
     <label className={`block ${span ? "sm:col-span-2" : ""}`}>
       <span className={label}>
         {text}
         {req ? <span className="text-[var(--accent)]"> *</span> : <span className="font-semibold normal-case tracking-normal text-[#a39d92]"> (optional)</span>}
       </span>
-      <input name={name} type={type} required={req} defaultValue={def ?? ""} placeholder={ph} className={`${input} ${error ? "border-red-400" : ""}`} />
+      <input name={name} type={type} required={req} defaultValue={def ?? ""} placeholder={ph} {...(pulse ? { "data-pulse": "" } : {})} className={`${input} ${error ? "border-red-400" : ""} ${pulse ? "jv-pulse" : ""}`} />
       {error && <span className="mt-1 block text-xs font-semibold text-red-700">{error}</span>}
     </label>
   )
@@ -309,13 +348,14 @@ function Field({ name, text, type = "text", req = true, def, ph, span, error }: 
 type SelectProps = { name: string; text: string; options: readonly (string | { v: string; l: string })[]; req?: boolean; value?: string; onChange?: (v: string) => void; error?: string }
 
 function Select({ name, text, options, req = true, value, onChange, error }: SelectProps) {
+  const pulse = usePulse(name, req)
   return (
     <label className="block">
       <span className={label}>
         {text}
         {req && <span className="text-[var(--accent)]"> *</span>}
       </span>
-      <select name={name} required={req} {...(onChange ? { value, onChange: (e: React.ChangeEvent<HTMLSelectElement>) => onChange(e.target.value) } : { defaultValue: "" })} className={`${input} ${error ? "border-red-400" : ""}`}>
+      <select name={name} required={req} {...(onChange ? { value, onChange: (e: React.ChangeEvent<HTMLSelectElement>) => onChange(e.target.value) } : { defaultValue: "" })} {...(pulse ? { "data-pulse": "" } : {})} className={`${input} ${error ? "border-red-400" : ""} ${pulse ? "jv-pulse" : ""}`}>
         <option value="" disabled={req}>
           Choose…
         </option>
