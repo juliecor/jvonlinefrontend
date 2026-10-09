@@ -78,7 +78,7 @@ export default async function RealtiesPage({ params }: { params: Promise<{ realt
                   </p>
                 </div>
                 <div className="flex flex-wrap items-start gap-2 sm:justify-end">
-                  <ResendInviteButton slug={slug} id={i.id} />
+                  <ResendInviteButton slug={slug} id={i.id} email={i.email} />
                   <DeleteButton
                     action={deleteAccreditation.bind(null, slug, i.id)}
                     title={`Delete the invite to ${i.email}?`}

@@ -34,12 +34,12 @@ export async function inviteRealty(slug: string, _: InviteRealtyState, formData:
   }
 }
 
-/** A fresh link for an invite that was not filled in; the old one stops working. */
-export async function resendInvite(slug: string, id: number): Promise<{ error?: string; sent?: Sent }> {
+/** A fresh link for an invite that was not filled in; the old one stops working. `mail` false only makes the link, to send yourself. */
+export async function resendInvite(slug: string, id: number, mail = true): Promise<{ error?: string; sent?: Sent }> {
   const session = await staff(slug)
   if (!session) return { error: "Only the developer's admins can resend invites." }
   try {
-    const sent = await api<Sent>(`/realty/realties/invitations/${id}/resend`, { method: "POST", token: session.token })
+    const sent = await api<Sent>(`/realty/realties/invitations/${id}/resend`, { method: "POST", token: session.token, body: { email: mail } })
     revalidatePath(`/${slug}/dashboard/realties`)
     return { sent }
   } catch (e) {
