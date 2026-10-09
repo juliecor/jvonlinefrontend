@@ -55,8 +55,8 @@ export function RequirementsPanel({ slug, offerId, requirements, detailsSentAt, 
             <AlertCircle className="h-4 w-4" />
           </span>
           <div className="min-w-0">
-            <p className="text-lg font-bold text-red-800">Still missing · {needed.length} {needed.length === 1 ? "item" : "items"}</p>
-            <p className="mt-0.5 text-sm text-[#6b665d]">Complete the following requirements to proceed.</p>
+            <p className="text-lg font-bold text-red-800">Missing required · {needed.length} {needed.length === 1 ? "item" : "items"}</p>
+            <p className="mt-0.5 text-sm text-[#6b665d]">The buyer still has to send these required items.</p>
             <ul className="mt-3 flex flex-wrap gap-2">
               {needed.map((n) => (
                 <li key={n.key}>
