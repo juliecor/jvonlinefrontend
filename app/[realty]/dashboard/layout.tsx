@@ -11,7 +11,7 @@ type Stats = { projects: number; offers: number; agents: number; agents_invited:
 
 export async function generateMetadata({ params }: Props): Promise<Metadata> {
   const realty = await realtyBySlug((await params).realty)
-  return { title: { default: `Dashboard · ${realty.name}`, template: `%s · ${realty.name}` }, robots: { index: false, follow: false }, icons: realtyIcons(realty.slug) }
+  return { title: { default: `Dashboard · ${realty.name}`, template: `%s · ${realty.name}` }, robots: { index: false, follow: false }, icons: realtyIcons(realty.slug, realty.kind) }
 }
 
 /**

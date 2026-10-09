@@ -14,7 +14,7 @@ type Invite = { realty: PublicRealty; name: string; email: string | null; phone:
 
 export async function generateMetadata({ params }: Props): Promise<Metadata> {
   const realty = await realtyBySlug((await params).realty)
-  return { title: `Join ${realty.name}`, robots: { index: false, follow: false }, icons: realtyIcons(realty.slug) }
+  return { title: `Join ${realty.name}`, robots: { index: false, follow: false }, icons: realtyIcons(realty.slug, realty.kind) }
 }
 
 /**
@@ -56,7 +56,8 @@ export default async function JoinPage({ params }: Props) {
   }
 
   const accent = realty.accent_color ?? "#1f2937"
-  const brand = slug === SITE_REALTY ? JOHNDORF : null
+  // Johndorf's own page, and the pages of realties accredited under it, wear Johndorf's photo and facts.
+  const brand = slug === SITE_REALTY || realty.kind === "broker" ? JOHNDORF : null
   const short = slug === SITE_REALTY ? "Johndorf" : realty.name
 
   return (

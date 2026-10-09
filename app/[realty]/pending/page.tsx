@@ -12,7 +12,7 @@ type Props = { params: Promise<{ realty: string }> }
 
 export async function generateMetadata({ params }: Props): Promise<Metadata> {
   const realty = await realtyBySlug((await params).realty)
-  return { title: `Your application · ${realty.name}`, robots: { index: false, follow: false }, icons: realtyIcons(realty.slug) }
+  return { title: `Your application · ${realty.name}`, robots: { index: false, follow: false }, icons: realtyIcons(realty.slug, realty.kind) }
 }
 
 /**

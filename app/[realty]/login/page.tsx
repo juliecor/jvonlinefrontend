@@ -13,7 +13,7 @@ type Props = { params: Promise<{ realty: string }>; searchParams: Promise<{ regi
 
 export async function generateMetadata({ params }: Props): Promise<Metadata> {
   const realty = await realtyBySlug((await params).realty)
-  return { title: `Sign in · ${realty.name}`, robots: { index: false, follow: false }, icons: realtyIcons(realty.slug) }
+  return { title: `Sign in · ${realty.name}`, robots: { index: false, follow: false }, icons: realtyIcons(realty.slug, realty.kind) }
 }
 
 /** Johndorf's side of the page: its head office and facts from its own site (lib/johndorf/company.ts, nothing invented). */
@@ -35,7 +35,8 @@ export default async function RealtyLoginPage({ params, searchParams }: Props) {
   if (session?.user.realty.slug === slug) redirect(`/${slug}/dashboard`)
 
   const accent = realty.accent_color ?? "#1f2937"
-  const brand = slug === SITE_REALTY ? JOHNDORF : null
+  // Johndorf's own page, and the pages of realties accredited under it, wear Johndorf's photo and facts.
+  const brand = slug === SITE_REALTY || realty.kind === "broker" ? JOHNDORF : null
   const short = slug === SITE_REALTY ? "Johndorf" : realty.name
   const notice = query.registered
     ? "Your realty is registered. Sign in to open your dashboard."
@@ -70,7 +71,7 @@ export default async function RealtyLoginPage({ params, searchParams }: Props) {
         </Link>
 
         <div>
-          <p className="text-xs font-bold uppercase tracking-[0.22em] text-white/75">{brand ? COMPANY.tagline : realty.developer ? `Accredited by ${realty.developer.name}` : "Sales dashboard"}</p>
+          <p className="text-xs font-bold uppercase tracking-[0.22em] text-white/75">{slug === SITE_REALTY ? COMPANY.tagline : realty.developer ? `Accredited by ${realty.developer.name}` : "Sales dashboard"}</p>
           <h2 className="mt-3 max-w-xl text-[1.75rem] font-bold leading-[1.08] tracking-tight sm:text-5xl">{short}&apos;s sales dashboard.</h2>
           <p className="mt-4 hidden max-w-lg text-base leading-relaxed text-white/85 sm:block">Projects, price lists, sales offers and your buyers&apos; answers, in one place, on your phone or your desk.</p>
 
