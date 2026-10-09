@@ -5,6 +5,7 @@ import { publicProjects } from "@/lib/public-projects"
 import { Eyebrow, Reveal } from "../johndorf/home/ui"
 import { serif } from "../johndorf/tokens"
 import { SiteHeader } from "./header"
+import { Photo } from "@/components/photo"
 
 export const metadata: Metadata = {
   title: "Projects",
@@ -62,7 +63,7 @@ export default async function ProjectsIndexPage() {
         <section className="px-5 py-24 text-center text-[#6b5a56] sm:px-8">Project pages are being prepared.</section>
       )}
 
-      {regions.map((region) => {
+      {regions.map((region, r) => {
         const items = all.filter((p) => (p.region ?? "Other") === region)
         return (
           <section key={region} id={region.toLowerCase().replace(/\s+/g, "-")} className="scroll-mt-20 px-5 py-14 sm:px-8">
@@ -81,8 +82,14 @@ export default async function ProjectsIndexPage() {
                       <Reveal delay={(n % 2) * 0.07}>
                         <Link href={`/projects/${p.slug}`} className={`group relative block overflow-hidden bg-[#160c0a] text-white ${feature ? "aspect-[4/3] sm:aspect-[21/9]" : "aspect-[4/3] sm:aspect-[16/10]"}`}>
                           {p.hero[0] && (
-                            // eslint-disable-next-line @next/next/no-img-element
-                            <img src={p.hero[0]} alt={p.name} className="h-full w-full object-cover transition duration-[1200ms] group-hover:scale-105" />
+                            <Photo
+                              src={p.hero[0]}
+                              alt={p.name}
+                              sizes={feature ? "(min-width: 1400px) 1400px, 100vw" : "(min-width: 1400px) 700px, (min-width: 640px) 50vw, 100vw"}
+                              // The first big card is on screen at once; the rest load as you scroll.
+                              loading={r === 0 && feature ? "eager" : "lazy"}
+                              className="h-full w-full object-cover transition duration-[1200ms] group-hover:scale-105"
+                            />
                           )}
                           <div aria-hidden className="absolute inset-0 bg-gradient-to-t from-[#160c0a]/90 via-[#160c0a]/20 to-transparent" />
                           {p.stage && <span className="absolute left-0 top-0 bg-white px-3 py-1.5 text-[10px] font-semibold uppercase tracking-[0.16em] text-[#2a1d1b]">{p.stage}</span>}

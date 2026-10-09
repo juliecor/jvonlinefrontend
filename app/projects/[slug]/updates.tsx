@@ -6,6 +6,7 @@ import { Camera } from "lucide-react"
 import { ease } from "../../johndorf/home/ui"
 import type { PublicUpdate } from "@/lib/public-projects-types"
 import { Lightbox } from "./lightbox"
+import { Photo } from "@/components/photo"
 
 /** Construction progress month by month — Johndorf's own photos, newest first. */
 export function Updates({ months }: { months: PublicUpdate[] }) {
@@ -41,8 +42,7 @@ export function Updates({ months }: { months: PublicUpdate[] }) {
           <div className="grid grid-cols-2 gap-3 sm:grid-cols-3 lg:grid-cols-4">
             {current.photos.map((p, n) => (
               <button key={p} type="button" onClick={() => setI(n)} className="group relative overflow-hidden rounded-none bg-[#ece5e2]" aria-label={`Photo ${n + 1}, ${current.label}`}>
-                {/* eslint-disable-next-line @next/next/no-img-element */}
-                <img src={p} alt="" loading="lazy" className="aspect-video w-full object-cover transition duration-700 group-hover:scale-[1.04]" />
+                <Photo src={p} sizes="(min-width: 1400px) 340px, (min-width: 1024px) 25vw, (min-width: 640px) 33vw, 50vw" className="aspect-video w-full object-cover transition duration-700 group-hover:scale-[1.04]" />
               </button>
             ))}
           </div>

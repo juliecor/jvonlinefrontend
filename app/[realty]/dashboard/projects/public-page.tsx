@@ -7,6 +7,7 @@ import { confirmSubmit, toast } from "@/components/feedback"
 import { Alert, Label } from "@/components/form"
 import type { PublicUnitType, PublicUpdate } from "@/lib/public-projects-types"
 import { type PageState, addPageMedia, addUpdatePhotos, deleteUnitType, deleteUpdateMonth, removePageMedia, removeUpdatePhoto, savePageSettings, saveUnitType } from "./page-actions"
+import { Photo } from "@/components/photo"
 
 export type PageData = {
   slug: string | null
@@ -144,8 +145,7 @@ function MediaGrid({ slug, projectId, kind, urls }: { slug: string; projectId: n
         <ul className={`grid gap-3 ${kind === "hero" ? "grid-cols-2 sm:grid-cols-4" : "grid-cols-1 sm:grid-cols-2"}`}>
           {urls.map((u) => (
             <li key={u} className="group relative overflow-hidden border border-[#e6e2db] bg-[#efece6]">
-              {/* eslint-disable-next-line @next/next/no-img-element */}
-              <img src={u} alt="" className={`w-full object-cover ${kind === "hero" ? "aspect-[4/3]" : "aspect-[16/10]"}`} />
+              <Photo src={u} sizes={kind === "hero" ? "(min-width: 640px) 25vw, 50vw" : "(min-width: 640px) 50vw, 100vw"} className={`w-full object-cover ${kind === "hero" ? "aspect-[4/3]" : "aspect-[16/10]"}`} />
               <form
                 action={async () => {
                   await removePageMedia(slug, projectId, kind, u)
@@ -201,8 +201,7 @@ function UnitTypeForm({ slug, projectId, unit, onDone }: { slug: string; project
           <ul className="mt-2 grid grid-cols-3 gap-3 sm:grid-cols-6">
             {unit.images.map((u) => (
               <li key={u} className="relative">
-                {/* eslint-disable-next-line @next/next/no-img-element */}
-                <img src={u} alt="" className="aspect-[4/3] w-full border border-[#e6e2db] object-cover" />
+                <Photo src={u} sizes="(min-width: 640px) 200px, 50vw" className="aspect-[4/3] w-full border border-[#e6e2db] object-cover" />
                 <label className="mt-1 flex items-center gap-1.5 text-[11px] text-[#6b665d]">
                   <input type="checkbox" name="remove" value={u} className="h-3.5 w-3.5 accent-red-600" /> remove
                 </label>
@@ -242,8 +241,7 @@ function UnitTypeRow({ slug, projectId, unit }: { slug: string; projectId: numbe
     <li className="flex flex-col gap-3 py-4 sm:flex-row sm:items-center sm:justify-between">
       <div className="flex min-w-0 items-center gap-4">
         {unit.images[0] ? (
-          // eslint-disable-next-line @next/next/no-img-element
-          <img src={unit.images[0]} alt="" className="h-16 w-24 shrink-0 border border-[#e6e2db] object-cover" />
+          <Photo src={unit.images[0]} sizes="96px" className="h-16 w-24 shrink-0 border border-[#e6e2db] object-cover" />
         ) : (
           <div className="h-16 w-24 shrink-0 bg-[#efece6]" />
         )}
@@ -317,8 +315,7 @@ function UpdateRow({ slug, update }: { slug: string; update: PublicUpdate }) {
         <ul className="mt-3 grid grid-cols-3 gap-2 sm:grid-cols-6">
           {update.photos.map((u) => (
             <li key={u} className="group relative">
-              {/* eslint-disable-next-line @next/next/no-img-element */}
-              <img src={u} alt="" className="aspect-video w-full border border-[#e6e2db] object-cover" />
+              <Photo src={u} sizes="(min-width: 640px) 25vw, 50vw" className="aspect-video w-full border border-[#e6e2db] object-cover" />
               <form
                 action={async () => {
                   await removeUpdatePhoto(slug, update.id, u)

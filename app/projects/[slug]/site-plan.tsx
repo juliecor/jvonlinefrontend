@@ -15,7 +15,7 @@ export function SitePlan({ plans, name }: { plans: string[]; name: string }) {
           <Reveal key={p} delay={n * 0.1}>
             <button type="button" onClick={() => setI(n)} className="group relative block w-full overflow-hidden border border-[#2a1d1b]/15 bg-white" aria-label="View the site plan full screen">
               {/* eslint-disable-next-line @next/next/no-img-element */}
-              <img src={p} alt={`${name} site development plan`} className="w-full" />
+              <img src={p} alt={`${name} site development plan`} loading="lazy" decoding="async" className="w-full" />
               <span className="absolute bottom-5 right-5 inline-flex items-center gap-2 rounded-sm bg-[#2a1d1b]/85 px-4 py-2 text-[11px] font-semibold uppercase tracking-[0.16em] text-white opacity-90 transition group-hover:bg-[#b4241c]">
                 <Maximize2 className="h-3.5 w-3.5" /> Full screen
               </span>

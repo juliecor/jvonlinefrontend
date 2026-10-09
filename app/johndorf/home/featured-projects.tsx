@@ -4,6 +4,7 @@ import Link from "next/link"
 import { ArrowRight, MapPin } from "lucide-react"
 import type { PublicProjectCard } from "@/lib/public-projects-types"
 import { Eyebrow, Reveal, serif } from "./ui"
+import { Photo } from "@/components/photo"
 
 /** Right under the opening: six published projects as big, flat image cards that lead to their own pages. */
 export function FeaturedProjects({ projects }: { projects: PublicProjectCard[] }) {
@@ -32,10 +33,7 @@ export function FeaturedProjects({ projects }: { projects: PublicProjectCard[] }
             <li key={p.slug}>
               <Reveal delay={(i % 3) * 0.07}>
                 <Link href={`/projects/${p.slug}`} className="group relative block aspect-[4/3] overflow-hidden bg-[#160c0a] text-white sm:aspect-[5/4]">
-                  {p.hero[0] && (
-                    // eslint-disable-next-line @next/next/no-img-element
-                    <img src={p.hero[0]} alt={p.name} className="h-full w-full object-cover transition duration-[1200ms] group-hover:scale-105" />
-                  )}
+                  {p.hero[0] && <Photo src={p.hero[0]} alt={p.name} sizes="(min-width: 1400px) 460px, (min-width: 1024px) 33vw, (min-width: 640px) 50vw, 100vw" className="h-full w-full object-cover transition duration-[1200ms] group-hover:scale-105" />}
                   <div aria-hidden className="absolute inset-0 bg-gradient-to-t from-[#160c0a]/90 via-[#160c0a]/20 to-transparent" />
                   {p.stage && <span className="absolute left-0 top-0 bg-white px-3 py-1.5 text-[10px] font-semibold uppercase tracking-[0.16em] text-[#2a1d1b]">{p.stage}</span>}
                   <div className="absolute inset-x-0 bottom-0 p-6 sm:p-7">

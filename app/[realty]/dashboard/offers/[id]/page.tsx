@@ -18,6 +18,7 @@ import { UnitStatusPanel } from "./unit-status"
 import { ApprovalPanel } from "./approval-panel"
 import { FollowUp, RequirementsPanel } from "./requirements-panel"
 import { SyncCounts } from "./sync"
+import { Photo } from "@/components/photo"
 
 export const metadata = { title: "Offer" }
 
@@ -136,8 +137,7 @@ export default async function OfferDetailPage({ params }: { params: Promise<{ re
       <section className="overflow-hidden border border-[#e0dcd5] bg-white">
         <div className="flex flex-col sm:flex-row">
           {o.photo ? (
-            // eslint-disable-next-line @next/next/no-img-element
-            <img src={o.photo} alt={o.unit ?? o.project ?? ""} className="aspect-[2/1] w-full object-cover sm:aspect-auto sm:w-64 sm:shrink-0 lg:w-80" />
+            <Photo src={o.photo} alt={o.unit ?? o.project ?? ""} sizes="(min-width: 1024px) 320px, (min-width: 640px) 256px, 100vw" loading="eager" className="aspect-[2/1] w-full object-cover sm:aspect-auto sm:w-64 sm:shrink-0 lg:w-80" />
           ) : (
             <div className="hidden w-64 shrink-0 items-center justify-center bg-[#efece6] sm:flex lg:w-80">
               <Home className="h-10 w-10 text-[#c9c3b9]" />

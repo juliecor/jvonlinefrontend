@@ -7,6 +7,7 @@ import { SITE_REALTY } from "@/lib/public-projects-types"
 import { currentRealtyUser, realtyBySlug } from "@/lib/realty-auth"
 import { realtyIcons } from "@/lib/realty-icon"
 import { RealtyLoginForm } from "./login-form"
+import { Photo } from "@/components/photo"
 
 type Props = { params: Promise<{ realty: string }>; searchParams: Promise<{ registered?: string; joined?: string; applied?: string; ended?: string }> }
 
@@ -53,8 +54,7 @@ export default async function RealtyLoginPage({ params, searchParams }: Props) {
       >
         {brand && (
           <>
-            {/* eslint-disable-next-line @next/next/no-img-element */}
-            <img src={brand.photo} alt="" className="absolute inset-0 -z-10 h-full w-full object-cover" />
+            <Photo src={brand.photo} sizes="(min-width: 1024px) 52vw, 100vw" loading="eager" className="absolute inset-0 -z-10 h-full w-full object-cover" />
             <div aria-hidden className="absolute inset-0 -z-10 bg-gradient-to-t from-[#120d0c] via-[#120d0c]/70 to-[#120d0c]/25" />
           </>
         )}

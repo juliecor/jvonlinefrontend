@@ -5,6 +5,7 @@ import Link from "next/link"
 import { AnimatePresence, motion, useReducedMotion } from "framer-motion"
 import { ArrowDown, ArrowLeft, MapPin } from "lucide-react"
 import { ease, serif } from "../../johndorf/home/ui"
+import { Photo } from "@/components/photo"
 
 /** Full-screen opening: the project's own renders crossfading, its name set large. */
 export function ProjectHero({ name, place, status, photos, interactive }: { name: string; place: string; status?: string; photos: string[]; interactive?: boolean }) {
@@ -21,8 +22,7 @@ export function ProjectHero({ name, place, status, photos, interactive }: { name
       <AnimatePresence initial={false}>
         <motion.div key={photos[i] ?? "none"} initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }} transition={{ duration: 1.4 }} className="absolute inset-0">
           {photos[i] && (
-            // eslint-disable-next-line @next/next/no-img-element
-            <img src={photos[i]} alt="" className={`h-full w-full object-cover ${reduce ? "" : "jd-kenburns"}`} />
+            <Photo src={photos[i]} sizes="100vw" loading={i === 0 ? "eager" : "lazy"} fetchPriority={i === 0 ? "high" : "auto"} className={`h-full w-full object-cover ${reduce ? "" : "jd-kenburns"}`} />
           )}
         </motion.div>
       </AnimatePresence>

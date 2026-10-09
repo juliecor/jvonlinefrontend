@@ -5,6 +5,7 @@ import Link from "next/link"
 import { ArrowRight, MapPin, Search, X } from "lucide-react"
 import { Tag } from "@/components/dashboard-ui"
 import { type Filters, NO_FILTERS, type Project, STAGES } from "./types"
+import { Photo } from "@/components/photo"
 
 const ready = (p: Project) => p.status === "active" && (p.ready_units_count ?? 0) > 0
 
@@ -62,8 +63,7 @@ export function ProjectList({ slug, projects, staff, initial }: { slug: string; 
             <Link href={`/${slug}/dashboard/projects/${p.id}`} className={`group flex h-full flex-col overflow-hidden border border-[#e6e2db] bg-white transition hover:border-[var(--accent)] ${p.status === "archived" ? "opacity-75 hover:opacity-100" : ""}`}>
               <div className="relative">
                 {p.cover_url ? (
-                  // eslint-disable-next-line @next/next/no-img-element
-                  <img src={p.cover_url} alt="" className="aspect-[16/9] w-full object-cover" />
+                  <Photo src={p.cover_url} sizes="(min-width: 1280px) 400px, (min-width: 640px) 50vw, 100vw" className="aspect-[16/9] w-full object-cover" />
                 ) : (
                   <div className="aspect-[16/9] w-full bg-[#efece6]" />
                 )}

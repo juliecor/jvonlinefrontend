@@ -2,6 +2,7 @@ import Link from "next/link"
 import { ArrowRight, Building2, FilePlus2 } from "lucide-react"
 import { php, sqm } from "@/lib/format"
 import type { UnitCard } from "./actions"
+import { Photo } from "@/components/photo"
 
 const TONE: Record<UnitCard["status"], string> = { available: "bg-emerald-700", reserved: "bg-amber-600", sold: "bg-[#17150f]" }
 
@@ -20,8 +21,7 @@ export function UnitCards({ slug, cards }: { slug: string; cards: UnitCard[] }) 
             <div className="flex flex-1 @lg:flex-col">
               <div className="relative min-h-28 w-24 shrink-0 bg-[#f1eee9] @lg:aspect-[16/10] @lg:min-h-0 @lg:w-full">
                 {c.photo ? (
-                  // eslint-disable-next-line @next/next/no-img-element
-                  <img src={c.photo} alt="" loading="lazy" className="absolute inset-0 h-full w-full object-cover" />
+                  <Photo src={c.photo} sizes="(min-width: 640px) 360px, 96px" className="absolute inset-0 h-full w-full object-cover" />
                 ) : (
                   <Building2 className="absolute left-1/2 top-1/2 h-8 w-8 -translate-x-1/2 -translate-y-1/2 text-[#c9c3b8]" />
                 )}

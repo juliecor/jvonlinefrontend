@@ -2,6 +2,7 @@ import Link from "next/link"
 import { ArrowRight, Building2, MapPin, Plus } from "lucide-react"
 import { php } from "@/lib/format"
 import type { ProjectCard } from "./actions"
+import { Photo } from "@/components/photo"
 
 /**
  * Projects the AI put under its answer: photo, place, stage, units left and
@@ -16,8 +17,7 @@ export function ProjectCards({ slug, cards }: { slug: string; cards: ProjectCard
             <div className="flex flex-1 @lg:flex-col">
               <div className="relative min-h-28 w-24 shrink-0 bg-[#f1eee9] @lg:aspect-[16/9] @lg:min-h-0 @lg:w-full">
                 {p.photo ? (
-                  // eslint-disable-next-line @next/next/no-img-element
-                  <img src={p.photo} alt="" loading="lazy" className="absolute inset-0 h-full w-full object-cover" />
+                  <Photo src={p.photo} sizes="(min-width: 640px) 360px, 96px" className="absolute inset-0 h-full w-full object-cover" />
                 ) : (
                   <Building2 className="absolute left-1/2 top-1/2 h-8 w-8 -translate-x-1/2 -translate-y-1/2 text-[#c9c3b8]" />
                 )}

@@ -15,6 +15,7 @@ import { ModelsEditor, WebsiteEditor } from "../public-page"
 import { StatusBar } from "../status-bar"
 import type { ProjectDetail, Unit } from "../types"
 import { UnitList } from "../unit-list"
+import { Photo } from "@/components/photo"
 
 type Props = { params: Promise<{ realty: string; id: string }>; searchParams: Promise<{ plan_error?: string; unit?: string }> }
 
@@ -78,8 +79,7 @@ export default async function ProjectPage({ params, searchParams }: Props) {
       <section className="overflow-hidden border border-[#e0dcd5] bg-white">
         <div className="flex flex-col sm:flex-row">
           {photo ? (
-            // eslint-disable-next-line @next/next/no-img-element
-            <img src={photo} alt="" className="aspect-[2/1] w-full object-cover sm:aspect-auto sm:w-64 sm:shrink-0 lg:w-80" />
+            <Photo src={photo} alt="" sizes="(min-width: 1024px) 320px, (min-width: 640px) 256px, 100vw" loading="eager" className="aspect-[2/1] w-full object-cover sm:aspect-auto sm:w-64 sm:shrink-0 lg:w-80" />
           ) : (
             <div className="hidden w-64 shrink-0 items-center justify-center bg-[#efece6] sm:flex lg:w-80">
               <Building2 className="h-10 w-10 text-[#c9c3b9]" />

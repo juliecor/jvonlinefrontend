@@ -9,6 +9,7 @@ import type { RequirementSummary } from "@/lib/requirements-types"
 import { requireRealtyUser } from "@/lib/realty-auth"
 import { ReqChip } from "./req-chip"
 import { VoidOfferButton } from "./void-button"
+import { Photo } from "@/components/photo"
 
 export const metadata = { title: "Offers" }
 
@@ -71,8 +72,7 @@ export default async function OffersPage({ params }: { params: Promise<{ realty:
               <div className="flex min-w-0 items-start gap-4">
               <Link href={`/${slug}/dashboard/offers/${o.id}`} className="block h-[72px] w-24 shrink-0 overflow-hidden bg-[#efece6]" aria-hidden tabIndex={-1}>
                 {o.photo ? (
-                  // eslint-disable-next-line @next/next/no-img-element
-                  <img src={o.photo} alt="" className="h-full w-full object-cover transition duration-500 hover:scale-105" />
+                  <Photo src={o.photo} sizes="96px" className="h-full w-full object-cover transition duration-500 hover:scale-105" />
                 ) : (
                   <span className="flex h-full w-full items-center justify-center">
                     <Home className="h-6 w-6 text-[#c9c3b9]" />

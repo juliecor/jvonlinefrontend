@@ -13,6 +13,7 @@ import { SectionHead } from "./section-head"
 import { SitePlan } from "./site-plan"
 import { UnitTypes } from "./unit-types"
 import { Updates } from "./updates"
+import { Photo } from "@/components/photo"
 
 type Props = { params: Promise<{ slug: string }> }
 
@@ -149,7 +150,7 @@ export default async function ProjectPage({ params }: Props) {
             {mapImg ? (
               <a href={mapOpen} target="_blank" rel="noreferrer" className="block overflow-hidden border border-white/15">
                 {/* eslint-disable-next-line @next/next/no-img-element */}
-                <img src={mapImg} alt={`Map of ${p.name}`} width={640} height={400} className="aspect-[16/10] w-full object-cover" />
+                <img src={mapImg} alt={`Map of ${p.name}`} width={640} height={400} loading="lazy" className="aspect-[16/10] w-full object-cover" />
               </a>
             ) : (
               <div className="flex aspect-[16/10] items-center justify-center border border-white/10 text-sm text-white/50">Map unavailable</div>
@@ -190,8 +191,7 @@ export default async function ProjectPage({ params }: Props) {
                 <div className="grid grid-cols-2 gap-6">
                   {[prev, next].map((q, n) => (
                     <Link key={q.slug} href={`/projects/${q.slug}`} className="group relative overflow-hidden bg-[#160c0a] text-white">
-                      {/* eslint-disable-next-line @next/next/no-img-element */}
-                      <img src={q.hero[0]} alt="" className="aspect-[4/5] w-full object-cover opacity-70 transition duration-700 group-hover:scale-105 group-hover:opacity-85" />
+                      <Photo src={q.hero[0]} sizes="(min-width: 1024px) 25vw, 50vw" className="aspect-[4/5] w-full object-cover opacity-70 transition duration-700 group-hover:scale-105 group-hover:opacity-85" />
                       <div className="absolute inset-x-0 bottom-0 p-5">
                         <p className="text-[10px] font-semibold uppercase tracking-[0.2em] text-white/60">{n === 0 ? "Previous" : "Next"}</p>
                         <p className={`${serif} mt-1 text-2xl font-semibold leading-tight`}>{q.name}</p>

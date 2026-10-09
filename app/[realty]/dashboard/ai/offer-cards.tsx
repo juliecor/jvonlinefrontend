@@ -8,6 +8,7 @@ import { LeadTag, NewTag } from "@/components/leads"
 import { php, shortDate, timeAgo } from "@/lib/format"
 import { ReqChip } from "../offers/req-chip"
 import type { OfferCard } from "./actions"
+import { Photo } from "@/components/photo"
 
 /**
  * Buyers the AI put under its answer, as the offers list shows them (answer,
@@ -22,8 +23,7 @@ export function OfferCards({ slug, cards, onAsk }: { slug: string; cards: OfferC
           <div className="flex gap-3 p-3 sm:gap-4">
             <Link href={`/${slug}/dashboard/offers/${o.id}`} className="relative h-20 w-20 shrink-0 overflow-hidden bg-[#f1eee9] sm:h-24 sm:w-28">
               {o.photo ? (
-                // eslint-disable-next-line @next/next/no-img-element
-                <img src={o.photo} alt="" loading="lazy" className="absolute inset-0 h-full w-full object-cover" />
+                <Photo src={o.photo} sizes="112px" className="absolute inset-0 h-full w-full object-cover" />
               ) : (
                 <Home className="absolute left-1/2 top-1/2 h-7 w-7 -translate-x-1/2 -translate-y-1/2 text-[#c9c3b8]" />
               )}

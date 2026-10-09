@@ -3,6 +3,7 @@
 import { useState } from "react"
 import { Maximize2, Printer } from "lucide-react"
 import { Lightbox } from "../../projects/[slug]/lightbox"
+import { Photo } from "@/components/photo"
 
 /** The browser's print dialog doubles as "Save as PDF". */
 export function PrintButton({ className = "" }: { className?: string }) {
@@ -20,8 +21,7 @@ export function Zoomable({ images, alt, className = "", imgClassName = "", capti
   return (
     <div className={className}>
       <button type="button" onClick={() => setI(0)} className="group relative block w-full overflow-hidden bg-[#f1efeb]" aria-label={`View ${alt} full screen`}>
-        {/* eslint-disable-next-line @next/next/no-img-element */}
-        <img src={images[0]} alt={alt} className={`w-full object-cover transition duration-700 group-hover:scale-[1.02] ${imgClassName}`} />
+        <Photo src={images[0]} alt={alt} sizes="(min-width: 1024px) 720px, 100vw" className={`w-full object-cover transition duration-700 group-hover:scale-[1.02] ${imgClassName}`} />
         <span className="absolute bottom-3 right-3 inline-flex items-center gap-1.5 bg-[#17150f]/80 px-2.5 py-1.5 text-[11px] font-bold uppercase tracking-[0.12em] text-white opacity-90 print:hidden">
           <Maximize2 className="h-3.5 w-3.5" /> View
         </span>
@@ -30,8 +30,7 @@ export function Zoomable({ images, alt, className = "", imgClassName = "", capti
         <div className="mt-2 grid grid-cols-5 gap-2 print:hidden">
           {images.slice(1, 6).map((src, n) => (
             <button key={src} type="button" onClick={() => setI(n + 1)} className="overflow-hidden bg-[#f1efeb]" aria-label={`View image ${n + 2}`}>
-              {/* eslint-disable-next-line @next/next/no-img-element */}
-              <img src={src} alt="" className="aspect-[4/3] w-full object-cover" />
+              <Photo src={src} sizes="(min-width: 1024px) 140px, 20vw" className="aspect-[4/3] w-full object-cover" />
             </button>
           ))}
         </div>

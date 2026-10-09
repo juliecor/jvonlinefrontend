@@ -9,6 +9,7 @@ import { php, shortDate, sqm } from "@/lib/format"
 import { type FormState, deleteUnit } from "./actions"
 import type { Unit, UnitStatusDetail } from "./types"
 import { UnitForm } from "./unit-form"
+import { Photo } from "@/components/photo"
 
 const TONE = { available: "good", reserved: "warn", sold: "neutral" } as const
 
@@ -37,8 +38,7 @@ export function UnitRow({ slug, projectId, unit, staff }: { slug: string; projec
     <li className="flex flex-col gap-3 py-4 sm:flex-row sm:items-center sm:justify-between">
       <div className="flex min-w-0 items-center gap-4">
         {thumb ? (
-          // eslint-disable-next-line @next/next/no-img-element
-          <img src={thumb} alt="" className="h-14 w-14 shrink-0 rounded-md border border-[#e6e2db] object-cover" />
+          <Photo src={thumb} sizes="56px" className="h-14 w-14 shrink-0 rounded-md border border-[#e6e2db] object-cover" />
         ) : (
           <div className="h-14 w-14 shrink-0 rounded-md bg-[#efece6]" />
         )}

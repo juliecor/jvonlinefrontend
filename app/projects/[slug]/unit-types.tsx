@@ -5,6 +5,7 @@ import { Bath, BedDouble, Car, Layers, Ruler, SquareDashed } from "lucide-react"
 import { Reveal, serif } from "../../johndorf/home/ui"
 import { type PublicUnitType, SPEC_LABELS } from "@/lib/public-projects-types"
 import { Lightbox } from "./lightbox"
+import { Photo } from "@/components/photo"
 
 const ICON = { usable_floor_area: Ruler, typical_floor_area: SquareDashed, bedrooms: BedDouble, baths: Bath, floors: Layers, parking: Car } as const
 const UNIT = { usable_floor_area: " sqm", typical_floor_area: " sqm", bedrooms: "", baths: "", floors: "", parking: "" } as const
@@ -20,8 +21,7 @@ export function UnitTypes({ units, sections }: { units: PublicUnitType[]; sectio
             <article className={`border border-[#2a1d1b]/10 bg-white ${units.length === 1 ? "lg:grid lg:grid-cols-[1.35fr_1fr]" : ""}`}>
               {u.images[0] && (
                 <button type="button" onClick={() => setView({ photos: u.images, index: 0, name: u.name })} className="group relative block w-full overflow-hidden" aria-label={`View renders of ${u.name}`}>
-                  {/* eslint-disable-next-line @next/next/no-img-element */}
-                  <img src={u.images[0]} alt={u.name} className={`w-full object-cover transition duration-700 group-hover:scale-[1.02] ${units.length === 1 ? "h-full min-h-[360px]" : "aspect-[16/10]"}`} />
+                  <Photo src={u.images[0]} alt={u.name} sizes={units.length === 1 ? "(min-width: 1024px) 60vw, 100vw" : "(min-width: 1024px) 50vw, 100vw"} className={`w-full object-cover transition duration-700 group-hover:scale-[1.02] ${units.length === 1 ? "h-full min-h-[360px]" : "aspect-[16/10]"}`} />
                   {u.images.length > 1 && <span className="absolute bottom-4 right-4 rounded-sm bg-black/45 px-2.5 py-1 text-[10px] font-semibold uppercase tracking-[0.16em] text-white">{u.images.length} renders</span>}
                 </button>
               )}

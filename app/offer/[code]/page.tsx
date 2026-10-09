@@ -16,6 +16,7 @@ import { RespondSection } from "./respond"
 import { offerAccessHeaders } from "./access"
 import { OfferTabs } from "./tabs"
 import { UnlockForm } from "./unlock-form"
+import { Photo } from "@/components/photo"
 
 type Milestone = ScheduleRow
 type Specs = { usable_floor_area: string | null; typical_floor_area: string | null; bedrooms: string | null; baths: string | null; floors: string | null; parking: string | null }
@@ -216,10 +217,7 @@ export default async function OfferPage({ params }: Props) {
                 </header>
 
                 {/* Hero — photo clean (developer renders often carry their own lettering), title set beneath it */}
-                {hero && (
-                  // eslint-disable-next-line @next/next/no-img-element
-                  <img src={hero} alt={project.name} className="aspect-[4/3] w-full object-cover sm:aspect-[21/9]" />
-                )}
+                {hero && <Photo src={hero} alt={project.name} sizes="(min-width: 1280px) 1200px, 100vw" loading="eager" className="aspect-[4/3] w-full object-cover sm:aspect-[21/9]" />}
                 <section className="flex flex-wrap items-end justify-between gap-4 border-b border-[#ebe7e1] px-6 py-7 sm:px-10">
                   <div>
                     <div className="flex flex-wrap items-center gap-2">
@@ -598,8 +596,7 @@ function SignIn({ data }: { data: Locked }) {
       <aside className="relative isolate flex flex-col justify-between gap-8 overflow-hidden bg-[var(--accent)] px-5 pb-7 pt-6 text-white sm:px-10 sm:pb-10 sm:pt-8 lg:sticky lg:top-0 lg:h-screen lg:gap-10 lg:px-14 lg:py-12">
         {project.photo && (
           <>
-            {/* eslint-disable-next-line @next/next/no-img-element */}
-            <img src={project.photo} alt="" className="absolute inset-0 -z-10 h-full w-full object-cover" />
+            <Photo src={project.photo} sizes="(min-width: 1024px) 52vw, 100vw" loading="eager" className="absolute inset-0 -z-10 h-full w-full object-cover" />
             <div aria-hidden className="absolute inset-0 -z-10 bg-gradient-to-t from-[#120d0c] via-[#120d0c]/70 to-[#120d0c]/30" />
           </>
         )}
