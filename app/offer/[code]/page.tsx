@@ -160,7 +160,7 @@ export default async function OfferPage({ params }: Props) {
   const pad = "px-6 py-10 sm:px-10 sm:py-12"
   const steps = [
     { title: "Look over the home and the price", text: "The house, its floor area, and the payment schedule from your purchase date.", links: [{ id: "home", label: "The home" }, { id: "payment", label: "Payment schedule" }] },
-    { title: `Tell ${talkTo.split(" ")[0]} what you think`, text: "Interested, a question, or not for you: it takes a minute, and they'll get back to you.", links: [{ id: "respond", label: "Respond" }] },
+    { title: `Tell ${talkTo.split(" ")[0]} what you think`, text: "Interested, or have a question? It takes a minute, and they'll get back to you.", links: [{ id: "respond", label: "Respond" }] },
     ...(offer.requirements.length > 0 ? [{ title: "Send your requirements", text: "Your details and documents, from your phone. They're needed to reserve this home.", links: [{ id: "requirements", label: "Requirements" }] }] : []),
   ]
 

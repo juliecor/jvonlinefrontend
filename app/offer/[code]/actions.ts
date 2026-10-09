@@ -25,7 +25,7 @@ export async function unlockOffer(code: string, _: UnlockState, fd: FormData): P
   redirect(`/offer/${encodeURIComponent(code)}`)
 }
 
-export type RespondState = { error?: string; done?: "interested" | "question" | "not_interested"; name?: string }
+export type RespondState = { error?: string; done?: "interested" | "question"; name?: string }
 
 /** The buyer's answer to the offer → Laravel, which saves the lead and emails the agent. */
 export async function respondToOffer(code: string, _: RespondState, fd: FormData): Promise<RespondState> {
@@ -33,7 +33,7 @@ export async function respondToOffer(code: string, _: RespondState, fd: FormData
   const kind = str("kind") as NonNullable<RespondState["done"]>
   const name = str("name")
   if (!name) return { error: "Please enter your name." }
-  if (kind !== "not_interested" && !str("phone")) return { error: "Please enter your mobile number so we can reach you." }
+  if (!str("phone")) return { error: "Please enter your mobile number so we can reach you." }
   try {
     await api(`/offers/${encodeURIComponent(code)}/respond`, {
       ...(await as(code)),
