@@ -103,6 +103,7 @@ export function AccreditationForm({ token, developer, email, documents, civilSta
     for (const doc of documents) {
       if (required(doc) && !files[doc.kind]) found[`documents.${doc.kind}`] = `Attach your ${doc.name}.`
     }
+    if (!fd.get("privacy")) found.privacy = "Tick the box to agree to the data privacy notice."
     if (agreement) {
       if (!fd.get("agree")) found.agree = "Tick the box to agree to the accreditation agreement."
       if (!text("agreed_name")) found.agreed_name = "Type your full name to sign the agreement."
@@ -335,6 +336,29 @@ export function AccreditationForm({ token, developer, email, documents, civilSta
           </div>
         </Section>
       )}
+
+      {/* DATA PRIVACY */}
+      <Section title="Data privacy" note="Please read how your details are used before you send the form.">
+        <div className="space-y-3 border border-[#d9d4cb] bg-[#faf8f5] px-5 py-5 text-[15px] leading-relaxed text-[#3d3a34] sm:px-7">
+          <p>
+            <strong className="text-[#17150f]">{developer}</strong> collects the details and documents in this form: your firm&apos;s registration, tax and PRC details, the representative&apos;s personal and contact details, and the files you attach.
+          </p>
+          <p>They are used only to review your accreditation, set up your realty&apos;s dashboard and sign-in, prepare the accreditation agreement, and contact you about your accreditation.</p>
+          <p>Only {developer}&apos;s accreditation team can see them. Your tax numbers are stored encrypted and your documents are kept private.</p>
+          <p>
+            Under the Data Privacy Act of 2012 (Republic Act No. 10173), you have the right to be informed about how your data is used, to see it, to have it corrected, to object to its use or ask for it to be deleted, and to file a complaint with the National Privacy Commission. To use these rights, contact {developer}.
+          </p>
+        </div>
+        <div data-invalid={!!err("privacy")} className="mt-5">
+          <label className="flex cursor-pointer items-start gap-3">
+            <input type="checkbox" name="privacy" value="1" className="mt-1 h-5 w-5 shrink-0 accent-[var(--accent)]" />
+            <span className="text-[15px] leading-relaxed">
+              I have read the data privacy notice. I agree that {developer} may collect and use my realty&apos;s and my personal information for my accreditation, as explained above.
+            </span>
+          </label>
+          {err("privacy") && <p className="mt-2 text-sm font-semibold text-red-700">{err("privacy")}</p>}
+        </div>
+      </Section>
 
       {formError && (
         <p role="alert" className="flex gap-3 border-l-4 border-red-600 bg-red-50 px-4 py-3.5 text-[15px] font-semibold text-red-800">

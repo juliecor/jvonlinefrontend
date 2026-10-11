@@ -48,6 +48,8 @@ type Accreditation = {
   login_pending: boolean
   /** Agreed online on the form (typed name), and the agreement to print (null until the developer sets it up). */
   agreed: { name: string; at: string } | null
+  /** When they agreed to the data privacy notice on the form (older forms: null). */
+  privacy_accepted_at: string | null
   agreement: object | null
   /** Accepted ones: how long it runs, and the signed copy. */
   period: Period | null
@@ -163,7 +165,10 @@ export default async function AccreditationReviewPage({ params }: { params: Prom
       <Panel title={`Documents · ${a.documents.length}`} aside="Click a picture to enlarge it. Only you can see these.">
         {a.documents.length === 0 ? <p className="py-6 text-sm text-[#8a847a]">No documents were attached.</p> : <DocumentsGallery base={`/${slug}/dashboard/realties/${a.id}/documents`} docs={a.documents} />}
       </Panel>
-      <p className="mt-6 text-xs text-[#a39d92]">{a.submitted_at ? `Form received ${shortDate(a.submitted_at)}.` : null}</p>
+      <p className="mt-6 text-xs text-[#a39d92]">
+        {a.submitted_at ? `Form received ${shortDate(a.submitted_at)}.` : null}
+        {a.privacy_accepted_at ? ` Agreed to the data privacy notice ${shortDate(a.privacy_accepted_at)}.` : null}
+      </p>
     </div>
   )
 }
