@@ -51,6 +51,8 @@ type Accreditation = {
   /** When they agreed to the data privacy notice on the form (older forms: null). */
   privacy_accepted_at: string | null
   agreement: object | null
+  /** The newest certificate of accreditation (once the signed copy is checked). */
+  certificate: { number: string; issued_at: string; status: "valid" | "expired" | "ended" | "replaced" } | null
   /** Accepted ones: how long it runs, and the signed copy. */
   period: Period | null
 }
@@ -103,7 +105,7 @@ export default async function AccreditationReviewPage({ params }: { params: Prom
       />
 
       {a.period ? (
-        <PeriodPanel slug={slug} id={a.id} firm={d.firm_name} period={a.period} today={todayManila()} agreed={a.agreed} printable={a.agreement !== null} />
+        <PeriodPanel slug={slug} id={a.id} firm={d.firm_name} period={a.period} today={todayManila()} agreed={a.agreed} printable={a.agreement !== null} certificate={a.certificate} />
       ) : (
         a.status === "submitted" && (
           <Panel title="Accreditation agreement">

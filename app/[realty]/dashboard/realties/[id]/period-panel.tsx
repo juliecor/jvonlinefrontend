@@ -3,7 +3,7 @@
 import { useState, useTransition } from "react"
 import Link from "next/link"
 import { useRouter } from "next/navigation"
-import { Ban, CalendarClock, Check, ExternalLink, FileCheck2, LoaderCircle, Printer, RotateCw, Undo2 } from "lucide-react"
+import { Award, Ban, CalendarClock, Check, ExternalLink, FileCheck2, LoaderCircle, Printer, RotateCw, Undo2 } from "lucide-react"
 import { Panel, Tag } from "@/components/dashboard-ui"
 import { toast } from "@/components/feedback"
 import { Modal } from "@/components/modal"
@@ -25,7 +25,25 @@ const nextDay = (iso: string) => {
  * it now with a reason. Then the signed and notarized agreement it uploads: open it,
  * accept it, or send it back with what to fix.
  */
-export function PeriodPanel({ slug, id, firm, period, today, agreed, printable }: { slug: string; id: number; firm: string; period: Period; today: string; agreed: { name: string; at: string } | null; printable: boolean }) {
+export function PeriodPanel({
+  slug,
+  id,
+  firm,
+  period,
+  today,
+  agreed,
+  printable,
+  certificate,
+}: {
+  slug: string
+  id: number
+  firm: string
+  period: Period
+  today: string
+  agreed: { name: string; at: string } | null
+  printable: boolean
+  certificate: { number: string; issued_at: string; status: "valid" | "expired" | "ended" | "replaced" } | null
+}) {
   const router = useRouter()
   const [pending, start] = useTransition()
   const [dialog, setDialog] = useState<"renew" | "end" | null>(null)
@@ -172,6 +190,17 @@ export function PeriodPanel({ slug, id, firm, period, today, agreed, printable }
               <Tag tone="good">Checked and accepted</Tag>
               {copy.document_id && <FileLink href={`/${slug}/dashboard/realties/${id}/documents/${copy.document_id}`} />}
             </div>
+          )}
+          {certificate && (
+            <p className="flex flex-wrap items-center gap-x-3 gap-y-1 text-[15px] text-[#3d3a34]">
+              <span>
+                Certificate No. <strong>{certificate.number}</strong> issued {shortDate(certificate.issued_at)}
+                {certificate.status !== "valid" && ` (${certificate.status === "replaced" ? "replaced" : certificate.status === "expired" ? "expired" : "no longer valid"})`}.
+              </span>
+              <Link href={`/${slug}/certificate?form=${id}`} target="_blank" className="inline-flex items-center gap-1.5 text-sm font-bold text-[var(--accent)] hover:underline">
+                <Award className="h-4 w-4" /> View certificate
+              </Link>
+            </p>
           )}
           {copy.status === "returned" && (
             <p className="border-l-4 border-amber-500 bg-amber-50 px-4 py-2.5 text-[15px] text-amber-950">

@@ -1,6 +1,8 @@
 import Link from "next/link"
 import { redirect } from "next/navigation"
-import { CircleCheck, Printer } from "lucide-react"
+import { Award, CircleCheck, Printer } from "lucide-react"
+import { Certificate, type CertificateData } from "@/components/certificate"
+import { CopyButton } from "@/components/copy-button"
 import { PageHeader, Panel, Tag } from "@/components/dashboard-ui"
 import { ApiError, api } from "@/lib/api"
 import { longDate, shortDate } from "@/lib/format"
@@ -20,6 +22,8 @@ type Mine = {
   end_note: string | null
   agreed: { name: string; at: string } | null
   agreement: object | null
+  /** Issued once the developer checks the signed copy. */
+  certificate: CertificateData | null
   signed_copy: {
     status: Period["signed_copy"]["status"]
     due: string | null
@@ -84,6 +88,40 @@ export default async function MyAccreditationPage({ params }: { params: Promise<
           )}
           {a.state === "ending" && <p className="mt-3 border-l-4 border-amber-500 bg-amber-50 px-4 py-2.5 text-[15px] text-amber-950">Ask {a.developer} to renew it before it ends, so you can keep making offers.</p>}
         </div>
+      </Panel>
+
+      <Panel title="Certificate of accreditation">
+        {a.certificate ? (
+          <div className="grid gap-6 pt-5 lg:grid-cols-[1fr_1.15fr] lg:items-center">
+            <div>
+              {a.certificate.status === "valid" ? (
+                <>
+                  <p className="flex items-center gap-2 text-2xl font-bold tracking-tight text-[#17150f]">
+                    <Award className="h-7 w-7 shrink-0 text-[var(--accent)]" /> Congratulations!
+                  </p>
+                  <p className="mt-2 text-[15px] text-[#3d3a34]">
+                    {user.realty.name} is fully accredited by {a.developer} until <strong>{longDate(a.certificate.until)}</strong>.
+                  </p>
+                </>
+              ) : (
+                <p className="text-[15px] font-semibold text-red-800">This certificate is no longer valid. A new one comes when {a.developer} renews your accreditation.</p>
+              )}
+              <p className="mt-3 text-sm text-[#6b665d]">Certificate No. {a.certificate.number}</p>
+              <div className="mt-4 flex flex-wrap items-center gap-2">
+                <Link href={`/${slug}/certificate`} target="_blank" className="inline-flex items-center gap-2 bg-[#17150f] px-5 py-3 text-[15px] font-bold text-white hover:bg-[#3d3a34]">
+                  <Printer className="h-5 w-5" /> View and print
+                </Link>
+                <CopyButton text={a.certificate.verify_url} label="Copy check link" className="bg-white" />
+              </div>
+              <p className="mt-3 text-sm text-[#6b665d]">Share the check link with buyers: it shows anyone that your certificate is real and still valid.</p>
+            </div>
+            <Link href={`/${slug}/certificate`} target="_blank" aria-label="Open the certificate" className="block shadow-[0_20px_45px_-25px_rgba(23,21,15,0.6)] transition hover:-translate-y-0.5">
+              <Certificate c={a.certificate} />
+            </Link>
+          </div>
+        ) : (
+          <p className="pt-5 text-[15px] text-[#5a554d]">Your certificate of accreditation is issued once {a.developer} checks and accepts your signed, notarized agreement. We&apos;ll email it to you.</p>
+        )}
       </Panel>
 
       <Panel title="Signed agreement">
