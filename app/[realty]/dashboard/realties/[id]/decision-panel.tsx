@@ -5,6 +5,7 @@ import { AlertCircle, BadgeCheck, Check, CircleCheck, LoaderCircle, MailWarning,
 import { CopyButton } from "@/components/copy-button"
 import { shortDate } from "@/lib/format"
 import { type LoginResult, acceptAccreditation, rejectAccreditation, resendLoginDetails } from "../actions"
+import { type Term, TermChoice, lastDay } from "../term-choice"
 
 type Props = {
   slug: string
@@ -17,11 +18,13 @@ type Props = {
   reviewedBy: string | null
   reviewedAt: string | null
   reviewNote: string | null
+  /** Today in Manila: the accreditation runs from today when accepted. */
+  today: string
 }
 
 /**
- * The decision. Pending: accept (asks once more, since it makes the realty and emails its login)
- * or turn it down with a reason. Accepted: where the realty signs in, and a way to resend the login.
+ * The decision. Pending: accept for a term (a year, to December 31 or a chosen day; asks once more,
+ * since it makes the realty and emails its login) or turn it down with a reason. Accepted: where the realty signs in, and a way to resend the login.
  */
 export function DecisionPanel(p: Props) {
   const [pending, start] = useTransition()
@@ -29,10 +32,12 @@ export function DecisionPanel(p: Props) {
   const [note, setNote] = useState("")
   const [error, setError] = useState<string>()
   const [login, setLogin] = useState<LoginResult | null>(null)
+  const [term, setTerm] = useState<Term>({ term: "1y", until: "" })
+  const until = lastDay(term, p.today)
 
   const accept = () =>
     start(async () => {
-      const r = await acceptAccreditation(p.slug, p.id)
+      const r = await acceptAccreditation(p.slug, p.id, term)
       setError(r.error)
       if (r.login) setLogin(r.login)
       if (!r.error) setMode("idle")
@@ -146,14 +151,20 @@ export function DecisionPanel(p: Props) {
       )}
 
       {mode === "accept" && (
-        <div className="mt-4 flex flex-wrap items-center gap-2 border border-emerald-300 bg-white px-4 py-3">
-          <span className="text-sm font-semibold text-[#3d3a34]">Accept {p.firm} and email its login?</span>
-          <button type="button" onClick={accept} disabled={pending} className="inline-flex items-center gap-1.5 bg-emerald-700 px-3 py-2 text-xs font-bold text-white hover:bg-emerald-800 disabled:opacity-60">
-            {pending && <LoaderCircle className="h-3.5 w-3.5 animate-spin" />} Yes, accept
-          </button>
-          <button type="button" disabled={pending} onClick={() => setMode("idle")} className="px-2 py-2 text-xs font-semibold text-[#8a847a] hover:text-[#17150f]">
-            Cancel
-          </button>
+        <div className="mt-4 border border-emerald-300 bg-emerald-50/40 p-4">
+          <p className="text-xs font-bold uppercase tracking-[0.12em] text-[#5a554d]">How long is {p.firm} accredited?</p>
+          <p className="mt-1 text-sm text-[#6b665d]">From today. You can renew, extend or end it later. When it ends they can&apos;t make new offers.</p>
+          <div className="mt-3">
+            <TermChoice value={term} onChange={setTerm} from={p.today} today={p.today} />
+          </div>
+          <div className="mt-4 flex flex-wrap items-center gap-2">
+            <button type="button" onClick={accept} disabled={pending || !until} className="inline-flex items-center gap-1.5 bg-emerald-700 px-4 py-2.5 text-sm font-bold text-white hover:bg-emerald-800 disabled:opacity-60">
+              {pending ? <LoaderCircle className="h-4 w-4 animate-spin" /> : <Check className="h-4 w-4" strokeWidth={3} />} {until ? `Accept until ${shortDate(until)} and email the login` : "Accept"}
+            </button>
+            <button type="button" disabled={pending} onClick={() => setMode("idle")} className="px-2 py-2.5 text-sm font-semibold text-[#8a847a] hover:text-[#17150f]">
+              Cancel
+            </button>
+          </div>
         </div>
       )}
 

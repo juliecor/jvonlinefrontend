@@ -26,6 +26,8 @@ export type PublicRealty = {
   kind?: "developer" | "broker"
   /** The developer a broker is accredited under; its name and logo show on the broker's pages. */
   developer?: { name: string; slug: string; logo_url: string | null } | null
+  /** A broker's accreditation (signed-in only): when it ends, and whether it still runs. New offers stop when it doesn't. */
+  accreditation?: { active: boolean; until: string | null; ended: boolean } | null
 }
 
 export type RealtyUser = AuthUser & { role: "realty" | "agent"; realty: PublicRealty }

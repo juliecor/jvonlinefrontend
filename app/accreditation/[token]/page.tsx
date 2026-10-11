@@ -3,6 +3,7 @@ import Link from "next/link"
 import { ApiError, api } from "@/lib/api"
 import { RealtyMark } from "@/components/form"
 import { todayManila } from "@/lib/format"
+import type { AgreementDoc } from "@/components/agreement-document"
 import { type AccreditationDocumentRow, AccreditationForm } from "./accreditation-form"
 
 export const metadata: Metadata = { title: "Realty accreditation", robots: { index: false, follow: false } }
@@ -13,6 +14,8 @@ type Invite = {
   expires_at: string
   documents: AccreditationDocumentRow[]
   civil_statuses: string[]
+  /** The agreement to sign on the form; null until the developer has set it up. */
+  agreement: (AgreementDoc & { signed_copy_days: number }) | null
 }
 
 /** jvconline.ph/accreditation/<token> — where the accreditation invite email lands. The token alone identifies the invite. */
@@ -51,10 +54,10 @@ export default async function AccreditationPage({ params }: { params: Promise<{ 
             <div className="border-t border-[#e6e2db] px-5 pb-12 pt-10 sm:px-14">
               <h1 className="text-center text-2xl font-extrabold uppercase tracking-tight sm:text-3xl">Realty Accreditation</h1>
               <p className="mx-auto mt-3 max-w-xl text-center text-[15px] leading-relaxed text-[#5a554d]">
-                Tell us about your realty and attach your registration documents. {invite.developer.name} reviews every form and emails you the login for your dashboard once it is accepted.
+                Tell us about your realty, attach your registration documents{invite.agreement ? " and sign the accreditation agreement" : ""}. {invite.developer.name} reviews every form and emails you the login for your dashboard once it is accepted.
               </p>
               <div className="mt-12">
-                <AccreditationForm token={token} developer={invite.developer.name} email={invite.email} documents={invite.documents} civilStatuses={invite.civil_statuses} today={today} adultBy={adultBy} />
+                <AccreditationForm token={token} developer={invite.developer.name} email={invite.email} documents={invite.documents} civilStatuses={invite.civil_statuses} agreement={invite.agreement} today={today} adultBy={adultBy} />
               </div>
             </div>
           </>

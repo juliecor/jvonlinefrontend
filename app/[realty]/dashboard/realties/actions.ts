@@ -1,9 +1,10 @@
 "use server"
 
 import { revalidatePath } from "next/cache"
-import { api, errorMessage } from "@/lib/api"
+import { ApiError, api, errorMessage } from "@/lib/api"
 import { isDeveloperStaff } from "@/lib/realty-roles"
 import { requireRealtyUser } from "@/lib/realty-auth"
+import type { Term } from "./term-choice"
 
 /** What an invite or a resend gives back: the link too, in case the email can't be sent. */
 type Sent = { id: number; email: string; expires_at: string; emailed: boolean; accreditation_url: string }
@@ -47,12 +48,13 @@ export async function resendInvite(slug: string, id: number, mail = true): Promi
   }
 }
 
-/** Accept: makes the broker realty and mails its login. The sidebar's "to review" count updates with it. */
-export async function acceptAccreditation(slug: string, id: number): Promise<{ error?: string; login?: LoginResult }> {
+/** Accept for a term: makes the broker realty and mails its login. The sidebar's "to review" count updates with it. */
+export async function acceptAccreditation(slug: string, id: number, term: Term): Promise<{ error?: string; login?: LoginResult }> {
   const session = await staff(slug)
   if (!session) return { error: "Only the developer's admins can accept a realty." }
+  if (term.term === "custom" && !term.until) return { error: "Pick the last day of the accreditation." }
   try {
-    const login = await api<LoginResult>(`/realty/realties/accreditations/${id}/approve`, { method: "POST", token: session.token })
+    const login = await api<LoginResult>(`/realty/realties/accreditations/${id}/approve`, { method: "POST", token: session.token, body: { term: term.term, until: term.term === "custom" ? term.until : null } })
     revalidatePath(`/${slug}/dashboard`, "layout")
     return { login }
   } catch (e) {
@@ -109,5 +111,63 @@ export async function deleteBroker(slug: string, id: number): Promise<{ error?: 
     return { error: errorMessage(e) }
   }
   revalidatePath(`/${slug}/dashboard`, "layout")
+  return {}
+}
+
+/** Renew or extend an accepted realty's accreditation (it also starts one that was ended early again). */
+export async function renewAccreditation(slug: string, id: number, term: Term): Promise<{ error?: string }> {
+  const session = await staff(slug)
+  if (!session) return { error: "Only the developer's admins can renew an accreditation." }
+  if (term.term === "custom" && !term.until) return { error: "Pick the last day of the accreditation." }
+  try {
+    await api(`/realty/realties/accreditations/${id}/term`, { method: "POST", token: session.token, body: { term: term.term, until: term.term === "custom" ? term.until : null } })
+  } catch (e) {
+    return { error: errorMessage(e) }
+  }
+  revalidatePath(`/${slug}/dashboard/realties`, "layout")
+  return {}
+}
+
+/** End an accreditation now: the realty makes no new offers from today. Offers already made carry on. */
+export async function endAccreditation(slug: string, id: number, note: string): Promise<{ error?: string }> {
+  const session = await staff(slug)
+  if (!session) return { error: "Only the developer's admins can end an accreditation." }
+  if (!note.trim()) return { error: 'Say why, e.g. "Advertised without approval".' }
+  try {
+    await api(`/realty/realties/accreditations/${id}/end`, { method: "POST", token: session.token, body: { note: note.trim() } })
+  } catch (e) {
+    return { error: errorMessage(e) }
+  }
+  revalidatePath(`/${slug}/dashboard/realties`, "layout")
+  return {}
+}
+
+/** The signed and notarized agreement a realty uploaded: accept it, or send it back saying what to fix. */
+export async function checkSignedCopy(slug: string, id: number, verdict: "verified" | "returned", note = ""): Promise<{ error?: string }> {
+  const session = await staff(slug)
+  if (!session) return { error: "Only the developer's admins can check the signed agreement." }
+  if (verdict === "returned" && !note.trim()) return { error: 'Say what to fix, e.g. "Page 2 has no signature".' }
+  try {
+    await api(`/realty/realties/accreditations/${id}/signed-copy`, { method: "POST", token: session.token, body: { verdict, note: note.trim() || null } })
+  } catch (e) {
+    return { error: errorMessage(e) }
+  }
+  revalidatePath(`/${slug}/dashboard/realties`, "layout")
+  return {}
+}
+
+export type AgreementSettings = { representative_name: string; representative_title: string; office_address: string; commission: { classification: string; rate: string }[]; signed_copy_days: number }
+
+/** The developer's details on the agreement. Once they are filled in, every new realty signs the agreement on its form. */
+export async function saveAgreementSettings(slug: string, settings: AgreementSettings): Promise<{ error?: string; fieldErrors?: Record<string, string> }> {
+  const session = await staff(slug)
+  if (!session) return { error: "Only the developer's admins can change the agreement." }
+  try {
+    await api("/realty/realties/agreement", { method: "POST", token: session.token, body: settings })
+  } catch (e) {
+    if (e instanceof ApiError && e.status === 422) return { error: "Some details need another look.", fieldErrors: Object.fromEntries(Object.entries(e.errors).map(([k, v]) => [k, v[0]])) }
+    return { error: errorMessage(e) }
+  }
+  revalidatePath(`/${slug}/dashboard/realties`, "layout")
   return {}
 }

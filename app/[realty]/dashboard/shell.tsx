@@ -3,11 +3,12 @@
 import { useEffect, useRef, useState } from "react"
 import Link from "next/link"
 import { usePathname } from "next/navigation"
-import { ArrowUpRight, BadgeCheck, Building2, ChevronDown, ClipboardCheck, FileText, Globe, Handshake, Landmark, LayoutDashboard, ListChecks, LogOut, Menu, Plus, Settings, Sparkles, UserCog, UsersRound, Users, X } from "lucide-react"
+import { ArrowUpRight, BadgeCheck, Ban, Building2, ChevronDown, ClipboardCheck, FileText, Globe, Handshake, Landmark, LayoutDashboard, ListChecks, LogOut, Menu, Plus, Settings, ShieldCheck, Sparkles, UserCog, UsersRound, Users, X } from "lucide-react"
 import { Feedback } from "@/components/feedback"
 import { AskPanel } from "./ai/ask-panel"
 import { RealtyMark } from "@/components/form"
 import { assistantName } from "@/lib/assistant-name"
+import { shortDate, todayManila } from "@/lib/format"
 import { type ViewRealty, RoleSwitch } from "@/components/role-switch"
 import { SITE_REALTY } from "@/lib/public-projects-types"
 import type { RealtyUser } from "@/lib/realty-auth"
@@ -50,6 +51,12 @@ export function DashboardShell({ slug, user, counts, superAdmin, signOutAction, 
 
   // A staff member sees only the sections their admin gave them (see Team > Staff).
   const may = (section: Section) => can(user, section)
+  // A broker whose accreditation ran out or was ended makes no new offers until the developer renews it.
+  const accreditation = broker ? realty.accreditation : null
+  const stopped = accreditation?.active === false
+  const daysLeft = accreditation?.until ? Math.round((Date.parse(`${accreditation.until}T00:00:00Z`) - Date.parse(`${todayManila()}T00:00:00Z`)) / 86400000) : null
+  const endingSoon = !stopped && daysLeft !== null && daysLeft <= 30
+  const newOffer = may("offers") && !stopped
 
   // Anything waiting on this person: buyer updates, offers to approve, and (for staff) agents to approve.
   const waiting = (counts?.myTasksOverdue ?? 0) + (may("offers") ? (counts?.newResponses ?? 0) : 0) + (developerStaff && may("approvals") ? (counts?.toApprove ?? 0) : 0) + (staff && may("agents") ? (counts?.agentsPending ?? 0) : 0) + (developerStaff && may("realties") ? (counts?.realtiesPending ?? 0) : 0)
@@ -83,6 +90,8 @@ export function DashboardShell({ slug, user, counts, superAdmin, signOutAction, 
               ...(developerStaff && may("realties") ? [{ href: `/${slug}/dashboard/realties`, label: "Realties", icon: Handshake, alert: counts?.realtiesPending ? `${counts.realtiesPending} to review` : undefined }] : []),
               // The realty's own staff accounts and what each may use (full admins).
               ...(may("staff") ? [{ href: `/${slug}/dashboard/staff`, label: "Staff", icon: UserCog }] : []),
+              // An accredited realty's own accreditation: its period and the signed agreement.
+              ...(broker ? [{ href: `/${slug}/dashboard/accreditation`, label: "Accreditation", icon: ShieldCheck, alert: stopped ? "ended" : endingSoon ? "ends soon" : undefined }] : []),
             ],
           },
           ...(developerStaff && may("requirements") ? [{ title: "Setup", items: [{ href: `/${slug}/dashboard/requirements`, label: "Buyer requirements", icon: ClipboardCheck }] }] : []),
@@ -124,7 +133,7 @@ export function DashboardShell({ slug, user, counts, superAdmin, signOutAction, 
       </div>
 
       {/* Primary action */}
-      {may("offers") && (
+      {newOffer && (
         <div className="px-5 pt-5">
           <Link
             href={`/${slug}/dashboard/offers/new`}
@@ -231,7 +240,7 @@ export function DashboardShell({ slug, user, counts, superAdmin, signOutAction, 
             <RealtyMark name={realty.name} logo={realty.logo_url} className="h-9" />
           </Link>
           <div className="flex items-center gap-2">
-            {may("offers") && (
+            {newOffer && (
               <Link href={`/${slug}/dashboard/offers/new`} className="flex items-center gap-1.5 bg-[var(--accent)] px-3 py-2 text-sm font-bold text-white">
                 <Plus className="h-4 w-4" strokeWidth={2.5} /> Offer
               </Link>
@@ -256,7 +265,24 @@ export function DashboardShell({ slug, user, counts, superAdmin, signOutAction, 
       )}
 
       <main className="min-w-0 px-5 py-8 sm:px-10 sm:py-12">
-        <div className="mx-auto max-w-5xl">{children}</div>
+        <div className="mx-auto max-w-5xl">
+          {stopped && (
+            <div role="status" className="mb-8 flex flex-col gap-2 border-l-4 border-red-600 bg-red-50 px-4 py-3 sm:flex-row sm:items-center sm:justify-between">
+              <p className="flex items-start gap-2.5 text-[15px] font-semibold text-red-900">
+                <Ban className="mt-0.5 h-5 w-5 shrink-0" />
+                <span>
+                  Your accreditation with {realty.developer?.name ?? "the developer"} {accreditation?.ended ? "was ended" : `ended on ${shortDate(accreditation?.until)}`}. You can&apos;t make new offers until they renew it.
+                </span>
+              </p>
+              {staff && (
+                <Link href={`/${slug}/dashboard/accreditation`} className="shrink-0 text-sm font-bold text-red-800 underline-offset-4 hover:underline">
+                  See accreditation
+                </Link>
+              )}
+            </div>
+          )}
+          {children}
+        </div>
         <p className="mt-16 text-center text-xs text-[#a39d92]">
           Powered by <Link href="/platform" className="font-medium text-[#8a847a] hover:text-[#17150f]">jvconline</Link>
         </p>

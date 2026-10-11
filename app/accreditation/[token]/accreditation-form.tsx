@@ -2,29 +2,35 @@
 
 import { useEffect, useRef, useState, useTransition } from "react"
 import { AlertCircle, CircleCheck, FileText, LoaderCircle, Paperclip, Send, X } from "lucide-react"
+import { type AgreementDoc, AgreementDocument } from "@/components/agreement-document"
 import { ChoiceBox } from "@/components/choice-box"
 import { fileSize } from "@/lib/requirements-types"
 import { type AccreditationState, submitAccreditation } from "./actions"
 
 export type AccreditationDocumentRow = { kind: string; name: string; label: string; required_for: "corporation" | "sole_proprietor" | null }
 
-type Props = { token: string; developer: string; email: string; documents: AccreditationDocumentRow[]; civilStatuses: string[]; today: string; adultBy: string }
+type Props = { token: string; developer: string; email: string; documents: AccreditationDocumentRow[]; civilStatuses: string[]; agreement: (AgreementDoc & { signed_copy_days: number }) | null; today: string; adultBy: string }
 
 const MAX_FILE = 10 * 1024 * 1024
 const inputBase = "block w-full border bg-white px-3.5 py-3 text-[15px] text-[#17150f] outline-none transition placeholder:text-[#b3ada3] focus:border-[var(--accent)] focus:ring-2 focus:ring-[var(--accent)]/15 disabled:bg-[#f6f4f0] disabled:text-[#a39d92]"
 const input = (error?: string) => `${inputBase} ${error ? "border-red-500 bg-red-50/40" : "border-[#d9d4cb]"}`
+/** The typed signature has to be the representative's name: case and extra spaces don't matter. */
+const sameName = (a: string, b: string) => a.trim().replace(/\s+/g, " ").toLowerCase() === b.trim().replace(/\s+/g, " ").toLowerCase()
 
 /**
  * The accreditation form: choose Corporation or Sole Proprietor, the firm's and the representative's
- * details, and the registration documents. What can be checked here is, so a missing answer doesn't
+ * details, the registration documents, and (once the developer has set it up) the accreditation
+ * agreement, signed by ticking a box and typing the representative's name. What can be checked here is, so a missing answer doesn't
  * send five files over again; Laravel checks everything once more. The form is submitted by hand
  * (not as a form action) so the chosen files stay put when an answer needs another look.
  */
-export function AccreditationForm({ token, developer, email, documents, civilStatuses, today, adultBy }: Props) {
+export function AccreditationForm({ token, developer, email, documents, civilStatuses, agreement, today, adultBy }: Props) {
   const formRef = useRef<HTMLFormElement>(null)
   const fileInputs = useRef<Record<string, HTMLInputElement | null>>({})
   const [type, setType] = useState<"corporation" | "sole_proprietor" | "">("")
   const [hlurb, setHlurb] = useState("")
+  // What the agreement shows for the realty while the form is filled in.
+  const [party, setParty] = useState({ name: "", firm: "", address: "", citizenship: "Filipino" })
   const [files, setFiles] = useState<Record<string, { name: string; size: number } | null>>({})
   const [errors, setErrors] = useState<Record<string, string>>({})
   const [formError, setFormError] = useState<string>()
@@ -97,6 +103,11 @@ export function AccreditationForm({ token, developer, email, documents, civilSta
     for (const doc of documents) {
       if (required(doc) && !files[doc.kind]) found[`documents.${doc.kind}`] = `Attach your ${doc.name}.`
     }
+    if (agreement) {
+      if (!fd.get("agree")) found.agree = "Tick the box to agree to the accreditation agreement."
+      if (!text("agreed_name")) found.agreed_name = "Type your full name to sign the agreement."
+      else if (text("representative_name") && !sameName(text("agreed_name"), text("representative_name"))) found.agreed_name = `Type the representative's full name exactly as above: ${text("representative_name")}.`
+    }
     return found
   }
 
@@ -130,6 +141,11 @@ export function AccreditationForm({ token, developer, email, documents, civilSta
         <p className="mt-3 max-w-xl text-[15px] leading-relaxed text-emerald-900">
           {developer} will review your accreditation. Once it is accepted we will email <strong>{sent.email}</strong> your username and a temporary password for your dashboard. You can close this page now.
         </p>
+        {agreement && (
+          <p className="mt-3 max-w-xl text-[15px] leading-relaxed text-emerald-900">
+            Next: when you are accepted, open <strong>Accreditation</strong> in your dashboard to print the agreement, sign every page, have it notarized and upload it within {agreement.signed_copy_days} days.
+          </p>
+        )}
       </div>
     )
   }
@@ -148,10 +164,10 @@ export function AccreditationForm({ token, developer, email, documents, civilSta
 
         <Grid>
           <Field label="Name of Realty Firm or Broker" required error={err("firm_name")}>
-            <input name="firm_name" maxLength={150} autoComplete="organization" className={input(err("firm_name"))} />
+            <input name="firm_name" maxLength={150} autoComplete="organization" onChange={(e) => setParty((p) => ({ ...p, firm: e.target.value }))} className={input(err("firm_name"))} />
           </Field>
           <Field label="Residential Address" required error={err("residential_address")}>
-            <input name="residential_address" maxLength={255} autoComplete="street-address" className={input(err("residential_address"))} />
+            <input name="residential_address" maxLength={255} autoComplete="street-address" onChange={(e) => setParty((p) => ({ ...p, address: e.target.value }))} className={input(err("residential_address"))} />
           </Field>
           <Field label="Tax Identification No. (Company)" required={type === "corporation"} hint={type === "sole_proprietor" ? "Not needed for a sole proprietor." : undefined} error={err("tin_company")}>
             <input name="tin_company" maxLength={40} inputMode="numeric" placeholder="000-000-000-000" className={input(err("tin_company"))} />
@@ -178,7 +194,7 @@ export function AccreditationForm({ token, developer, email, documents, civilSta
       <Section title="Personal & contact details" note="Of the person who represents your realty. This person gets the login for your dashboard.">
         <Grid>
           <Field label="Full Name of Representative" required error={err("representative_name")} wide>
-            <input name="representative_name" maxLength={120} autoComplete="name" className={input(err("representative_name"))} />
+            <input name="representative_name" maxLength={120} autoComplete="name" onChange={(e) => setParty((p) => ({ ...p, name: e.target.value }))} className={input(err("representative_name"))} />
           </Field>
           <Field label="Place of Birth" required error={err("place_of_birth")}>
             <input name="place_of_birth" maxLength={150} className={input(err("place_of_birth"))} />
@@ -187,7 +203,7 @@ export function AccreditationForm({ token, developer, email, documents, civilSta
             <input name="date_of_birth" type="date" max={adultBy} autoComplete="bday" className={input(err("date_of_birth"))} />
           </Field>
           <Field label="Citizenship" required error={err("citizenship")}>
-            <input name="citizenship" maxLength={80} defaultValue="Filipino" className={input(err("citizenship"))} />
+            <input name="citizenship" maxLength={80} defaultValue="Filipino" onChange={(e) => setParty((p) => ({ ...p, citizenship: e.target.value }))} className={input(err("citizenship"))} />
           </Field>
           <div data-invalid={!!err("gender")} className="flex flex-col justify-end pb-1">
             <span className="mb-2.5 block text-xs font-bold uppercase tracking-[0.12em] text-[#5a554d]">
@@ -295,6 +311,30 @@ export function AccreditationForm({ token, developer, email, documents, civilSta
           })}
         </ul>
       </Section>
+
+      {/* THE AGREEMENT */}
+      {agreement && (
+        <Section title="Accreditation agreement" note={`Read it, then sign it below. Once ${developer} accepts your accreditation, you print it from your dashboard, sign every page, have it notarized and upload it within ${agreement.signed_copy_days} days.`}>
+          <div tabIndex={0} aria-label="The accreditation agreement" className="max-h-[28rem] overflow-y-auto border border-[#d9d4cb] bg-[#faf8f5] px-5 py-6 outline-none focus-visible:ring-2 focus-visible:ring-[var(--accent)]/40 sm:px-8">
+            <AgreementDocument doc={agreement} fill={party} signing={false} />
+          </div>
+
+          <div data-invalid={!!err("agree")} className="mt-6">
+            <label className="flex cursor-pointer items-start gap-3">
+              <input type="checkbox" name="agree" value="1" className="mt-1 h-5 w-5 shrink-0 accent-[var(--accent)]" />
+              <span className="text-[15px] leading-relaxed">
+                I have read the Broker&apos;s Accreditation Agreement and I agree to it on behalf of my realty. I will sign the printed copy and have it notarized once {developer} accepts us.
+              </span>
+            </label>
+            {err("agree") && <p className="mt-2 text-sm font-semibold text-red-700">{err("agree")}</p>}
+          </div>
+          <div className="mt-6 sm:max-w-md">
+            <Field label="Type your full name to sign" required hint="The same as the Full Name of Representative above." error={err("agreed_name")}>
+              <input name="agreed_name" maxLength={120} autoComplete="off" className={`${input(err("agreed_name"))} font-semibold`} />
+            </Field>
+          </div>
+        </Section>
+      )}
 
       {formError && (
         <p role="alert" className="flex gap-3 border-l-4 border-red-600 bg-red-50 px-4 py-3.5 text-[15px] font-semibold text-red-800">

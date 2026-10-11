@@ -1,5 +1,6 @@
 import Link from "next/link"
 import { redirect } from "next/navigation"
+import { FileSignature } from "lucide-react"
 import { Empty, PageHeader, Panel, Row, Rows, Tag } from "@/components/dashboard-ui"
 import { api } from "@/lib/api"
 import { shortDate } from "@/lib/format"
@@ -9,28 +10,58 @@ import { InviteRealtyForm } from "./invite-form"
 import { DeleteButton } from "../delete-button"
 import { deleteAccreditation, deleteBroker } from "./actions"
 import { ResendInviteButton } from "./resend-invite-button"
+import { PERIOD_TAG, type Period } from "./period"
 
 export const metadata = { title: "Realty Company Invitation" }
 
 type Overview = {
   pending: { id: number; firm_name: string; business_type: "corporation" | "sole_proprietor"; representative_name: string; email: string; submitted_at: string; documents_count: number }[]
-  brokers: { id: number; name: string; slug: string; contact_name: string | null; email: string | null; phone: string | null; agents_count: number; offers_count: number; accredited_at: string; accreditation_id: number | null }[]
+  brokers: { id: number; name: string; slug: string; contact_name: string | null; email: string | null; phone: string | null; agents_count: number; offers_count: number; accredited_at: string; accreditation_id: number | null; period: Period | null }[]
   invited: { id: number; email: string; invited_at: string; expires_at: string; expired: boolean; invited_by: string | null }[]
   rejected: { id: number; firm_name: string; email: string; review_note: string | null; reviewed_at: string }[]
+  /** The agreement's details are filled in, so new realties sign it on their form. */
+  agreement_ready: boolean
 }
 
 const TYPE_LABEL = { corporation: "Corporation", sole_proprietor: "Sole proprietor" } as const
+
+/** " · until Oct 10, 2027", " · ended Nov 2, 2026" and so on, after the accredited date. */
+const periodNote = (p: Period) =>
+  p.state === "ended" ? ` · ended ${shortDate(p.ended_at)}` : p.state === "expired" ? ` · expired ${shortDate(p.until)}` : p.until ? ` · until ${shortDate(p.until)}${p.state === "ending" ? ` (${p.days_left} day${p.days_left === 1 ? "" : "s"} left)` : ""}` : ""
 
 /** jvconline.ph/<realty>/dashboard/realties — realties accredited under this developer: invite, review, accept. Developer admins only. */
 export default async function RealtiesPage({ params }: { params: Promise<{ realty: string }> }) {
   const { realty: slug } = await params
   const { user, token } = await requireSection(slug, "realties")
   if (!isDeveloperStaff(user)) redirect(`/${slug}/dashboard`)
-  const { pending, brokers, invited, rejected } = await api<Overview>("/realty/realties", { token })
+  const { pending, brokers, invited, rejected, agreement_ready } = await api<Overview>("/realty/realties", { token })
 
   return (
     <div>
-      <PageHeader eyebrow="Team" title="Realty Company Invitation" lede={`Realties accredited under ${user.realty.name} sell your projects and units through their own agents. Invite one by email, read its form, then accept it.`} />
+      <PageHeader
+        eyebrow="Team"
+        title="Realty Company Invitation"
+        lede={`Realties accredited under ${user.realty.name} sell your projects and units through their own agents. Invite one by email, read its form, then accept it.`}
+        action={
+          agreement_ready && (
+            <Link href={`/${slug}/dashboard/realties/agreement`} className="inline-flex items-center gap-2 border border-[#17150f] bg-white px-4 py-2.5 text-sm font-bold text-[#17150f] transition hover:bg-[#f6f4f0]">
+              <FileSignature className="h-4 w-4" /> Accreditation agreement
+            </Link>
+          )
+        }
+      />
+
+      {!agreement_ready && (
+        <div className="mt-8 flex flex-col gap-3 border-2 border-amber-300 bg-amber-50 p-5 sm:flex-row sm:items-center sm:justify-between">
+          <div>
+            <p className="text-lg font-bold">Set up the accreditation agreement</p>
+            <p className="mt-1 text-sm text-[#3d3a34]">Add who signs for {user.realty.name}, your office address and the commission rates. Until then, realties send the form without agreeing to it.</p>
+          </div>
+          <Link href={`/${slug}/dashboard/realties/agreement`} className="inline-flex shrink-0 items-center justify-center gap-2 bg-[#17150f] px-4 py-2.5 text-sm font-bold text-white hover:bg-[#3d3a34]">
+            <FileSignature className="h-4 w-4" /> Set it up
+          </Link>
+        </div>
+      )}
 
       <Panel title="Invite a realty" aside="They get an email with a link to the accreditation form. It works for 7 days.">
         <div className="pt-5">
@@ -100,10 +131,13 @@ export default async function RealtiesPage({ params }: { params: Promise<{ realt
               <div className="min-w-0">
                 <div className="flex flex-wrap items-center gap-2">
                   <p className="text-lg font-bold">{b.name}</p>
-                  <Tag tone="good">Accredited</Tag>
+                  {b.period ? <Tag tone={PERIOD_TAG[b.period.state].tone}>{PERIOD_TAG[b.period.state].label}</Tag> : <Tag tone="good">Accredited</Tag>}
+                  {b.period?.signed_copy.status === "submitted" && <Tag tone="accent">Signed copy to check</Tag>}
+                  {b.period?.signed_copy.overdue && <Tag tone="warn">Signed copy late</Tag>}
                 </div>
                 <p className="mt-0.5 text-sm text-[#6b665d]">
                   jvconline.ph/{b.slug}/login · accredited {shortDate(b.accredited_at)}
+                  {b.period && periodNote(b.period)}
                 </p>
                 <p className="mt-0.5 truncate text-sm text-[#8a847a]">{[b.contact_name, b.email, b.phone].filter(Boolean).join(" · ")}</p>
               </div>
@@ -116,7 +150,7 @@ export default async function RealtiesPage({ params }: { params: Promise<{ realt
                 </span>
                 {b.accreditation_id && (
                   <Link href={`/${slug}/dashboard/realties/${b.accreditation_id}`} className="font-bold text-[var(--accent)] hover:underline">
-                    Its form
+                    Manage
                   </Link>
                 )}
                 <DeleteButton

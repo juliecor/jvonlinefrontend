@@ -7,6 +7,7 @@ import { LeadTag, NewTag, type LeadKind } from "@/components/leads"
 import { dateTime, php, shortDate, timeAgo } from "@/lib/format"
 import type { RequirementSummary } from "@/lib/requirements-types"
 import { requireSection } from "@/lib/realty-auth"
+import { offersStopped } from "./new/stopped"
 import { ReqChip } from "./req-chip"
 import { DeleteButton } from "../delete-button"
 import { deleteOffer } from "./actions"
@@ -64,9 +65,11 @@ export default async function OffersPage({ params }: { params: Promise<{ realty:
         title="Sales offers"
         lede={staff ? "Every offer your agents have sent." : "The offers you've sent to buyers."}
         action={
-          <Link href={`/${slug}/dashboard/offers/new`} className={btn.primary}>
-            <Plus className="h-4 w-4" /> New offer
-          </Link>
+          !offersStopped(user) && (
+            <Link href={`/${slug}/dashboard/offers/new`} className={btn.primary}>
+              <Plus className="h-4 w-4" /> New offer
+            </Link>
+          )
         }
       />
 

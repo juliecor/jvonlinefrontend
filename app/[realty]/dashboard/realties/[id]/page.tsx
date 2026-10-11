@@ -1,13 +1,15 @@
 import Link from "next/link"
 import { notFound, redirect } from "next/navigation"
-import { ArrowLeft } from "lucide-react"
+import { ArrowLeft, Printer } from "lucide-react"
 import { PageHeader, Panel, Tag } from "@/components/dashboard-ui"
 import { ApiError, api } from "@/lib/api"
-import { longDate, shortDate } from "@/lib/format"
+import { longDate, shortDate, todayManila } from "@/lib/format"
 import { requireSection } from "@/lib/realty-auth"
 import { isDeveloperStaff } from "@/lib/realty-roles"
 import { DocumentsGallery } from "./documents-gallery"
 import { DecisionPanel } from "./decision-panel"
+import type { Period } from "../period"
+import { PeriodPanel } from "./period-panel"
 
 type Accreditation = {
   id: number
@@ -44,6 +46,11 @@ type Accreditation = {
   review_note: string | null
   realty: { id: number; name: string; slug: string; login_url: string } | null
   login_pending: boolean
+  /** Agreed online on the form (typed name), and the agreement to print (null until the developer sets it up). */
+  agreed: { name: string; at: string } | null
+  agreement: object | null
+  /** Accepted ones: how long it runs, and the signed copy. */
+  period: Period | null
 }
 
 const STATUS = { submitted: { tone: "warn", label: "Pending review" }, approved: { tone: "good", label: "Accepted" }, rejected: { tone: "bad", label: "Not accepted" } } as const
@@ -90,7 +97,25 @@ export default async function AccreditationReviewPage({ params }: { params: Prom
         reviewedBy={a.reviewed_by}
         reviewedAt={a.reviewed_at}
         reviewNote={a.review_note}
+        today={todayManila()}
       />
+
+      {a.period ? (
+        <PeriodPanel slug={slug} id={a.id} firm={d.firm_name} period={a.period} today={todayManila()} agreed={a.agreed} printable={a.agreement !== null} />
+      ) : (
+        a.status === "submitted" && (
+          <Panel title="Accreditation agreement">
+            <div className="flex flex-wrap items-center justify-between gap-3 pt-5">
+              <p className="text-[15px] text-[#3d3a34]">{a.agreed ? <>Agreed online by <strong>{a.agreed.name}</strong> on {longDate(a.agreed.at)}. Once accepted, they print it, sign it, have it notarized and upload it.</> : "Not agreed online: the form was sent before the agreement was set up."}</p>
+              {a.agreement && (
+                <Link href={`/${slug}/agreement?form=${a.id}`} target="_blank" className="inline-flex items-center gap-1.5 text-sm font-bold text-[var(--accent)] hover:underline">
+                  <Printer className="h-4 w-4" /> Read the agreement
+                </Link>
+              )}
+            </div>
+          </Panel>
+        )
+      )}
 
       <Panel title="Accreditation details">
         <Details
