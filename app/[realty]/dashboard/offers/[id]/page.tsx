@@ -1,6 +1,6 @@
 import Link from "next/link"
 import { notFound } from "next/navigation"
-import { ArrowLeft, ExternalLink, Home } from "lucide-react"
+import { ArrowLeft, ExternalLink, Home, ListChecks } from "lucide-react"
 import { CopyButton } from "@/components/copy-button"
 import { Panel, Tag, btn } from "@/components/dashboard-ui"
 import { ContactButtons, LeadTag, VIA_LABEL, type Lead } from "@/components/leads"
@@ -179,6 +179,12 @@ export default async function OfferDetailPage({ params }: { params: Promise<{ re
                   <CopyButton text={o.url} className="!rounded-none !px-4 !py-2.5 !text-sm" />
                 </>
               ) : null}
+              {/* A task about this buyer, e.g. "Collect the payslip", for someone on the team. */}
+              {user.role === "realty" && can(user, "tasks") && (
+                <Link href={`/${slug}/dashboard/tasks?new=1&offer=${o.id}`} className={btn.outline}>
+                  <ListChecks className="h-4 w-4" /> Create task
+                </Link>
+              )}
             </div>
           </div>
         </div>

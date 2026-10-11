@@ -27,6 +27,7 @@ export default async function StaffPage({ params }: { params: Promise<{ realty: 
     realties: { label: "Realty invitations", text: "Invite realty companies and accept their accreditation" },
     requirements: { label: "Buyer requirements", text: "Choose what buyers have to send" },
     ai: { label: assistantName(user.realty.name), text: "Ask about projects, units and (with Offers) buyers" },
+    tasks: { label: "Tasks", text: "Create tasks and give them to anyone; see everyone's tasks" },
   }
 
   return (

@@ -16,7 +16,7 @@ export const isDeveloperStaff = (user: Member) => user.role === "realty" && !isB
 export const isDeveloperMember = (user: Member) => !isBroker(user)
 
 /** The dashboard sections a realty's admin gives a staff member; "staff" (managing staff accounts) is for full admins. */
-export type Section = "offers" | "approvals" | "projects" | "agents" | "realties" | "requirements" | "ai" | "staff"
+export type Section = "offers" | "approvals" | "projects" | "agents" | "realties" | "requirements" | "ai" | "tasks" | "staff"
 
 /**
  * May this person use a section? Staff: only what their admin gave them (an

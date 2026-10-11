@@ -3,7 +3,7 @@
 import { useEffect, useRef, useState } from "react"
 import Link from "next/link"
 import { usePathname } from "next/navigation"
-import { ArrowUpRight, BadgeCheck, Building2, ChevronDown, ClipboardCheck, FileText, Globe, Handshake, Landmark, LayoutDashboard, LogOut, Menu, Plus, Settings, Sparkles, UserCog, UsersRound, Users, X } from "lucide-react"
+import { ArrowUpRight, BadgeCheck, Building2, ChevronDown, ClipboardCheck, FileText, Globe, Handshake, Landmark, LayoutDashboard, ListChecks, LogOut, Menu, Plus, Settings, Sparkles, UserCog, UsersRound, Users, X } from "lucide-react"
 import { Feedback } from "@/components/feedback"
 import { AskPanel } from "./ai/ask-panel"
 import { RealtyMark } from "@/components/form"
@@ -16,7 +16,7 @@ import { type Section, can, isBroker, isDeveloperStaff } from "@/lib/realty-role
 /** What a super admin gets on top of the realty's own dashboard: the platform's realties and people, and View as. */
 export type SuperAdminNav = { realties: ViewRealty[]; realtyCount: number | null; peopleCount: number | null }
 
-export type ShellCounts = { projects: number; offers: number; agents: number; agentsInvited: number; agentsPending: number; publicProjects: number; newResponses: number; toApprove: number; realtiesPending: number }
+export type ShellCounts = { projects: number; offers: number; agents: number; agentsInvited: number; agentsPending: number; publicProjects: number; newResponses: number; toApprove: number; realtiesPending: number; myTasks?: number; myTasksOverdue?: number }
 
 type Item = { href: string; label: string; icon: typeof LayoutDashboard; exact?: boolean; count?: number; note?: string; alert?: string }
 
@@ -52,7 +52,7 @@ export function DashboardShell({ slug, user, counts, superAdmin, signOutAction, 
   const may = (section: Section) => can(user, section)
 
   // Anything waiting on this person: buyer updates, offers to approve, and (for staff) agents to approve.
-  const waiting = (may("offers") ? (counts?.newResponses ?? 0) : 0) + (developerStaff && may("approvals") ? (counts?.toApprove ?? 0) : 0) + (staff && may("agents") ? (counts?.agentsPending ?? 0) : 0) + (developerStaff && may("realties") ? (counts?.realtiesPending ?? 0) : 0)
+  const waiting = (counts?.myTasksOverdue ?? 0) + (may("offers") ? (counts?.newResponses ?? 0) : 0) + (developerStaff && may("approvals") ? (counts?.toApprove ?? 0) : 0) + (staff && may("agents") ? (counts?.agentsPending ?? 0) : 0) + (developerStaff && may("realties") ? (counts?.realtiesPending ?? 0) : 0)
 
   const groups: { title: string; items: Item[] }[] = [
     {
@@ -61,6 +61,8 @@ export function DashboardShell({ slug, user, counts, superAdmin, signOutAction, 
         { href: `/${slug}/dashboard`, label: "Overview", icon: LayoutDashboard, exact: true },
         // The AI assistant: answers from this realty's data (Johndorf's own team only).
         ...(broker || !may("ai") ? [] : [{ href: `/${slug}/dashboard/ai`, label: assistantName(realty.name), icon: Sparkles }]),
+        // Everyone has their own tasks; staff with the Tasks section see and give out everyone's.
+        { href: `/${slug}/dashboard/tasks`, label: staff && may("tasks") ? "Tasks" : "My tasks", icon: ListChecks, count: counts?.myTasks || undefined, alert: counts?.myTasksOverdue ? `${counts.myTasksOverdue} late` : undefined },
       ],
     },
     {
