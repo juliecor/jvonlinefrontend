@@ -3,7 +3,7 @@ import { Plus } from "lucide-react"
 import { PageHeader, btn } from "@/components/dashboard-ui"
 import { api } from "@/lib/api"
 import { requireRealtyUser } from "@/lib/realty-auth"
-import { isDeveloperStaff } from "@/lib/realty-roles"
+import { can, isDeveloperStaff } from "@/lib/realty-roles"
 import { ProjectList } from "./project-list"
 import { type Filters, NO_FILTERS, type Project } from "./types"
 
@@ -18,7 +18,8 @@ export default async function ProjectsPage({ params, searchParams }: Props) {
   const initial = Object.fromEntries(Object.entries(NO_FILTERS).map(([k, v]) => [k, typeof query[k as keyof Filters] === "string" ? query[k as keyof Filters] : v])) as Filters
   const { user, token } = await requireRealtyUser(slug)
   const projects = await api<Project[]>("/realty/projects", { token })
-  const staff = isDeveloperStaff(user)
+  // Editing the inventory: the developer's admins whose account includes Projects.
+  const staff = isDeveloperStaff(user) && can(user, "projects")
 
   return (
     <div>

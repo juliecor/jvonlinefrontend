@@ -18,10 +18,12 @@ export type AuthUser = {
   email: string
   role: "admin" | "realty" | "agent"
   is_superadmin?: boolean
-  status?: "pending" | "active" | "rejected"
+  status?: "pending" | "active" | "rejected" | "disabled"
   /** True while an accepted realty still has the temporary password it was mailed: the dashboard stays shut until it is replaced. */
   must_change_password?: boolean
   realty_id: number | null
+  /** A realty staff member's dashboard sections ("staff" = manages staff accounts); empty for agents. */
+  access?: string[]
 }
 
 export async function adminToken(): Promise<string | null> {

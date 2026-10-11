@@ -6,7 +6,7 @@ import { api } from "@/lib/api"
 import { greeting, timeAgo } from "@/lib/format"
 import { SITE_REALTY } from "@/lib/public-projects-types"
 import { requireRealtyUser } from "@/lib/realty-auth"
-import { isDeveloperStaff } from "@/lib/realty-roles"
+import { can, isDeveloperStaff } from "@/lib/realty-roles"
 
 export const metadata = { title: "Overview" }
 
@@ -68,14 +68,18 @@ export default async function RealtyOverviewPage({ params }: { params: Promise<{
       )}
 
       <div className="mt-10 grid gap-10 lg:grid-cols-[1.2fr_1fr]">
-        <section>
-          <h2 className={`${display} text-3xl tracking-tight`}>Send a buyer an offer</h2>
-          <p className="mt-2 max-w-md text-sm text-[#6b665d]">Pick a unit and a payment plan, type the buyer&apos;s name, and you get a link with the price, the schedule and your contact details.</p>
-          <Link href={`/${slug}/dashboard/offers/new`} className={`${btn.primary} mt-5`}>
-            New offer <ArrowRight className="h-4 w-4" />
-          </Link>
-          {stats.units === 0 && <p className="mt-4 text-xs text-amber-700">{isDeveloperStaff(user) ? "Add a project with at least one unit first." : "No units have been listed yet."}</p>}
-        </section>
+        {can(user, "offers") ? (
+          <section>
+            <h2 className={`${display} text-3xl tracking-tight`}>Send a buyer an offer</h2>
+            <p className="mt-2 max-w-md text-sm text-[#6b665d]">Pick a unit and a payment plan, type the buyer&apos;s name, and you get a link with the price, the schedule and your contact details.</p>
+            <Link href={`/${slug}/dashboard/offers/new`} className={`${btn.primary} mt-5`}>
+              New offer <ArrowRight className="h-4 w-4" />
+            </Link>
+            {stats.units === 0 && <p className="mt-4 text-xs text-amber-700">{isDeveloperStaff(user) ? "Add a project with at least one unit first." : "No units have been listed yet."}</p>}
+          </section>
+        ) : (
+          <div />
+        )}
         <Panel title="Company" className="!mt-0">
           <dl className="divide-y divide-[#e6e2db] text-sm">
             {[

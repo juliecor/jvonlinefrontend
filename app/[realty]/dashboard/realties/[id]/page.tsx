@@ -4,7 +4,7 @@ import { ArrowLeft } from "lucide-react"
 import { PageHeader, Panel, Tag } from "@/components/dashboard-ui"
 import { ApiError, api } from "@/lib/api"
 import { longDate, shortDate } from "@/lib/format"
-import { requireRealtyUser } from "@/lib/realty-auth"
+import { requireSection } from "@/lib/realty-auth"
 import { isDeveloperStaff } from "@/lib/realty-roles"
 import { DocumentsGallery } from "./documents-gallery"
 import { DecisionPanel } from "./decision-panel"
@@ -51,7 +51,7 @@ const STATUS = { submitted: { tone: "warn", label: "Pending review" }, approved:
 /** jvconline.ph/<realty>/dashboard/realties/<id> — one accreditation form, laid out to read, with its documents and the decision. */
 export default async function AccreditationReviewPage({ params }: { params: Promise<{ realty: string; id: string }> }) {
   const { realty: slug, id } = await params
-  const { user, token } = await requireRealtyUser(slug)
+  const { user, token } = await requireSection(slug, "realties")
   if (!isDeveloperStaff(user)) redirect(`/${slug}/dashboard`)
   if (!/^\d+$/.test(id)) notFound()
 

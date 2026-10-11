@@ -8,8 +8,8 @@ import { ApiError, api } from "@/lib/api"
 import { dateTime, longDate, php, shortDate, sqm, timeAgo } from "@/lib/format"
 import { INCOME_SOURCES, type Requirement, type RequirementSummary } from "@/lib/requirements-types"
 import { type MilestoneInput, type ScheduleRow, pct } from "@/lib/schedule"
-import { requireRealtyUser } from "@/lib/realty-auth"
-import { isDeveloperMember, isDeveloperStaff } from "@/lib/realty-roles"
+import { requireSection } from "@/lib/realty-auth"
+import { can, isDeveloperMember, isDeveloperStaff } from "@/lib/realty-roles"
 import { ExtendOffer } from "../extend-offer"
 import { VoidOfferButton } from "../void-button"
 import type { UnitHold } from "../actions"
@@ -93,7 +93,7 @@ const detailValue = (key: string, v: string | boolean | null | undefined) => {
 /** jvconline.ph/<realty>/dashboard/offers/<id> — one offer: did the buyer open it, what did they say, and how to reach them. */
 export default async function OfferDetailPage({ params }: { params: Promise<{ realty: string; id: string }> }) {
   const { realty: slug, id } = await params
-  const { user, token } = await requireRealtyUser(slug)
+  const { user, token } = await requireSection(slug, "offers")
   if (!/^\d+$/.test(id)) notFound()
   let o: OfferDetail
   try {
@@ -214,7 +214,7 @@ export default async function OfferDetailPage({ params }: { params: Promise<{ re
                     slug={slug}
                     offerId={o.id}
                     status={o.approval_status}
-                    isStaff={developerStaff}
+                    isStaff={developerStaff && can(user, "approvals")}
                     canEdit={developerStaff || o.agent_id === user.id}
                     approverName={approverName}
                     agent={o.agent}

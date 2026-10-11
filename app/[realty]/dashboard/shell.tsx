@@ -3,7 +3,7 @@
 import { useEffect, useRef, useState } from "react"
 import Link from "next/link"
 import { usePathname } from "next/navigation"
-import { ArrowUpRight, BadgeCheck, Building2, ChevronDown, ClipboardCheck, FileText, Globe, Handshake, Landmark, LayoutDashboard, LogOut, Menu, Plus, Settings, Sparkles, UsersRound, Users, X } from "lucide-react"
+import { ArrowUpRight, BadgeCheck, Building2, ChevronDown, ClipboardCheck, FileText, Globe, Handshake, Landmark, LayoutDashboard, LogOut, Menu, Plus, Settings, Sparkles, UserCog, UsersRound, Users, X } from "lucide-react"
 import { Feedback } from "@/components/feedback"
 import { AskPanel } from "./ai/ask-panel"
 import { RealtyMark } from "@/components/form"
@@ -11,7 +11,7 @@ import { assistantName } from "@/lib/assistant-name"
 import { type ViewRealty, RoleSwitch } from "@/components/role-switch"
 import { SITE_REALTY } from "@/lib/public-projects-types"
 import type { RealtyUser } from "@/lib/realty-auth"
-import { isBroker, isDeveloperStaff } from "@/lib/realty-roles"
+import { type Section, can, isBroker, isDeveloperStaff } from "@/lib/realty-roles"
 
 /** What a super admin gets on top of the realty's own dashboard: the platform's realties and people, and View as. */
 export type SuperAdminNav = { realties: ViewRealty[]; realtyCount: number | null; peopleCount: number | null }
@@ -48,8 +48,11 @@ export function DashboardShell({ slug, user, counts, superAdmin, signOutAction, 
   const developerStaff = isDeveloperStaff(user)
   const isSite = slug === SITE_REALTY
 
+  // A staff member sees only the sections their admin gave them (see Team > Staff).
+  const may = (section: Section) => can(user, section)
+
   // Anything waiting on this person: buyer updates, offers to approve, and (for staff) agents to approve.
-  const waiting = (counts?.newResponses ?? 0) + (counts?.toApprove ?? 0) + (staff ? (counts?.agentsPending ?? 0) : 0) + (developerStaff ? (counts?.realtiesPending ?? 0) : 0)
+  const waiting = (may("offers") ? (counts?.newResponses ?? 0) : 0) + (developerStaff && may("approvals") ? (counts?.toApprove ?? 0) : 0) + (staff && may("agents") ? (counts?.agentsPending ?? 0) : 0) + (developerStaff && may("realties") ? (counts?.realtiesPending ?? 0) : 0)
 
   const groups: { title: string; items: Item[] }[] = [
     {
@@ -57,15 +60,15 @@ export function DashboardShell({ slug, user, counts, superAdmin, signOutAction, 
       items: [
         { href: `/${slug}/dashboard`, label: "Overview", icon: LayoutDashboard, exact: true },
         // The AI assistant: answers from this realty's data (Johndorf's own team only).
-        ...(broker ? [] : [{ href: `/${slug}/dashboard/ai`, label: assistantName(realty.name), icon: Sparkles }]),
+        ...(broker || !may("ai") ? [] : [{ href: `/${slug}/dashboard/ai`, label: assistantName(realty.name), icon: Sparkles }]),
       ],
     },
     {
       title: "Sales",
       items: [
         { href: `/${slug}/dashboard/projects`, label: "Projects", icon: Building2, count: counts?.projects },
-        { href: `/${slug}/dashboard/offers`, label: staff ? "Offers" : "My offers", icon: FileText, count: counts?.offers, alert: counts?.newResponses ? `${counts.newResponses} new` : undefined },
-        ...(developerStaff ? [{ href: `/${slug}/dashboard/approvals`, label: "Approvals", icon: BadgeCheck, count: counts?.toApprove, alert: counts?.toApprove ? "to do" : undefined }] : []),
+        ...(may("offers") ? [{ href: `/${slug}/dashboard/offers`, label: staff ? "Offers" : "My offers", icon: FileText, count: counts?.offers, alert: counts?.newResponses ? `${counts.newResponses} new` : undefined }] : []),
+        ...(developerStaff && may("approvals") ? [{ href: `/${slug}/dashboard/approvals`, label: "Approvals", icon: BadgeCheck, count: counts?.toApprove, alert: counts?.toApprove ? "to do" : undefined }] : []),
       ],
     },
     ...(staff
@@ -73,13 +76,15 @@ export function DashboardShell({ slug, user, counts, superAdmin, signOutAction, 
           {
             title: "Team",
             items: [
-              { href: `/${slug}/dashboard/agents`, label: "Agents", icon: Users, count: counts?.agents, note: counts?.agentsInvited ? `+${counts.agentsInvited} invited` : undefined, alert: counts?.agentsPending ? `${counts.agentsPending} to approve` : undefined },
+              ...(may("agents") ? [{ href: `/${slug}/dashboard/agents`, label: "Agents", icon: Users, count: counts?.agents, note: counts?.agentsInvited ? `+${counts.agentsInvited} invited` : undefined, alert: counts?.agentsPending ? `${counts.agentsPending} to approve` : undefined }] : []),
               // Realties accredited under this developer: invite, review their form, accept.
-              ...(developerStaff ? [{ href: `/${slug}/dashboard/realties`, label: "Realties", icon: Handshake, alert: counts?.realtiesPending ? `${counts.realtiesPending} to review` : undefined }] : []),
+              ...(developerStaff && may("realties") ? [{ href: `/${slug}/dashboard/realties`, label: "Realties", icon: Handshake, alert: counts?.realtiesPending ? `${counts.realtiesPending} to review` : undefined }] : []),
+              // The realty's own staff accounts and what each may use (full admins).
+              ...(may("staff") ? [{ href: `/${slug}/dashboard/staff`, label: "Staff", icon: UserCog }] : []),
             ],
           },
-          ...(developerStaff ? [{ title: "Setup", items: [{ href: `/${slug}/dashboard/requirements`, label: "Buyer requirements", icon: ClipboardCheck }] }] : []),
-        ]
+          ...(developerStaff && may("requirements") ? [{ title: "Setup", items: [{ href: `/${slug}/dashboard/requirements`, label: "Buyer requirements", icon: ClipboardCheck }] }] : []),
+        ].filter((g) => g.items.length > 0)
       : []),
     ...(superAdmin
       ? [
@@ -117,15 +122,17 @@ export function DashboardShell({ slug, user, counts, superAdmin, signOutAction, 
       </div>
 
       {/* Primary action */}
-      <div className="px-5 pt-5">
-        <Link
-          href={`/${slug}/dashboard/offers/new`}
-          onClick={() => setOpen(false)}
-          className="flex items-center justify-center gap-2 bg-[var(--accent)] px-4 py-3.5 text-[15px] font-bold text-white outline-none transition hover:brightness-110 focus-visible:ring-2 focus-visible:ring-[var(--accent)] focus-visible:ring-offset-2"
-        >
-          <Plus className="h-5 w-5" strokeWidth={2.5} /> New offer
-        </Link>
-      </div>
+      {may("offers") && (
+        <div className="px-5 pt-5">
+          <Link
+            href={`/${slug}/dashboard/offers/new`}
+            onClick={() => setOpen(false)}
+            className="flex items-center justify-center gap-2 bg-[var(--accent)] px-4 py-3.5 text-[15px] font-bold text-white outline-none transition hover:brightness-110 focus-visible:ring-2 focus-visible:ring-[var(--accent)] focus-visible:ring-offset-2"
+          >
+            <Plus className="h-5 w-5" strokeWidth={2.5} /> New offer
+          </Link>
+        </div>
+      )}
 
       {/* Navigation */}
       <ScrollNav>
@@ -222,9 +229,11 @@ export function DashboardShell({ slug, user, counts, superAdmin, signOutAction, 
             <RealtyMark name={realty.name} logo={realty.logo_url} className="h-9" />
           </Link>
           <div className="flex items-center gap-2">
-            <Link href={`/${slug}/dashboard/offers/new`} className="flex items-center gap-1.5 bg-[var(--accent)] px-3 py-2 text-sm font-bold text-white">
-              <Plus className="h-4 w-4" strokeWidth={2.5} /> Offer
-            </Link>
+            {may("offers") && (
+              <Link href={`/${slug}/dashboard/offers/new`} className="flex items-center gap-1.5 bg-[var(--accent)] px-3 py-2 text-sm font-bold text-white">
+                <Plus className="h-4 w-4" strokeWidth={2.5} /> Offer
+              </Link>
+            )}
             <button type="button" onClick={() => setOpen(true)} aria-label={waiting ? `Open menu, ${waiting} things need you` : "Open menu"} className="relative p-2 text-[#17150f]">
               <Menu className="h-6 w-6" />
               {!!waiting && <span aria-hidden className="absolute right-1 top-1 h-2.5 w-2.5 border-2 border-white bg-[var(--accent)]" />}
@@ -250,7 +259,7 @@ export function DashboardShell({ slug, user, counts, superAdmin, signOutAction, 
           Powered by <Link href="/platform" className="font-medium text-[#8a847a] hover:text-[#17150f]">jvconline</Link>
         </p>
       </main>
-      {!broker && <AskPanel slug={slug} name={assistantName(realty.name)} isAgent={user.role === "agent"} />}
+      {!broker && may("ai") && <AskPanel slug={slug} name={assistantName(realty.name)} isAgent={user.role === "agent"} />}
       <Feedback />
     </div>
   )

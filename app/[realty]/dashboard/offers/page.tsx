@@ -6,7 +6,7 @@ import { api } from "@/lib/api"
 import { LeadTag, NewTag, type LeadKind } from "@/components/leads"
 import { dateTime, php, shortDate, timeAgo } from "@/lib/format"
 import type { RequirementSummary } from "@/lib/requirements-types"
-import { requireRealtyUser } from "@/lib/realty-auth"
+import { requireSection } from "@/lib/realty-auth"
 import { ReqChip } from "./req-chip"
 import { DeleteButton } from "../delete-button"
 import { deleteOffer } from "./actions"
@@ -52,7 +52,7 @@ type Offer = {
 /** jvconline.ph/<realty>/dashboard/offers — agents see theirs, staff see the whole realty's. */
 export default async function OffersPage({ params }: { params: Promise<{ realty: string }> }) {
   const { realty: slug } = await params
-  const { user, token } = await requireRealtyUser(slug)
+  const { user, token } = await requireSection(slug, "offers")
   const offers = await api<Offer[]>("/realty/offers", { token })
   const staff = user.role === "realty"
   const fresh = offers.reduce((n, o) => n + o.new_responses, 0)

@@ -4,7 +4,7 @@ import { ChevronRight } from "lucide-react"
 import { Empty, PageHeader, Panel, Row, Rows, Tag, btn } from "@/components/dashboard-ui"
 import { api } from "@/lib/api"
 import { php, shortDate, timeAgo } from "@/lib/format"
-import { requireRealtyUser } from "@/lib/realty-auth"
+import { requireSection } from "@/lib/realty-auth"
 import { isDeveloperStaff } from "@/lib/realty-roles"
 import { DeleteButton } from "../delete-button"
 import { deleteOffer } from "../offers/actions"
@@ -29,7 +29,7 @@ type Offer = {
 /** jvconline.ph/<realty>/dashboard/approvals — agents' custom payment terms waiting for an admin. Staff only. */
 export default async function ApprovalsPage({ params }: { params: Promise<{ realty: string }> }) {
   const { realty: slug } = await params
-  const { user, token } = await requireRealtyUser(slug)
+  const { user, token } = await requireSection(slug, "approvals")
   if (!isDeveloperStaff(user)) redirect(`/${slug}/dashboard/offers`)
   const offers = (await api<Offer[]>("/realty/offers", { token })).filter((o) => o.custom && o.status === "active")
   const waiting = offers.filter((o) => o.approval_status === "pending")

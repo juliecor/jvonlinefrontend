@@ -3,7 +3,7 @@ import { redirect } from "next/navigation"
 import { ArrowLeft } from "lucide-react"
 import { PageHeader, Panel } from "@/components/dashboard-ui"
 import { requireRealtyUser } from "@/lib/realty-auth"
-import { isDeveloperStaff } from "@/lib/realty-roles"
+import { can, isDeveloperStaff } from "@/lib/realty-roles"
 import { ProjectForm } from "../project-form"
 
 export const metadata = { title: "Add project" }
@@ -12,7 +12,7 @@ export const metadata = { title: "Add project" }
 export default async function NewProjectPage({ params }: { params: Promise<{ realty: string }> }) {
   const { realty: slug } = await params
   const { user } = await requireRealtyUser(slug)
-  if (!isDeveloperStaff(user)) redirect(`/${slug}/dashboard/projects`)
+  if (!isDeveloperStaff(user) || !can(user, "projects")) redirect(`/${slug}/dashboard/projects`)
 
   return (
     <div>

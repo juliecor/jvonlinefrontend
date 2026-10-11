@@ -3,7 +3,7 @@ import { redirect } from "next/navigation"
 import { Empty, PageHeader, Panel, Row, Rows, Tag } from "@/components/dashboard-ui"
 import { api } from "@/lib/api"
 import { shortDate } from "@/lib/format"
-import { requireRealtyUser } from "@/lib/realty-auth"
+import { requireSection } from "@/lib/realty-auth"
 import { isDeveloperStaff } from "@/lib/realty-roles"
 import { InviteRealtyForm } from "./invite-form"
 import { DeleteButton } from "../delete-button"
@@ -24,7 +24,7 @@ const TYPE_LABEL = { corporation: "Corporation", sole_proprietor: "Sole propriet
 /** jvconline.ph/<realty>/dashboard/realties — realties accredited under this developer: invite, review, accept. Developer admins only. */
 export default async function RealtiesPage({ params }: { params: Promise<{ realty: string }> }) {
   const { realty: slug } = await params
-  const { user, token } = await requireRealtyUser(slug)
+  const { user, token } = await requireSection(slug, "realties")
   if (!isDeveloperStaff(user)) redirect(`/${slug}/dashboard`)
   const { pending, brokers, invited, rejected } = await api<Overview>("/realty/realties", { token })
 

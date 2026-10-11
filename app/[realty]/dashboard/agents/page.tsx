@@ -3,7 +3,7 @@ import { Empty, PageHeader, Panel, Row, Rows, Tag } from "@/components/dashboard
 import { ContactButtons } from "@/components/leads"
 import { api } from "@/lib/api"
 import { shortDate } from "@/lib/format"
-import { requireRealtyUser } from "@/lib/realty-auth"
+import { requireSection } from "@/lib/realty-auth"
 import { DeleteButton } from "../delete-button"
 import { deleteAgent, deleteInvitation } from "./actions"
 import { ApplicationActions } from "./application-actions"
@@ -32,7 +32,7 @@ type Application = {
 /** jvconline.ph/<realty>/dashboard/agents — the team, applications to review, and invite links. Staff only. */
 export default async function RealtyAgentsPage({ params }: { params: Promise<{ realty: string }> }) {
   const { realty: slug } = await params
-  const { user, token } = await requireRealtyUser(slug)
+  const { user, token } = await requireSection(slug, "agents")
   if (user.role !== "realty") redirect(`/${slug}/dashboard`)
   const { agents, applications, invitations } = await api<Agents>("/realty/agents", { token })
   const waiting = applications.filter((a) => a.status === "pending")

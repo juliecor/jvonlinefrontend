@@ -3,6 +3,7 @@ import { cookies } from "next/headers"
 import { notFound, redirect } from "next/navigation"
 import { type AuthUser } from "./admin-auth"
 import { ApiError, api } from "./api"
+import { type Section, can } from "./realty-roles"
 
 /**
  * Sessions for realty staff and agents. One cookie for the whole site; the
@@ -86,6 +87,13 @@ export async function applicantSession(): Promise<{ user: RealtyUser; token: str
   } catch {
     return null
   }
+}
+
+/** A page of one dashboard section: someone whose account doesn't include it goes back to the Overview. */
+export async function requireSection(slug: string, section: Section): Promise<{ user: RealtyUser; token: string }> {
+  const session = await requireRealtyUser(slug)
+  if (!can(session.user, section)) redirect(`/${slug}/dashboard`)
+  return session
 }
 
 /** For pages under /<slug>/dashboard: the signed-in member of *this* realty, or off to its login. */
