@@ -1,9 +1,9 @@
 "use client"
 
-import { useEffect, useRef, useState } from "react"
+import { useState } from "react"
 import Link from "next/link"
 import { usePathname } from "next/navigation"
-import { ArrowUpRight, BadgeCheck, Ban, Building2, ChevronDown, ClipboardCheck, FileText, Globe, Handshake, Landmark, LayoutDashboard, ListChecks, LogOut, Menu, Plus, Settings, ShieldCheck, Sparkles, UserCog, UsersRound, Users, X } from "lucide-react"
+import { ArrowUpRight, BadgeCheck, Ban, Building2, ClipboardCheck, FileText, Globe, Handshake, Landmark, LayoutDashboard, ListChecks, LogOut, Menu, Plus, ShieldCheck, Sparkles, UserCog, UsersRound, Users, X } from "lucide-react"
 import { Feedback } from "@/components/feedback"
 import { AskPanel } from "./ai/ask-panel"
 import { RealtyMark } from "@/components/form"
@@ -29,13 +29,10 @@ const initials = (name: string) =>
     .map((w) => w[0]!.toUpperCase())
     .join("")
 
-/** A light tint of the realty's colour, for the active row and the hover. */
-const tint = (pct: number) => `color-mix(in srgb, var(--accent) ${pct}%, white)`
-
 /**
- * The realty dashboard's frame: a light sidebar on desktop (a drawer on the phone)
- * with the realty's logo, its brand colour as the accent, counts beside each
- * section, a "New offer" shortcut and the account at the foot.
+ * The realty dashboard's frame: a plain light sidebar on desktop (a drawer on the phone) with the
+ * realty's logo, a "New offer" button, the sections with a quiet count (a red badge when something
+ * waits), and the public site and account at the foot.
  */
 export function DashboardShell({ slug, user, counts, superAdmin, signOutAction, children }: { slug: string; user: RealtyUser; counts: ShellCounts | null; superAdmin: SuperAdminNav | null; signOutAction: () => Promise<void>; children: React.ReactNode }) {
   const path = usePathname()
@@ -111,47 +108,46 @@ export function DashboardShell({ slug, user, counts, superAdmin, signOutAction, 
   ]
 
   const panel = (
-    <div className="flex h-full flex-col border-r border-[#e6e2db] bg-white text-[#17150f]">
-      <div className="h-1 shrink-0 bg-[var(--accent)]" />
-
+    <div className="flex h-full flex-col border-r border-[#e8e5df] bg-white text-[#17150f]">
       {/* Brand */}
-      <div className="border-b border-[#efebe5] px-6 pb-5 pt-6">
-        <Link href={`/${slug}/dashboard`} onClick={() => setOpen(false)} className="flex items-center outline-none focus-visible:ring-2 focus-visible:ring-[var(--accent)]">
-          <RealtyMark name={realty.name} logo={realty.logo_url} className="h-14" />
+      <div className="px-5 pb-4 pt-5">
+        <Link href={`/${slug}/dashboard`} onClick={() => setOpen(false)} className="inline-flex outline-none focus-visible:ring-2 focus-visible:ring-[var(--accent)]">
+          <RealtyMark name={realty.name} logo={realty.logo_url} className="h-10" />
         </Link>
         {/* An accredited realty works inside Johndorf's brand, under its own name. */}
-        {broker && (
-          <p className="mt-3 text-[15px] font-bold leading-snug text-[#17150f]">
+        {broker ? (
+          <p className="mt-3 text-sm font-semibold leading-snug">
             {realty.name}
-            {realty.developer && <span className="mt-0.5 block text-xs font-semibold text-[#6b665d]">Accredited by {realty.developer.name}</span>}
+            <span className="block text-xs font-normal text-[#8a847a]">
+              {staff ? "Admin" : "Agent"}
+              {realty.developer && ` · accredited by ${realty.developer.name}`}
+            </span>
           </p>
+        ) : (
+          <p className="mt-2 text-xs font-medium text-[#8a847a]">{staff ? "Admin" : "Agent"} dashboard</p>
         )}
-        <div className="mt-4 flex items-center justify-between gap-2">
-          <p className="truncate text-xs font-bold uppercase tracking-[0.16em] text-[#6b665d]">Dashboard</p>
-          <span className="shrink-0 bg-[#f3f0eb] px-2 py-1 text-[11px] font-bold uppercase tracking-[0.12em] text-[#3d3a34]">{staff ? "Admin" : "Agent"}</span>
-        </div>
       </div>
 
       {/* Primary action */}
       {newOffer && (
-        <div className="px-5 pt-5">
+        <div className="px-4">
           <Link
             href={`/${slug}/dashboard/offers/new`}
             onClick={() => setOpen(false)}
-            className="flex items-center justify-center gap-2 bg-[var(--accent)] px-4 py-3.5 text-[15px] font-bold text-white outline-none transition hover:brightness-110 focus-visible:ring-2 focus-visible:ring-[var(--accent)] focus-visible:ring-offset-2"
+            className="flex items-center justify-center gap-2 bg-[var(--accent)] px-3 py-2.5 text-sm font-semibold text-white outline-none transition hover:brightness-110 focus-visible:ring-2 focus-visible:ring-[var(--accent)] focus-visible:ring-offset-2"
           >
-            <Plus className="h-5 w-5" strokeWidth={2.5} /> New offer
+            <Plus className="h-4 w-4" strokeWidth={2.25} /> New offer
           </Link>
         </div>
       )}
 
       {/* Navigation */}
-      <ScrollNav>
-        {groups.map((g) => (
+      <nav className="mt-4 min-h-0 flex-1 space-y-4 overflow-y-auto px-3 pb-3 [scrollbar-width:thin]">
+        {groups.map((g, gi) => (
           <div key={g.title}>
-            <p className="px-6 text-xs font-bold uppercase tracking-[0.16em] text-[#8a847a]">{g.title}</p>
-            <ul className="mt-2 space-y-0.5 px-3">
-              {g.items.map(({ href, label, icon: Icon, exact, count, note, alert }) => {
+            {gi > 0 && <p className="px-3 pb-1.5 text-[11px] font-semibold uppercase tracking-[0.12em] text-[#a39d92]">{g.title}</p>}
+            <ul className="space-y-px">
+              {g.items.map(({ href, label, icon: Icon, exact, count, alert }) => {
                 const active = exact ? path === href : path.startsWith(href)
                 return (
                   <li key={href}>
@@ -159,18 +155,15 @@ export function DashboardShell({ slug, user, counts, superAdmin, signOutAction, 
                       href={href}
                       onClick={() => setOpen(false)}
                       aria-current={active ? "page" : undefined}
-                      style={active ? { backgroundColor: tint(10) } : undefined}
-                      className={`group relative flex items-center gap-3 px-3 py-3 text-base outline-none transition focus-visible:ring-2 focus-visible:ring-[var(--accent)] ${active ? "font-bold text-[#17150f]" : "font-semibold text-[#3d3a34] hover:bg-[#f6f4f0] hover:text-[#17150f]"}`}
+                      className={`group flex items-center gap-3 px-3 py-[7px] text-[15px] outline-none transition focus-visible:ring-2 focus-visible:ring-[var(--accent)] ${active ? "bg-[#f2f0ec] font-semibold text-[#17150f]" : "font-medium text-[#4a463f] hover:bg-[#f7f6f3] hover:text-[#17150f]"}`}
                     >
-                      <span aria-hidden className={`absolute inset-y-1.5 left-0 w-1 bg-[var(--accent)] transition-opacity ${active ? "opacity-100" : "opacity-0"}`} />
-                      <Icon className={`h-5 w-5 shrink-0 ${active ? "text-[var(--accent)]" : "text-[#8a847a] group-hover:text-[#3d3a34]"}`} strokeWidth={active ? 2.25 : 2} />
-                      <span className="min-w-0 flex-1 truncate">
-                        {label}
-                        {note && <span className="ml-2 text-xs font-semibold text-[#8a847a]">{note}</span>}
-                        {alert && <span className="ml-2 bg-[var(--accent)] px-1.5 py-0.5 align-middle text-[11px] font-bold uppercase tracking-[0.08em] text-white">{alert}</span>}
-                      </span>
-                      {count !== undefined && (
-                        <span className={`min-w-[2rem] px-2 py-0.5 text-center text-sm font-bold tabular-nums ${active ? "bg-[var(--accent)] text-white" : "bg-[#f1eee9] text-[#3d3a34]"}`}>{count}</span>
+                      <Icon className={`h-[18px] w-[18px] shrink-0 ${active ? "text-[var(--accent)]" : "text-[#9a948a] group-hover:text-[#4a463f]"}`} strokeWidth={1.75} />
+                      <span className="min-w-0 flex-1 truncate">{label}</span>
+                      {/* Something waiting gets a small red badge; otherwise a quiet count. */}
+                      {alert ? (
+                        <span className="shrink-0 bg-[var(--accent)] px-1.5 py-px text-[11px] font-semibold text-white">{alert}</span>
+                      ) : (
+                        count !== undefined && <span className="shrink-0 text-xs tabular-nums text-[#9a948a]">{count}</span>
                       )}
                     </Link>
                   </li>
@@ -181,60 +174,49 @@ export function DashboardShell({ slug, user, counts, superAdmin, signOutAction, 
         ))}
 
         {superAdmin && (
-          <div className="px-5 pb-2">
-            <p className="text-xs font-bold uppercase tracking-[0.16em] text-[#8a847a]">View as</p>
-            <RoleSwitch from="realty" current={`${slug}:${user.role}`} realties={superAdmin.realties} tone="light" className="mt-2" />
+          <div className="px-3">
+            <p className="pb-1.5 text-[11px] font-semibold uppercase tracking-[0.12em] text-[#a39d92]">View as</p>
+            <RoleSwitch from="realty" current={`${slug}:${user.role}`} realties={superAdmin.realties} tone="light" />
           </div>
         )}
-      </ScrollNav>
+      </nav>
 
-      {/* Public site */}
-      <div className="px-5 pb-5">
+      {/* Public site and account */}
+      <div className="border-t border-[#efece7] px-3 py-3">
         <Link
           href={isSite ? "/" : `/${slug}/login`}
-          className="group block border border-[#e6e2db] bg-[#faf8f5] p-4 outline-none transition hover:border-[var(--accent)] focus-visible:ring-2 focus-visible:ring-[var(--accent)]"
+          title={isSite ? (counts ? `${counts.publicProjects} project pages live` : "Johndorf's website") : staff ? "Share it with your agents" : "Where you sign in"}
+          className="group flex items-center gap-3 px-3 py-2 text-sm font-medium text-[#4a463f] outline-none transition hover:bg-[#f7f6f3] hover:text-[#17150f] focus-visible:ring-2 focus-visible:ring-[var(--accent)]"
         >
-          <div className="flex items-center justify-between">
-            <p className="flex items-center gap-2 text-xs font-bold uppercase tracking-[0.14em] text-[#6b665d]">
-              <Globe className="h-4 w-4 text-[var(--accent)]" /> {isSite ? "Public site" : "Sign-in page"}
-            </p>
-            <ArrowUpRight className="h-4 w-4 text-[#8a847a] transition group-hover:-translate-y-0.5 group-hover:translate-x-0.5 group-hover:text-[var(--accent)]" />
-          </div>
-          <p className="mt-2 truncate text-[15px] font-bold text-[#17150f]">{isSite ? "jvconline.ph" : `jvconline.ph/${slug}/login`}</p>
-          <p className="mt-0.5 text-sm text-[#6b665d]">
-            {isSite ? (counts ? `${counts.publicProjects} project page${counts.publicProjects === 1 ? "" : "s"} live` : "Johndorf's website") : staff ? "Share it with your agents" : "Where you sign in"}
-          </p>
+          <Globe className="h-[18px] w-[18px] shrink-0 text-[#9a948a] group-hover:text-[#4a463f]" strokeWidth={1.75} />
+          <span className="flex-1 truncate">{isSite ? "Public site" : "Sign-in page"}</span>
+          <ArrowUpRight className="h-3.5 w-3.5 text-[#a39d92]" />
         </Link>
-      </div>
-
-      {/* Account */}
-      <div className="flex items-center gap-1 border-t border-[#e6e2db] px-3 py-3">
-        <Link href={account} onClick={() => setOpen(false)} title="My account" className={`group flex min-w-0 flex-1 items-center gap-3 px-2 py-1.5 outline-none transition hover:bg-[#f6f4f0] focus-visible:ring-2 focus-visible:ring-[var(--accent)] ${path === account ? "bg-[#f6f4f0]" : ""}`}>
-          <span aria-hidden className="flex h-11 w-11 shrink-0 items-center justify-center bg-[var(--accent)] text-[15px] font-bold text-white">{initials(user.name)}</span>
-          <span className="min-w-0 flex-1">
-            <span className="block truncate text-[15px] font-bold text-[#17150f]">{user.name}</span>
-            <span className="flex items-center gap-1 truncate text-sm text-[#6b665d] group-hover:text-[var(--accent)]">
-              <Settings className="h-3.5 w-3.5 shrink-0" /> My account
+        <div className="mt-1 flex items-center gap-1">
+          <Link href={account} onClick={() => setOpen(false)} title="My account" className={`flex min-w-0 flex-1 items-center gap-3 px-2 py-2 outline-none transition hover:bg-[#f7f6f3] focus-visible:ring-2 focus-visible:ring-[var(--accent)] ${path === account ? "bg-[#f2f0ec]" : ""}`}>
+            <span aria-hidden className="flex h-8 w-8 shrink-0 items-center justify-center bg-[#17150f] text-xs font-semibold text-white">{initials(user.name)}</span>
+            <span className="min-w-0 flex-1">
+              <span className="block truncate text-sm font-semibold text-[#17150f]">{user.name}</span>
+              <span className="block truncate text-xs text-[#8a847a]">My account</span>
             </span>
-          </span>
-        </Link>
-        <form action={signOutAction}>
-          <button type="submit" title="Sign out" aria-label="Sign out" className="flex h-10 w-10 items-center justify-center text-[#6b665d] outline-none transition hover:bg-[#f6f4f0] hover:text-[var(--accent)] focus-visible:ring-2 focus-visible:ring-[var(--accent)]">
-            <LogOut className="h-5 w-5" />
-          </button>
-        </form>
+          </Link>
+          <form action={signOutAction}>
+            <button type="submit" title="Sign out" aria-label="Sign out" className="flex h-9 w-9 items-center justify-center text-[#8a847a] outline-none transition hover:bg-[#f7f6f3] hover:text-[#17150f] focus-visible:ring-2 focus-visible:ring-[var(--accent)]">
+              <LogOut className="h-[18px] w-[18px]" strokeWidth={1.75} />
+            </button>
+          </form>
+        </div>
       </div>
     </div>
   )
 
   return (
-    <div className="min-h-screen bg-[#f6f4f0] text-[#17150f] lg:grid lg:grid-cols-[288px_1fr]">
+    <div className="min-h-screen bg-[#f6f4f0] text-[#17150f] lg:grid lg:grid-cols-[264px_1fr]">
       {/* Desktop sidebar */}
       <aside className="hidden lg:sticky lg:top-0 lg:block lg:h-screen">{panel}</aside>
 
       {/* Phone top bar */}
-      <div className="sticky top-0 z-40 border-b border-[#e6e2db] bg-white lg:hidden">
-        <div className="h-1 bg-[var(--accent)]" />
+      <div className="sticky top-0 z-40 border-b border-[#e8e5df] bg-white lg:hidden">
         <div className="flex items-center justify-between px-4 py-3">
           <Link href={`/${slug}/dashboard`}>
             <RealtyMark name={realty.name} logo={realty.logo_url} className="h-9" />
@@ -289,41 +271,6 @@ export function DashboardShell({ slug, user, counts, superAdmin, signOutAction, 
       </main>
       {!broker && may("ai") && <AskPanel slug={slug} name={assistantName(realty.name)} isAgent={user.role === "agent"} />}
       <Feedback />
-    </div>
-  )
-}
-
-/** The sidebar's sections. On a short screen they scroll, and a "More" fade says there's more below. */
-function ScrollNav({ children }: { children: React.ReactNode }) {
-  const ref = useRef<HTMLElement>(null)
-  const [more, setMore] = useState(false)
-  useEffect(() => {
-    const el = ref.current
-    if (!el) return
-    const check = () => setMore(el.scrollHeight - el.scrollTop - el.clientHeight > 8)
-    const resize = new ResizeObserver(check)
-    resize.observe(el)
-    el.addEventListener("scroll", check, { passive: true })
-    return () => {
-      resize.disconnect()
-      el.removeEventListener("scroll", check)
-    }
-  }, [])
-
-  return (
-    <div className="relative mt-6 flex min-h-0 flex-1 flex-col">
-      <nav ref={ref} className="flex-1 space-y-6 overflow-y-auto pb-3">
-        {children}
-      </nav>
-      {more && (
-        <button
-          type="button"
-          onClick={() => ref.current?.scrollBy({ top: 280, behavior: "smooth" })}
-          className="absolute inset-x-0 bottom-0 flex h-14 items-end justify-center gap-1 bg-gradient-to-t from-white via-white/95 to-transparent pb-1.5 text-xs font-bold uppercase tracking-[0.14em] text-[#6b665d] transition hover:text-[var(--accent)]"
-        >
-          More <ChevronDown className="h-4 w-4" />
-        </button>
-      )}
     </div>
   )
 }
