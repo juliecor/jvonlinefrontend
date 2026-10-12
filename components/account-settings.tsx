@@ -4,7 +4,7 @@ import { useActionState, useEffect, useState } from "react"
 import { Eye, EyeOff, KeyRound, LoaderCircle, UserRound } from "lucide-react"
 import { toast } from "./feedback"
 
-export type Account = { name: string; email: string; phone: string | null; role: "admin" | "realty" | "agent"; is_superadmin: boolean; realty: string | null; member_since: string | null }
+export type Account = { name: string; email: string; photo_url?: string | null; phone: string | null; role: "admin" | "realty" | "agent"; is_superadmin: boolean; realty: string | null; member_since: string | null }
 /** errors: Laravel's, one message per field. ok: changes each time a save works. */
 export type AccountState = { error?: string; errors?: Record<string, string>; ok?: number }
 type Action = (prev: AccountState, form: FormData) => Promise<AccountState>

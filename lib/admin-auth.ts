@@ -16,6 +16,8 @@ export type AuthUser = {
   id: number
   name: string
   email: string
+  /** Their profile photo (initials when there's none). */
+  photo_url?: string | null
   role: "admin" | "realty" | "agent"
   is_superadmin?: boolean
   status?: "pending" | "active" | "rejected" | "disabled"

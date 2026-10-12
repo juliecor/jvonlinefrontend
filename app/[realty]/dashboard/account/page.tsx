@@ -3,6 +3,7 @@ import { PageHeader } from "@/components/dashboard-ui"
 import { api } from "@/lib/api"
 import { requireRealtyUser } from "@/lib/realty-auth"
 import { changePassword, saveDetails } from "./actions"
+import { ProfilePhoto } from "./profile-photo"
 
 export const metadata = { title: "My account" }
 
@@ -14,8 +15,11 @@ export default async function AccountPage({ params }: { params: Promise<{ realty
 
   return (
     <div>
-      <PageHeader eyebrow="Account" title="My account" lede="Your name, email, mobile number and password. Only you can change them." />
+      <PageHeader eyebrow="Account" title="My account" lede="Your photo, name, email, mobile number and password. Only you can change them." />
       <div className="mt-8">
+        <ProfilePhoto slug={slug} name={account.name} photo={account.photo_url ?? null} />
+      </div>
+      <div className="mt-6">
         <AccountSettings
           account={account}
           buyersSee="Buyers see your name and email on the offers you send, and their answers come to this email."
