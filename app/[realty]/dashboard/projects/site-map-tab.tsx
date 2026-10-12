@@ -3,13 +3,12 @@
 import { useEffect, useMemo, useRef, useState, useTransition } from "react"
 import Link from "next/link"
 import { useRouter } from "next/navigation"
-import { Check, LoaderCircle, MousePointerClick, Move, PencilRuler, Plus, Trash2, X } from "lucide-react"
+import { Camera, Check, ImagePlus, LoaderCircle, MousePointerClick, Move, PencilRuler, Plus, Trash2, X } from "lucide-react"
 import { confirmAction, toast } from "@/components/feedback"
 import { LOT_TAGS, type Point, type SiteMapData, type SiteMapLot, type SiteMapRow, STATUS_STYLE, centroid, lotName, lotQuads, shapes, svgPoints } from "@/components/site-map/geometry"
-import { LotShape, LotTip, SiteMapCanvas, StatusLegend } from "@/components/site-map/site-map"
+import { LotDetails, LotShape, LotTip, SiteMapCanvas, StatusLegend } from "@/components/site-map/site-map"
 import type { PublicUnitType } from "@/lib/public-projects-types"
-import { php } from "@/lib/format"
-import { type LotInput, type RowInput, addSiteRow, applyToSiteRow, moveSiteRow, removeSiteRow, saveLot, setSiteMapImage } from "./site-map-actions"
+import { type LotInput, type RowInput, addSiteRow, applyToSiteRow, moveSiteRow, removeLotPhoto, removeSiteRow, saveLot, setSiteMapImage, uploadLotPhotos, uploadRowPhotos } from "./site-map-actions"
 
 type Props = {
   slug: string
@@ -32,6 +31,8 @@ const sqm = (v: string | null | undefined) => {
   const m = v?.match(/[\d.]+/)
   return m ? m[0] : ""
 }
+const MAX_PHOTOS = 12
+const tipAt = (quad: Point[]): Point => [centroid(quad)[0], Math.min(...quad.map((q) => q[1]))]
 
 const CLICK_HINTS = [
   "Click the outer corner of the first lot (the corner on the road).",
@@ -42,8 +43,8 @@ const CLICK_HINTS = [
 
 /**
  * The project's Site map tab. Admins draw each row of lots on the plan (four clicks, then the block,
- * first lot and how many), click a lot to fill in its details, and adjust, fill or remove a row.
- * Agents and staff without Projects see where each lot is and its status, and start an offer from it.
+ * first lot and how many), click a lot to fill in its details and photos, and adjust, fill or remove a
+ * row. Agents and staff without Projects see each lot, its status and photos, and start an offer from it.
  */
 export function SiteMapTab(p: Props) {
   if (!p.map) {
@@ -57,13 +58,31 @@ export function SiteMapTab(p: Props) {
   return p.staff ? <Editor {...p} map={p.map} /> : <Browser {...p} map={p.map} />
 }
 
+const photosByModel = (models: PublicUnitType[]) => Object.fromEntries(models.map((m) => [m.name, m.images]))
+
 /* ---------------------------------------------------------------- browse (agents) */
 
-function Browser({ slug, projectId, projectName, map, canOffer }: Props & { map: SiteMapData }) {
+function Browser({ slug, projectId, projectName, map, models, canOffer }: Props & { map: SiteMapData }) {
   const [sel, setSel] = useState<SiteMapLot | null>(null)
   const all = useMemo(() => shapes(map), [map])
   const [hover, setHover] = useState<number | null>(null)
   const hovered = all.find((s) => s.lot.id === hover)
+  const modelPhotos = useMemo(() => photosByModel(models), [models])
+
+  const panel = sel ? (
+    <LotDetails key={sel.id} lot={sel} modelPhotos={(sel.model && modelPhotos[sel.model]) || []} noPrice="Not priced yet">
+      {canOffer && sel.status === "available" && sel.price && (
+        <Link href={`/${slug}/dashboard/offers/new?project=${projectId}&unit=${sel.id}`} className="inline-flex w-full items-center justify-center gap-2 bg-[var(--accent)] px-4 py-3 text-[15px] font-bold text-white hover:brightness-110">
+          <Plus className="h-4 w-4" strokeWidth={2.5} /> Make an offer for this lot
+        </Link>
+      )}
+      {sel.status === "available" && !sel.price && <p className="text-sm text-[#6b665d]">No price yet, so it can&apos;t be offered. Ask Johndorf&apos;s admin.</p>}
+    </LotDetails>
+  ) : (
+    <p className="flex items-start gap-3 text-[15px] text-[#5a554d]">
+      <MousePointerClick className="mt-0.5 h-5 w-5 shrink-0 text-[var(--accent)]" /> Click a lot to see its details and photos. Green lots are available.
+    </p>
+  )
 
   return (
     <div className="mt-6 grid gap-6 lg:grid-cols-[1fr_340px]">
@@ -72,61 +91,13 @@ function Browser({ slug, projectId, projectName, map, canOffer }: Props & { map:
         <SiteMapCanvas
           image={map.image}
           alt={`${projectName} site development plan`}
+          side={panel}
           layers={all.map(({ lot, quad }) => <LotShape key={lot.id} quad={quad} lot={lot} selected={lot.id === sel?.id} onClick={() => setSel(lot)} onHover={(on) => setHover(on ? lot.id : null)} />)}
-          labels={hovered && <LotTip lot={hovered.lot} at={[centroid(hovered.quad)[0], Math.min(...hovered.quad.map((q) => q[1]))]} />}
+          labels={hovered && <LotTip lot={hovered.lot} at={tipAt(hovered.quad)} />}
         />
         {map.lots.length === 0 && <p className="text-sm text-[#6b665d]">The lots haven&apos;t been drawn on this plan yet.</p>}
       </div>
-      <aside className="border border-[#e6e2db] bg-white p-5 lg:self-start">
-        {sel ? (
-          <LotCard lot={sel}>
-            {canOffer && sel.status === "available" && sel.price && (
-              <Link href={`/${slug}/dashboard/offers/new?project=${projectId}&unit=${sel.id}`} className="mt-5 inline-flex w-full items-center justify-center gap-2 bg-[var(--accent)] px-4 py-3 text-[15px] font-bold text-white hover:brightness-110">
-                <Plus className="h-4 w-4" strokeWidth={2.5} /> Make an offer for this lot
-              </Link>
-            )}
-            {sel.status === "available" && !sel.price && <p className="mt-4 text-sm text-[#6b665d]">No price yet, so it can&apos;t be offered. Ask Johndorf&apos;s admin.</p>}
-          </LotCard>
-        ) : (
-          <p className="flex items-start gap-3 text-[15px] text-[#5a554d]">
-            <MousePointerClick className="mt-0.5 h-5 w-5 shrink-0 text-[var(--accent)]" /> Click a lot to see its details. Green lots are available.
-          </p>
-        )}
-      </aside>
-    </div>
-  )
-}
-
-function LotCard({ lot, children }: { lot: SiteMapLot; children?: React.ReactNode }) {
-  return (
-    <div>
-      <p className="text-xs font-bold uppercase tracking-[0.14em]" style={{ color: STATUS_STYLE[lot.status].fill }}>
-        {STATUS_STYLE[lot.status].label}
-      </p>
-      <p className="mt-1 text-2xl font-bold tracking-tight">{lotName(lot)}</p>
-      <dl className="mt-4 grid grid-cols-2 gap-x-4 gap-y-3 text-[15px]">
-        {[
-          ["House model", lot.model ?? "—"],
-          ["Price", lot.price ? php(lot.price) : "On request"],
-          ["Lot area", lot.lot_area ? `${Number(lot.lot_area)} sqm` : "—"],
-          ["Floor area", lot.floor_area ? `${Number(lot.floor_area)} sqm` : "—"],
-        ].map(([k, v]) => (
-          <div key={k}>
-            <dt className="text-xs font-bold uppercase tracking-[0.1em] text-[#8a847a]">{k}</dt>
-            <dd className="mt-0.5 font-semibold">{v}</dd>
-          </div>
-        ))}
-      </dl>
-      {lot.tags.length > 0 && (
-        <div className="mt-4 flex flex-wrap gap-2">
-          {lot.tags.map((t) => (
-            <span key={t} className="border border-[#d9d4cb] px-2 py-1 text-xs font-bold text-[#3d3a34]">
-              {LOT_TAGS[t] ?? t}
-            </span>
-          ))}
-        </div>
-      )}
-      {children}
+      <aside className="border border-[#e6e2db] bg-white p-5 lg:self-start">{panel}</aside>
     </div>
   )
 }
@@ -139,11 +110,14 @@ function Editor({ slug, projectId, projectName, map: initial, sitePlans, models 
   const router = useRouter()
   const [map, setMap] = useState(initial)
   const [mode, setMode] = useState<Mode>({ kind: "idle" })
+  const [full, setFull] = useState(false)
   const [hover, setHover] = useState<number | null>(null)
   const [cursorAt, setCursorAt] = useState<Point | null>(null)
   const [pending, start] = useTransition()
   const [row, setRow] = useState({ block: "", first_lot: "1", lot_count: "", unit_type: "", lot_area_sqm: "", area_sqm: "", price: "" })
+  const [rowPhotos, setRowPhotos] = useState<File[]>([])
   const [rowError, setRowError] = useState<Record<string, string>>({})
+  const modelPhotos = useMemo(() => photosByModel(models), [models])
 
   // A fresh map from the server (after a save elsewhere) replaces ours.
   const [seen, setSeen] = useState(initial)
@@ -151,14 +125,17 @@ function Editor({ slug, projectId, projectName, map: initial, sitePlans, models 
     setSeen(initial)
     setMap(initial)
   }
+  // Esc: undo the last click, then close the panel, then leave full screen.
   useEffect(() => {
     const onKey = (e: KeyboardEvent) => {
-      if (e.key !== "Escape") return
-      setMode((m) => (m.kind === "draw" && m.points.length ? { kind: "draw", points: m.points.slice(0, -1) } : { kind: "idle" }))
+      if (e.key !== "Escape" || document.querySelector("dialog[open]")) return
+      if (mode.kind === "draw" && mode.points.length) setMode({ kind: "draw", points: mode.points.slice(0, -1) })
+      else if (mode.kind !== "idle") setMode({ kind: "idle" })
+      else setFull(false)
     }
     window.addEventListener("keydown", onKey)
     return () => window.removeEventListener("keydown", onKey)
-  }, [])
+  }, [mode])
 
   const all = useMemo(() => shapes(map), [map])
   const selectedLot = mode.kind === "lot" ? map.lots.find((l) => l.id === mode.id) : undefined
@@ -166,8 +143,12 @@ function Editor({ slug, projectId, projectName, map: initial, sitePlans, models 
   const hovered = all.find((s) => s.lot.id === hover)
   const points = mode.kind === "draw" ? mode.points : []
   const previewCount = Math.max(0, Math.min(200, Number(row.lot_count) || 0))
+  const drawing = mode.kind === "draw"
+  const adjusting = mode.kind === "adjust"
+  // Corners that can be dragged: a row being adjusted, or a new row once its 4 corners are down.
+  const handles = adjusting ? mode.corners : drawing && points.length === 4 ? points : null
 
-  const run = (task: () => Promise<{ error?: string; fieldErrors?: Record<string, string>; map?: SiteMapData | null }>, done: string, after?: (m: SiteMapData | null | undefined) => void) =>
+  const run = (task: () => Promise<{ error?: string; fieldErrors?: Record<string, string>; map?: SiteMapData | null }>, done: string, after?: (m: SiteMapData | null | undefined) => void | Promise<void>) =>
     start(async () => {
       const r = await task()
       if (r.error) {
@@ -178,9 +159,11 @@ function Editor({ slug, projectId, projectName, map: initial, sitePlans, models 
       setRowError({})
       if (r.map) setMap(r.map)
       toast(done)
-      after?.(r.map)
+      await after?.(r.map)
       router.refresh()
     })
+
+  const setLotPhotos = (id: number, photos: string[]) => setMap((m) => ({ ...m, lots: m.lots.map((l) => (l.id === id ? { ...l, photos } : l)) }))
 
   const pickModel = (name: string) => {
     const m = models.find((x) => x.name === name)
@@ -199,15 +182,182 @@ function Editor({ slug, projectId, projectName, map: initial, sitePlans, models 
       area_sqm: num(row.area_sqm),
       price: num(row.price),
     }
-    run(() => addSiteRow(slug, projectId, input), `Block ${input.block}, lots ${input.first_lot}–${input.first_lot + input.lot_count - 1} added`, () => {
+    const photos = rowPhotos
+    run(() => addSiteRow(slug, projectId, input), `Block ${input.block}, lots ${input.first_lot}–${input.first_lot + input.lot_count - 1} added`, async (m) => {
+      // Photos chosen for the row go on all its lots, once the row exists.
+      const created = m?.rows.find((r) => r.block === input.block && r.first_lot === input.first_lot)
+      if (created && photos.length) {
+        const fd = new FormData()
+        photos.forEach((f) => fd.append("photos", f))
+        const up = await uploadRowPhotos(slug, projectId, created.id, fd)
+        if (up.error) toast(`The lots were added, but the photos didn't upload: ${up.error}`, "error")
+        else if (up.map) setMap(up.map)
+      }
       setMode({ kind: "draw", points: [] })
+      setRowPhotos([])
       // The next row usually carries on in the same block with the same model and price.
       setRow((r) => ({ ...r, first_lot: String(input.first_lot + input.lot_count), lot_count: "" }))
     })
   }
 
-  const drawing = mode.kind === "draw"
-  const adjusting = mode.kind === "adjust"
+  const panel = (
+    <>
+      {drawing && points.length < 4 && (
+        <div>
+          <p className="text-xs font-bold uppercase tracking-[0.14em] text-[#1d4ed8]">Draw a row · click {points.length + 1} of 4</p>
+          <p className="mt-2 text-lg font-bold leading-snug">{CLICK_HINTS[points.length]}</p>
+          <p className="mt-3 text-sm text-[#5a554d]">A row is one straight line of lots, like the top row of a block. Lot numbers count up from your first click towards your second.</p>
+          <p className="mt-3 text-sm text-[#5a554d]">Zoom in close first: it makes the clicks exact. After the 4th click you can still drag the corners.</p>
+          {points.length > 0 && (
+            <button type="button" onClick={() => setMode({ kind: "draw", points: points.slice(0, -1) })} className="mt-4 text-sm font-bold text-[var(--accent)] hover:underline">
+              Undo the last click
+            </button>
+          )}
+        </div>
+      )}
+
+      {drawing && points.length === 4 && (
+        <form
+          onSubmit={(e) => {
+            e.preventDefault()
+            saveRow()
+          }}
+          className="space-y-3"
+        >
+          <p className="text-xs font-bold uppercase tracking-[0.14em] text-[#1d4ed8]">New row of lots</p>
+          <p className="text-xs text-[#6b665d]">Drag the blue corners if a line is off.</p>
+          <div className="grid grid-cols-3 gap-2">
+            <label>
+              <span className={label}>Block</span>
+              <input autoFocus required value={row.block} onChange={(e) => setRow({ ...row, block: e.target.value })} className={field} placeholder="4" />
+            </label>
+            <label>
+              <span className={label}>First lot</span>
+              <input required type="number" min={1} value={row.first_lot} onChange={(e) => setRow({ ...row, first_lot: e.target.value })} className={field} />
+            </label>
+            <label>
+              <span className={label}>How many</span>
+              <input required type="number" min={1} max={200} value={row.lot_count} onChange={(e) => setRow({ ...row, lot_count: e.target.value })} className={field} placeholder="17" />
+            </label>
+          </div>
+          {(rowError.first_lot || rowError.block || rowError.lot_count) && <p className="text-sm font-semibold text-red-700">{rowError.first_lot ?? rowError.block ?? rowError.lot_count}</p>}
+          <p className="text-xs text-[#8a847a]">For every lot in the row (you can change single lots after):</p>
+          <ModelField value={row.unit_type} models={models} onChange={pickModel} />
+          <div className="grid grid-cols-2 gap-2">
+            <label>
+              <span className={label}>Lot area (sqm)</span>
+              <input type="number" min={0} step="0.01" value={row.lot_area_sqm} onChange={(e) => setRow({ ...row, lot_area_sqm: e.target.value })} className={field} placeholder="42" />
+            </label>
+            <label>
+              <span className={label}>Floor area (sqm)</span>
+              <input type="number" min={0} step="0.01" value={row.area_sqm} onChange={(e) => setRow({ ...row, area_sqm: e.target.value })} className={field} />
+            </label>
+          </div>
+          <label className="block">
+            <span className={label}>Price (₱)</span>
+            <input type="number" min={0} step="1" value={row.price} onChange={(e) => setRow({ ...row, price: e.target.value })} className={field} placeholder="Leave empty if not priced yet" />
+          </label>
+          <PhotoPicker files={rowPhotos} onChange={setRowPhotos} hint="Photos for every lot in this row (optional)" />
+          <div className="flex flex-wrap gap-2 pt-1">
+            <button type="submit" disabled={pending || !row.block.trim() || !Number(row.lot_count)} className="inline-flex items-center gap-2 bg-[var(--accent)] px-4 py-2.5 text-sm font-bold text-white hover:brightness-110 disabled:opacity-50">
+              {pending ? <LoaderCircle className="h-4 w-4 animate-spin" /> : <Check className="h-4 w-4" strokeWidth={3} />} Add {Number(row.lot_count) || ""} lots
+            </button>
+            <button type="button" onClick={() => setMode({ kind: "draw", points: [] })} className="px-3 py-2.5 text-sm font-semibold text-[#8a847a] hover:text-[#17150f]">
+              Redraw
+            </button>
+          </div>
+        </form>
+      )}
+
+      {mode.kind === "lot" && selectedLot && selectedRow && (
+        <div className="space-y-5">
+          <LotEditor
+            key={selectedLot.id}
+            lot={selectedLot}
+            models={models}
+            pending={pending}
+            onSave={(input) =>
+              run(() => saveLot(slug, projectId, selectedLot.id, input), `${lotName(selectedLot)} saved`, () =>
+                setMap((m) => ({ ...m, lots: m.lots.map((l) => (l.id === selectedLot.id ? { ...l, model: input.unit_type, lot_area: input.lot_area_sqm?.toString() ?? null, floor_area: input.area_sqm?.toString() ?? null, price: input.price?.toString() ?? null, status: input.status as SiteMapLot["status"], tags: input.tags } : l)) })),
+              )
+            }
+            onClose={() => setMode({ kind: "idle" })}
+          />
+          <LotPhotoManager
+            lot={selectedLot}
+            modelPhotos={(selectedLot.model && modelPhotos[selectedLot.model]) || []}
+            onUpload={async (fd) => {
+              const r = await uploadLotPhotos(slug, projectId, selectedLot.id, fd)
+              if (r.error) return toast(r.error, "error")
+              setLotPhotos(selectedLot.id, r.photos ?? [])
+              toast("Photos added")
+            }}
+            onRemove={async (url) => {
+              const r = await removeLotPhoto(slug, projectId, selectedLot.id, url)
+              if (r.error) return toast(r.error, "error")
+              setLotPhotos(selectedLot.id, r.photos ?? [])
+              toast("Photo removed")
+            }}
+          />
+          <RowPanel
+            row={selectedRow}
+            models={models}
+            pending={pending}
+            onAdjust={() => setMode({ kind: "adjust", rowId: selectedRow.id, corners: selectedRow.corners })}
+            onApply={(v) => run(() => applyToSiteRow(slug, projectId, selectedRow.id, v), "Every lot in the row updated")}
+            onPhotos={(fd) =>
+              start(async () => {
+                const r = await uploadRowPhotos(slug, projectId, selectedRow.id, fd)
+                if (r.error) return toast(r.error, "error")
+                if (r.map) setMap(r.map)
+                toast(r.skipped ? `Photos added. ${r.skipped} lot${r.skipped === 1 ? " already had" : "s already had"} ${MAX_PHOTOS} photos and were skipped.` : "Photos added to every lot in the row")
+              })
+            }
+            onRemove={async () => {
+              if (!(await confirmAction({ title: `Remove Block ${selectedRow.block}, lots ${selectedRow.first_lot}–${selectedRow.first_lot + selectedRow.lot_count - 1}?`, body: "The lots and their photos are deleted from the project. Lots that have offers stay as units, just off the map.", confirm: "Remove row", danger: true }))) return
+              start(async () => {
+                const r = await removeSiteRow(slug, projectId, selectedRow.id)
+                if (r.error) return toast(r.error, "error")
+                if (r.map) setMap(r.map)
+                setMode({ kind: "idle" })
+                toast(r.kept ? `Row removed. ${r.kept} lot${r.kept === 1 ? " has" : "s have"} offers and stayed as units.` : "Row removed")
+                router.refresh()
+              })
+            }}
+          />
+        </div>
+      )}
+
+      {adjusting && (
+        <div>
+          <p className="text-xs font-bold uppercase tracking-[0.14em] text-[#1d4ed8]">
+            <Move className="mr-1 inline h-3.5 w-3.5" /> Adjusting Block {selectedRow?.block}
+          </p>
+          <p className="mt-2 text-[15px] text-[#3d3a34]">Drag the four blue corners until the lots sit on the drawing, then save.</p>
+          <div className="mt-4 flex gap-2">
+            <button type="button" disabled={pending} onClick={() => run(() => moveSiteRow(slug, projectId, mode.rowId, mode.corners), "Row moved", () => setMode({ kind: "idle" }))} className="inline-flex items-center gap-2 bg-[var(--accent)] px-4 py-2.5 text-sm font-bold text-white hover:brightness-110 disabled:opacity-50">
+              {pending ? <LoaderCircle className="h-4 w-4 animate-spin" /> : <Check className="h-4 w-4" strokeWidth={3} />} Save position
+            </button>
+            <button type="button" onClick={() => setMode({ kind: "idle" })} className="px-3 py-2.5 text-sm font-semibold text-[#8a847a] hover:text-[#17150f]">
+              Cancel
+            </button>
+          </div>
+        </div>
+      )}
+
+      {mode.kind === "idle" && <Help map={map} />}
+    </>
+  )
+
+  const drawButton = drawing ? (
+    <button type="button" onClick={() => setMode({ kind: "idle" })} className="inline-flex items-center gap-2 border border-[#17150f] bg-white px-4 py-2.5 text-sm font-bold hover:bg-[#f6f4f0]">
+      <X className="h-4 w-4" /> Done drawing
+    </button>
+  ) : (
+    <button type="button" onClick={() => setMode({ kind: "draw", points: [] })} disabled={adjusting} className="inline-flex items-center gap-2 bg-[var(--accent)] px-4 py-2.5 text-sm font-bold text-white hover:brightness-110 disabled:opacity-50">
+      <PencilRuler className="h-4 w-4" /> Draw a row of lots
+    </button>
+  )
 
   return (
     <div className="mt-6 space-y-4">
@@ -233,15 +383,7 @@ function Editor({ slug, projectId, projectName, map: initial, sitePlans, models 
               ))}
             </select>
           )}
-          {drawing ? (
-            <button type="button" onClick={() => setMode({ kind: "idle" })} className="inline-flex items-center gap-2 border border-[#17150f] bg-white px-4 py-2.5 text-sm font-bold hover:bg-[#f6f4f0]">
-              <X className="h-4 w-4" /> Done drawing
-            </button>
-          ) : (
-            <button type="button" onClick={() => setMode({ kind: "draw", points: [] })} disabled={adjusting} className="inline-flex items-center gap-2 bg-[var(--accent)] px-4 py-2.5 text-sm font-bold text-white hover:brightness-110 disabled:opacity-50">
-              <PencilRuler className="h-4 w-4" /> Draw a row of lots
-            </button>
-          )}
+          {drawButton}
         </div>
       </div>
 
@@ -250,13 +392,27 @@ function Editor({ slug, projectId, projectName, map: initial, sitePlans, models 
           <AdjustableCanvas
             image={map.image}
             alt={`${projectName} site development plan`}
-            cursor={drawing ? "crosshair" : undefined}
+            fullscreen={full}
+            onFullscreen={setFull}
+            side={
+              <div className="space-y-4">
+                <div className="flex flex-wrap items-center justify-between gap-2 border-b border-[#e6e2db] pb-3">
+                  <StatusLegend lots={map.lots} />
+                  {drawButton}
+                </div>
+                {panel}
+              </div>
+            }
+            cursor={drawing && points.length < 4 ? "crosshair" : undefined}
             onPoint={(pt) => {
               if (drawing && points.length < 4) setMode({ kind: "draw", points: [...points, pt] })
             }}
-            onMove={drawing ? setCursorAt : undefined}
-            handles={adjusting ? mode.corners : null}
-            onHandles={(c) => adjusting && setMode({ ...mode, corners: c })}
+            onMove={drawing && points.length < 4 ? setCursorAt : undefined}
+            handles={handles}
+            onHandles={(c) => {
+              if (adjusting) setMode({ ...mode, corners: c })
+              else if (drawing) setMode({ kind: "draw", points: c })
+            }}
             layers={
               <>
                 {all.map(({ lot, quad }) => (
@@ -282,131 +438,24 @@ function Editor({ slug, projectId, projectName, map: initial, sitePlans, models 
             labels={
               <>
                 {drawing &&
+                  points.length < 4 &&
                   points.map((pt, i) => (
                     <span key={i} className="pointer-events-none absolute z-10 flex h-5 w-5 -translate-x-1/2 -translate-y-1/2 items-center justify-center rounded-full border-2 border-white bg-[#1d4ed8] text-[10px] font-bold text-white shadow" style={{ left: `${pt[0] * 100}%`, top: `${pt[1] * 100}%` }}>
                       {i + 1}
                     </span>
                   ))}
                 {drawing && points.length === 4 && previewCount > 0 && (
-                  <span className="pointer-events-none absolute z-10 -translate-x-1/2 -translate-y-1/2 bg-[#1d4ed8] px-2 py-0.5 text-xs font-bold text-white" style={{ left: `${points[0][0] * 100}%`, top: `${points[0][1] * 100}%` }}>
+                  <span className="pointer-events-none absolute z-10 -translate-x-1/2 -translate-y-[160%] bg-[#1d4ed8] px-2 py-0.5 text-xs font-bold text-white" style={{ left: `${points[0][0] * 100}%`, top: `${points[0][1] * 100}%` }}>
                     Lot {row.first_lot || 1}
                   </span>
                 )}
-                {hovered && !drawing && <LotTip lot={hovered.lot} at={[centroid(hovered.quad)[0], Math.min(...hovered.quad.map((q) => q[1]))]} />}
+                {hovered && !drawing && <LotTip lot={hovered.lot} at={tipAt(hovered.quad)} />}
               </>
             }
           />
-          <p className="mt-2 text-xs text-[#8a847a]">Use + to zoom in on small lots. Esc undoes the last click or closes the panel.</p>
         </div>
 
-        <aside className="border border-[#e6e2db] bg-white p-5 lg:self-start">
-          {drawing && points.length < 4 && (
-            <div>
-              <p className="text-xs font-bold uppercase tracking-[0.14em] text-[#1d4ed8]">Draw a row · click {points.length + 1} of 4</p>
-              <p className="mt-2 text-lg font-bold leading-snug">{CLICK_HINTS[points.length]}</p>
-              <p className="mt-3 text-sm text-[#5a554d]">A row is one straight line of lots, like the top row of a block. Lot numbers count up from your first click towards your second.</p>
-              {points.length > 0 && (
-                <button type="button" onClick={() => setMode({ kind: "draw", points: points.slice(0, -1) })} className="mt-4 text-sm font-bold text-[var(--accent)] hover:underline">
-                  Undo the last click
-                </button>
-              )}
-            </div>
-          )}
-
-          {drawing && points.length === 4 && (
-            <form
-              onSubmit={(e) => {
-                e.preventDefault()
-                saveRow()
-              }}
-              className="space-y-3"
-            >
-              <p className="text-xs font-bold uppercase tracking-[0.14em] text-[#1d4ed8]">New row of lots</p>
-              <div className="grid grid-cols-3 gap-2">
-                <label>
-                  <span className={label}>Block</span>
-                  <input autoFocus required value={row.block} onChange={(e) => setRow({ ...row, block: e.target.value })} className={field} placeholder="4" />
-                </label>
-                <label>
-                  <span className={label}>First lot</span>
-                  <input required type="number" min={1} value={row.first_lot} onChange={(e) => setRow({ ...row, first_lot: e.target.value })} className={field} />
-                </label>
-                <label>
-                  <span className={label}>How many</span>
-                  <input required type="number" min={1} max={200} value={row.lot_count} onChange={(e) => setRow({ ...row, lot_count: e.target.value })} className={field} placeholder="17" />
-                </label>
-              </div>
-              {(rowError.first_lot || rowError.block || rowError.lot_count) && <p className="text-sm font-semibold text-red-700">{rowError.first_lot ?? rowError.block ?? rowError.lot_count}</p>}
-              <p className="text-xs text-[#8a847a]">For every lot in the row (you can change single lots after):</p>
-              <ModelField value={row.unit_type} models={models} onChange={pickModel} />
-              <div className="grid grid-cols-2 gap-2">
-                <label>
-                  <span className={label}>Lot area (sqm)</span>
-                  <input type="number" min={0} step="0.01" value={row.lot_area_sqm} onChange={(e) => setRow({ ...row, lot_area_sqm: e.target.value })} className={field} placeholder="42" />
-                </label>
-                <label>
-                  <span className={label}>Floor area (sqm)</span>
-                  <input type="number" min={0} step="0.01" value={row.area_sqm} onChange={(e) => setRow({ ...row, area_sqm: e.target.value })} className={field} />
-                </label>
-              </div>
-              <label className="block">
-                <span className={label}>Price (₱)</span>
-                <input type="number" min={0} step="1" value={row.price} onChange={(e) => setRow({ ...row, price: e.target.value })} className={field} placeholder="Leave empty if not priced yet" />
-              </label>
-              <div className="flex flex-wrap gap-2 pt-1">
-                <button type="submit" disabled={pending || !row.block.trim() || !Number(row.lot_count)} className="inline-flex items-center gap-2 bg-[var(--accent)] px-4 py-2.5 text-sm font-bold text-white hover:brightness-110 disabled:opacity-50">
-                  {pending ? <LoaderCircle className="h-4 w-4 animate-spin" /> : <Check className="h-4 w-4" strokeWidth={3} />} Add {Number(row.lot_count) || ""} lots
-                </button>
-                <button type="button" onClick={() => setMode({ kind: "draw", points: [] })} className="px-3 py-2.5 text-sm font-semibold text-[#8a847a] hover:text-[#17150f]">
-                  Redraw
-                </button>
-              </div>
-            </form>
-          )}
-
-          {mode.kind === "lot" && selectedLot && selectedRow && (
-            <div className="space-y-5">
-              <LotEditor key={selectedLot.id} lot={selectedLot} models={models} pending={pending} onSave={(input) => run(() => saveLot(slug, projectId, selectedLot.id, input), `${lotName(selectedLot)} saved`, () => setMap((m) => ({ ...m, lots: m.lots.map((l) => (l.id === selectedLot.id ? { ...l, model: input.unit_type, lot_area: input.lot_area_sqm?.toString() ?? null, floor_area: input.area_sqm?.toString() ?? null, price: input.price?.toString() ?? null, status: input.status as SiteMapLot["status"], tags: input.tags } : l)) }))) } onClose={() => setMode({ kind: "idle" })} />
-              <RowPanel
-                row={selectedRow}
-                models={models}
-                pending={pending}
-                onAdjust={() => setMode({ kind: "adjust", rowId: selectedRow.id, corners: selectedRow.corners })}
-                onApply={(v) => run(() => applyToSiteRow(slug, projectId, selectedRow.id, v), `Every lot in the row updated`)}
-                onRemove={async () => {
-                  if (!(await confirmAction({ title: `Remove Block ${selectedRow.block}, lots ${selectedRow.first_lot}–${selectedRow.first_lot + selectedRow.lot_count - 1}?`, body: "The lots are deleted from the project. Lots that have offers stay as units, just off the map.", confirm: "Remove row", danger: true }))) return
-                  start(async () => {
-                    const r = await removeSiteRow(slug, projectId, selectedRow.id)
-                    if (r.error) return toast(r.error, "error")
-                    if (r.map) setMap(r.map)
-                    setMode({ kind: "idle" })
-                    toast(r.kept ? `Row removed. ${r.kept} lot${r.kept === 1 ? " has" : "s have"} offers and stayed as units.` : "Row removed")
-                    router.refresh()
-                  })
-                }}
-              />
-            </div>
-          )}
-
-          {adjusting && (
-            <div>
-              <p className="text-xs font-bold uppercase tracking-[0.14em] text-[#1d4ed8]">
-                <Move className="mr-1 inline h-3.5 w-3.5" /> Adjusting Block {selectedRow?.block}
-              </p>
-              <p className="mt-2 text-[15px] text-[#3d3a34]">Drag the four blue corners until the lots sit on the drawing, then save.</p>
-              <div className="mt-4 flex gap-2">
-                <button type="button" disabled={pending} onClick={() => run(() => moveSiteRow(slug, projectId, mode.rowId, mode.corners), "Row moved", () => setMode({ kind: "idle" }))} className="inline-flex items-center gap-2 bg-[var(--accent)] px-4 py-2.5 text-sm font-bold text-white hover:brightness-110 disabled:opacity-50">
-                  {pending ? <LoaderCircle className="h-4 w-4 animate-spin" /> : <Check className="h-4 w-4" strokeWidth={3} />} Save position
-                </button>
-                <button type="button" onClick={() => setMode({ kind: "idle" })} className="px-3 py-2.5 text-sm font-semibold text-[#8a847a] hover:text-[#17150f]">
-                  Cancel
-                </button>
-              </div>
-            </div>
-          )}
-
-          {mode.kind === "idle" && <Help map={map} />}
-        </aside>
+        {!full && <aside className="border border-[#e6e2db] bg-white p-5 lg:self-start">{panel}</aside>}
       </div>
     </div>
   )
@@ -419,11 +468,14 @@ function Help({ map }: { map: SiteMapData }) {
       <p className="text-lg font-bold text-[#17150f]">{map.lots.length ? `${map.lots.length} lots in ${blocks} block${blocks === 1 ? "" : "s"} on the map` : "Put the lots on the map"}</p>
       <ol className="list-decimal space-y-2 pl-5">
         <li>
-          Click <b>Draw a row of lots</b>, then click the 4 corners of one straight row of lots on the plan.
+          Open <b>full screen</b> (the arrows at the top right of the plan) and zoom in on a block.
         </li>
-        <li>Type the block, the first lot number and how many lots. Add the house model, lot area and price they share.</li>
+        <li>
+          Click <b>Draw a row of lots</b>, then click the 4 corners of one straight row of lots.
+        </li>
+        <li>Type the block, the first lot number and how many lots. Add the house model, lot area, price and photos they share.</li>
         <li>Repeat for every row. A block usually has two rows, back to back.</li>
-        <li>Click any lot to change it alone: a corner lot, a different price, reserved or sold.</li>
+        <li>Click any lot to change it alone: a corner lot, a different price, its own photos, reserved or sold.</li>
       </ol>
       <p className="text-sm text-[#6b665d]">Agents see this map, the buyer sees where their home is, and the website shows which lots are still available (without prices).</p>
     </div>
@@ -441,6 +493,104 @@ function ModelField({ value, models, onChange }: { value: string; models: Public
         ))}
       </datalist>
     </label>
+  )
+}
+
+/** Choose photos (kept until the form is sent), with their thumbnails. */
+function PhotoPicker({ files, onChange, hint }: { files: File[]; onChange: (f: File[]) => void; hint: string }) {
+  const input = useRef<HTMLInputElement>(null)
+  const urls = useMemo(() => files.map((f) => URL.createObjectURL(f)), [files])
+  useEffect(() => () => urls.forEach((u) => URL.revokeObjectURL(u)), [urls])
+  return (
+    <div>
+      <span className={label}>{hint}</span>
+      <div className="flex flex-wrap gap-2">
+        {urls.map((u, i) => (
+          <span key={u} className="relative">
+            {/* eslint-disable-next-line @next/next/no-img-element */}
+            <img src={u} alt="" className="h-14 w-20 border border-[#e6e2db] object-cover" />
+            <button type="button" onClick={() => onChange(files.filter((_, j) => j !== i))} aria-label="Remove this photo" className="absolute -right-1.5 -top-1.5 rounded-full bg-[#17150f] p-0.5 text-white">
+              <X className="h-3 w-3" />
+            </button>
+          </span>
+        ))}
+        <button type="button" onClick={() => input.current?.click()} className="inline-flex h-14 items-center gap-1.5 border border-dashed border-[#a39d92] px-3 text-xs font-bold text-[#3d3a34] hover:border-[#17150f]">
+          <ImagePlus className="h-4 w-4" /> Add photos
+        </button>
+      </div>
+      <input
+        ref={input}
+        type="file"
+        accept="image/*"
+        multiple
+        className="hidden"
+        onChange={(e) => {
+          const picked = Array.from(e.target.files ?? []).filter((f) => f.type.startsWith("image/") && f.size <= 8 * 1024 * 1024)
+          if (picked.length < (e.target.files?.length ?? 0)) toast("Only photos up to 8 MB each are added.", "error")
+          onChange([...files, ...picked].slice(0, MAX_PHOTOS))
+          e.target.value = ""
+        }}
+      />
+    </div>
+  )
+}
+
+/** A lot's own photos: add (upload at once) and remove. Without its own, the model's pictures are shown. */
+function LotPhotoManager({ lot, modelPhotos, onUpload, onRemove }: { lot: SiteMapLot; modelPhotos: string[]; onUpload: (fd: FormData) => Promise<unknown>; onRemove: (url: string) => Promise<unknown> }) {
+  const input = useRef<HTMLInputElement>(null)
+  const [busy, setBusy] = useState(false)
+  const room = MAX_PHOTOS - lot.photos.length
+  return (
+    <div className="border-t border-[#e6e2db] pt-4">
+      <p className="flex items-center gap-2 text-xs font-bold uppercase tracking-[0.14em] text-[#8a847a]">
+        <Camera className="h-3.5 w-3.5" /> Photos of this lot · {lot.photos.length}
+      </p>
+      <div className="mt-3 flex flex-wrap gap-2">
+        {lot.photos.map((u) => (
+          <span key={u} className="relative">
+            {/* eslint-disable-next-line @next/next/no-img-element */}
+            <img src={u} alt={lotName(lot)} className="h-16 w-24 border border-[#e6e2db] object-cover" />
+            <button
+              type="button"
+              disabled={busy}
+              onClick={async () => {
+                if (!(await confirmAction({ title: "Remove this photo from the lot?", confirm: "Remove", danger: true }))) return
+                setBusy(true)
+                await onRemove(u)
+                setBusy(false)
+              }}
+              aria-label="Remove this photo"
+              className="absolute -right-1.5 -top-1.5 rounded-full bg-[#17150f] p-0.5 text-white hover:bg-red-700"
+            >
+              <X className="h-3 w-3" />
+            </button>
+          </span>
+        ))}
+        {room > 0 && (
+          <button type="button" disabled={busy} onClick={() => input.current?.click()} className="inline-flex h-16 items-center gap-1.5 border border-dashed border-[#a39d92] px-3 text-xs font-bold text-[#3d3a34] hover:border-[#17150f] disabled:opacity-50">
+            {busy ? <LoaderCircle className="h-4 w-4 animate-spin" /> : <ImagePlus className="h-4 w-4" />} {busy ? "Uploading…" : "Add photos"}
+          </button>
+        )}
+      </div>
+      {lot.photos.length === 0 && <p className="mt-2 text-xs text-[#8a847a]">{modelPhotos.length ? `Without its own photos, the lot shows the ${lot.model} model's ${modelPhotos.length} picture${modelPhotos.length === 1 ? "" : "s"}.` : "Add photos of the actual house or lot."}</p>}
+      <input
+        ref={input}
+        type="file"
+        accept="image/*"
+        multiple
+        className="hidden"
+        onChange={async (e) => {
+          const picked = Array.from(e.target.files ?? []).slice(0, room)
+          e.target.value = ""
+          if (!picked.length) return
+          const fd = new FormData()
+          picked.forEach((f) => fd.append("photos", f))
+          setBusy(true)
+          await onUpload(fd)
+          setBusy(false)
+        }}
+      />
+    </div>
   )
 }
 
@@ -511,9 +661,26 @@ function LotEditor({ lot, models, pending, onSave, onClose }: { lot: SiteMapLot;
   )
 }
 
-function RowPanel({ row, models, pending, onAdjust, onApply, onRemove }: { row: SiteMapRow; models: PublicUnitType[]; pending: boolean; onAdjust: () => void; onApply: (v: { unit_type?: string; lot_area_sqm?: number; area_sqm?: number; price?: number }) => void; onRemove: () => void }) {
+function RowPanel({
+  row,
+  models,
+  pending,
+  onAdjust,
+  onApply,
+  onPhotos,
+  onRemove,
+}: {
+  row: SiteMapRow
+  models: PublicUnitType[]
+  pending: boolean
+  onAdjust: () => void
+  onApply: (v: { unit_type?: string; lot_area_sqm?: number; area_sqm?: number; price?: number }) => void
+  onPhotos: (fd: FormData) => void
+  onRemove: () => void
+}) {
   const [open, setOpen] = useState(false)
   const [v, setV] = useState({ model: "", lot_area: "", floor_area: "", price: "" })
+  const photoInput = useRef<HTMLInputElement>(null)
   const values = Object.fromEntries(
     [
       ["unit_type", v.model.trim()],
@@ -535,10 +702,28 @@ function RowPanel({ row, models, pending, onAdjust, onApply, onRemove }: { row: 
         <button type="button" onClick={() => setOpen((o) => !o)} className="inline-flex items-center gap-1.5 border border-[#d9d4cb] bg-white px-3 py-2 text-xs font-bold hover:border-[#17150f]">
           Fill in every lot
         </button>
+        <button type="button" disabled={pending} onClick={() => photoInput.current?.click()} className="inline-flex items-center gap-1.5 border border-[#d9d4cb] bg-white px-3 py-2 text-xs font-bold hover:border-[#17150f] disabled:opacity-50">
+          {pending ? <LoaderCircle className="h-3.5 w-3.5 animate-spin" /> : <ImagePlus className="h-3.5 w-3.5" />} Photos for every lot
+        </button>
         <button type="button" onClick={onRemove} disabled={pending} className="inline-flex items-center gap-1.5 border border-[#d9d4cb] bg-white px-3 py-2 text-xs font-bold hover:border-red-400 hover:text-red-700">
           <Trash2 className="h-3.5 w-3.5" /> Remove row
         </button>
       </div>
+      <input
+        ref={photoInput}
+        type="file"
+        accept="image/*"
+        multiple
+        className="hidden"
+        onChange={(e) => {
+          const picked = Array.from(e.target.files ?? []).slice(0, MAX_PHOTOS)
+          e.target.value = ""
+          if (!picked.length) return
+          const fd = new FormData()
+          picked.forEach((f) => fd.append("photos", f))
+          onPhotos(fd)
+        }}
+      />
       {open && (
         <form
           className="mt-3 space-y-2 border border-[#e6e2db] bg-[#faf8f5] p-3"
@@ -572,7 +757,7 @@ function RowPanel({ row, models, pending, onAdjust, onApply, onRemove }: { row: 
   )
 }
 
-/** The canvas, plus four draggable corner handles while a row is being adjusted. */
+/** The canvas, plus four draggable corner handles (a row being adjusted, or a new row before it is saved). */
 function AdjustableCanvas({ handles, onHandles, labels, ...rest }: Omit<React.ComponentProps<typeof SiteMapCanvas>, "labels"> & { labels?: React.ReactNode; handles: Point[] | null; onHandles: (c: Point[]) => void }) {
   const drag = useRef<number | null>(null)
   return (
@@ -584,11 +769,13 @@ function AdjustableCanvas({ handles, onHandles, labels, ...rest }: Omit<React.Co
           {handles?.map((pt, i) => (
             <span
               key={i}
+              data-handle
               role="slider"
               aria-label={`Corner ${i + 1}`}
               aria-valuenow={Math.round(pt[0] * 100)}
               tabIndex={0}
               onPointerDown={(e) => {
+                e.stopPropagation()
                 drag.current = i
                 e.currentTarget.setPointerCapture(e.pointerId)
               }}
@@ -599,6 +786,7 @@ function AdjustableCanvas({ handles, onHandles, labels, ...rest }: Omit<React.Co
                 onHandles(next)
               }}
               onPointerUp={() => (drag.current = null)}
+              onClick={(e) => e.stopPropagation()}
               className="absolute z-20 flex h-6 w-6 -translate-x-1/2 -translate-y-1/2 cursor-grab touch-none items-center justify-center rounded-full border-2 border-white bg-[#1d4ed8] text-[10px] font-bold text-white shadow-lg active:cursor-grabbing"
               style={{ left: `${pt[0] * 100}%`, top: `${pt[1] * 100}%` }}
             >

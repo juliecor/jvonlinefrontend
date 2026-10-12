@@ -23,6 +23,8 @@ export type SiteMapLot = {
   /** Null on the website and the buyer's page. */
   price: string | null
   tags: string[]
+  /** The lot's own photos (the actual house or lot). */
+  photos: string[]
 }
 
 export type SiteMapData = { image: string; rows: SiteMapRow[]; lots: SiteMapLot[]; highlight?: number }

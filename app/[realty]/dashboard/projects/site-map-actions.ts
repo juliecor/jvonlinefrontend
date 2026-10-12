@@ -68,3 +68,40 @@ export async function saveLot(slug: string, projectId: number, unitId: number, l
   })
   return { error: r.error, fieldErrors: r.fieldErrors }
 }
+
+/** Only the chosen photos go to Laravel (an empty file input sends an empty file). */
+const photosOnly = (fd: FormData) => {
+  const out = new FormData()
+  for (const f of fd.getAll("photos")) if (f instanceof File && f.size > 0) out.append("photos[]", f)
+  return out
+}
+
+/** Photos of one lot (the actual house or lot). */
+export async function uploadLotPhotos(slug: string, projectId: number, unitId: number, fd: FormData): Promise<{ error?: string; photos?: string[] }> {
+  let photos: string[] = []
+  const r = await call(slug, projectId, async (token) => {
+    photos = (await api<{ photos: string[] }>(`/realty/units/${unitId}/photos`, { method: "POST", token, body: photosOnly(fd) })).photos
+    return null
+  })
+  return r.error ? { error: r.error } : { photos }
+}
+
+export async function removeLotPhoto(slug: string, projectId: number, unitId: number, url: string): Promise<{ error?: string; photos?: string[] }> {
+  let photos: string[] = []
+  const r = await call(slug, projectId, async (token) => {
+    photos = (await api<{ photos: string[] }>(`/realty/units/${unitId}/photos/remove`, { method: "POST", token, body: { url } })).photos
+    return null
+  })
+  return r.error ? { error: r.error } : { photos }
+}
+
+/** The same photos on every lot of a row (lots already holding the most photos are skipped). */
+export async function uploadRowPhotos(slug: string, projectId: number, rowId: number, fd: FormData): Promise<MapResult & { skipped?: number }> {
+  let skipped = 0
+  const r = await call(slug, projectId, async (token) => {
+    const res = await api<{ skipped: number; site_map: SiteMapData | null }>(`/realty/site-rows/${rowId}/photos`, { method: "POST", token, body: photosOnly(fd) })
+    skipped = res.skipped
+    return res.site_map
+  })
+  return { ...r, skipped }
+}

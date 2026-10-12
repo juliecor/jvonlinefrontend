@@ -49,7 +49,7 @@ type Offer = {
     page_slug: string | null
     completion_date: string | null
   }
-  unit: { name: string; unit_type: string | null; category: string; floor: string | null; area_sqm: number | null; floor_plan_url: string | null; highlights: string | null; block?: string | null; lot?: string | null; lot_area_sqm?: number | null }
+  unit: { name: string; unit_type: string | null; category: string; floor: string | null; area_sqm: number | null; floor_plan_url: string | null; highlights: string | null; block?: string | null; lot?: string | null; lot_area_sqm?: number | null; photos?: string[] }
   /** The site plan with this home marked, when its lot is drawn there. */
   site_map?: SiteMapData | null
   model: { name: string; specs: Specs | null; images: string[] } | null
@@ -132,8 +132,8 @@ export default async function OfferPage({ params, searchParams }: Props) {
   const dueToday = (m: Milestone) => m.date === offer.purchase_date
   const specs = model?.specs ?? null
   const area = unit.area_sqm ?? (specs?.usable_floor_area ? Number(specs.usable_floor_area) : null)
-  // The model's renders, then the unit's floor plan — once, since the plan is usually one of the renders too.
-  const modelImages = Array.from(new Set([...(model?.images ?? []), ...(unit.floor_plan_url ? [unit.floor_plan_url] : [])]))
+  // Photos of this very lot first, then the model's renders and the unit's floor plan — once, since the plan is usually one of the renders too.
+  const modelImages = Array.from(new Set([...(unit.photos ?? []), ...(model?.images ?? []), ...(unit.floor_plan_url ? [unit.floor_plan_url] : [])]))
   const projectPage = project.page_slug && realty.slug === SITE_REALTY ? `/projects/${project.page_slug}` : null
   const asterisk = Object.values(specs ?? {}).some((v) => v?.includes("*"))
   const mailto = agent?.email ? `mailto:${agent.email}?subject=${encodeURIComponent(`Sales offer ${offer.code}`)}` : null
@@ -340,7 +340,7 @@ export default async function OfferPage({ params, searchParams }: Props) {
                   <section className="mt-12 break-inside-avoid print:hidden">
                     <Heading n="02" title="Where your home is" aside={unit.block && unit.lot ? `Block ${unit.block} · Lot ${unit.lot}` : project.name} />
                     <div className="mt-6">
-                      <SiteMapViewer map={offer.site_map} alt={`${project.name} site development plan`} maxHeight="70vh" />
+                      <SiteMapViewer map={offer.site_map} alt={`${project.name} site development plan`} maxHeight="70vh" details modelPhotos={model ? { [model.name]: model.images } : undefined} />
                     </div>
                     <p className="mt-2 text-xs text-[#8a847a]">Use + to zoom in. Colours show which lots are still available today.</p>
                   </section>
