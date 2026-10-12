@@ -5,8 +5,8 @@ import Link from "next/link"
 import { useRouter } from "next/navigation"
 import { Camera, Check, ImagePlus, LoaderCircle, MousePointerClick, Move, PencilRuler, Plus, Trash2, X } from "lucide-react"
 import { confirmAction, toast } from "@/components/feedback"
-import { LOT_TAGS, type Point, type SiteMapData, type SiteMapLot, type SiteMapRow, STATUS_STYLE, centroid, lotName, lotQuads, shapes, svgPoints } from "@/components/site-map/geometry"
-import { LotDetails, LotShape, LotTip, SiteMapCanvas, StatusLegend } from "@/components/site-map/site-map"
+import { LOT_TAGS, MAX_CORNERS, type Point, type SiteMapData, type SiteMapLot, type SiteMapRow, STATUS_STYLE, centroid, lotName, lotQuads, outline, shapes, svgPoints } from "@/components/site-map/geometry"
+import { LotDetails, LotShape, LotTip, SiteMapCanvas, StatusLegend, useAspect } from "@/components/site-map/site-map"
 import type { PublicUnitType } from "@/lib/public-projects-types"
 import { type LotInput, type RowInput, addSiteRow, applyToSiteRow, moveSiteRow, removeLotPhoto, removeSiteRow, saveLot, setSiteMapImage, uploadLotPhotos, uploadRowPhotos } from "./site-map-actions"
 
@@ -34,12 +34,17 @@ const sqm = (v: string | null | undefined) => {
 const MAX_PHOTOS = 12
 const tipAt = (quad: Point[]): Point => [centroid(quad)[0], Math.min(...quad.map((q) => q[1]))]
 
-const CLICK_HINTS = [
-  "Click the outer corner of the first lot (the corner on the road).",
-  "Click the far end of the row, on the same side.",
-  "Click the far end of the other side.",
-  "Click the last corner, back next to the first lot.",
-]
+/** What the next click is. Clicks go in pairs, from lot 1 on: the road side, then straight across at the back. */
+const clickHint = (n: number) =>
+  n === 0
+    ? "Click the road-side corner of the first lot."
+    : n === 1
+      ? "Click straight across: the back corner of the first lot."
+      : n % 2 === 1
+        ? "Click straight across from your last click, at the back."
+        : n === 2
+          ? "Click the road side at the end of the row. If the row bends, click the first bend instead."
+          : "Click the road side at the next bend, or at the end of the row."
 
 /**
  * The project's Site map tab. Admins draw each row of lots on the plan (four clicks, then the block,
@@ -64,7 +69,8 @@ const photosByModel = (models: PublicUnitType[]) => Object.fromEntries(models.ma
 
 function Browser({ slug, projectId, projectName, map, models, canOffer }: Props & { map: SiteMapData }) {
   const [sel, setSel] = useState<SiteMapLot | null>(null)
-  const all = useMemo(() => shapes(map), [map])
+  const aspect = useAspect(map.image)
+  const all = useMemo(() => shapes(map, aspect), [map, aspect])
   const [hover, setHover] = useState<number | null>(null)
   const hovered = all.find((s) => s.lot.id === hover)
   const modelPhotos = useMemo(() => photosByModel(models), [models])
@@ -137,7 +143,8 @@ function Editor({ slug, projectId, projectName, map: initial, sitePlans, models 
     return () => window.removeEventListener("keydown", onKey)
   }, [mode])
 
-  const all = useMemo(() => shapes(map), [map])
+  const aspect = useAspect(map.image)
+  const all = useMemo(() => shapes(map, aspect), [map, aspect])
   const selectedLot = mode.kind === "lot" ? map.lots.find((l) => l.id === mode.id) : undefined
   const selectedRow = mode.kind === "lot" ? map.rows.find((r) => r.id === selectedLot?.row_id) : mode.kind === "adjust" ? map.rows.find((r) => r.id === mode.rowId) : undefined
   const hovered = all.find((s) => s.lot.id === hover)
@@ -145,8 +152,16 @@ function Editor({ slug, projectId, projectName, map: initial, sitePlans, models 
   const previewCount = Math.max(0, Math.min(200, Number(row.lot_count) || 0))
   const drawing = mode.kind === "draw"
   const adjusting = mode.kind === "adjust"
-  // Corners that can be dragged: a row being adjusted, or a new row once its 4 corners are down.
-  const handles = adjusting ? mode.corners : drawing && points.length === 4 ? points : null
+  // The new row's outline from its complete pairs of clicks; it can be saved once it has two pairs and no half pair.
+  const corners = outline(points)
+  const shaped = points.length >= 4
+  const halfPair = points.length % 2 === 1
+  // Points that can be dragged: a row being adjusted, or a new row once it has its first 4 clicks.
+  const handles = adjusting ? mode.corners : drawing && shaped ? points : null
+  // While drawing, the road side and the back side so far, and the line to the pointer for the next click.
+  const road = points.filter((_, i) => i % 2 === 0)
+  const back = points.filter((_, i) => i % 2 === 1)
+  const nextOnRoad = !halfPair
 
   const run = (task: () => Promise<{ error?: string; fieldErrors?: Record<string, string>; map?: SiteMapData | null }>, done: string, after?: (m: SiteMapData | null | undefined) => void | Promise<void>) =>
     start(async () => {
@@ -171,10 +186,10 @@ function Editor({ slug, projectId, projectName, map: initial, sitePlans, models 
   }
 
   const saveRow = () => {
-    if (points.length !== 4) return
+    if (!shaped || halfPair) return
     const input: RowInput = {
       block: row.block.trim(),
-      corners: points,
+      corners,
       first_lot: Number(row.first_lot) || 1,
       lot_count: Number(row.lot_count) || 0,
       unit_type: row.unit_type.trim() || null,
@@ -202,12 +217,12 @@ function Editor({ slug, projectId, projectName, map: initial, sitePlans, models 
 
   const panel = (
     <>
-      {drawing && points.length < 4 && (
+      {drawing && !shaped && (
         <div>
-          <p className="text-xs font-bold uppercase tracking-[0.14em] text-[#1d4ed8]">Draw a row · click {points.length + 1} of 4</p>
-          <p className="mt-2 text-lg font-bold leading-snug">{CLICK_HINTS[points.length]}</p>
-          <p className="mt-3 text-sm text-[#5a554d]">A row is one straight line of lots, like the top row of a block. Lot numbers count up from your first click towards your second.</p>
-          <p className="mt-3 text-sm text-[#5a554d]">Zoom in close first: it makes the clicks exact. After the 4th click you can still drag the corners.</p>
+          <p className="text-xs font-bold uppercase tracking-[0.14em] text-[#1d4ed8]">Draw a row · click {points.length + 1}</p>
+          <p className="mt-2 text-lg font-bold leading-snug">{clickHint(points.length)}</p>
+          <p className="mt-3 text-sm text-[#5a554d]">A row is one line of lots, like the top row of a block. You click in pairs: the road side, then straight across at the back. Lot numbers count up from your first pair.</p>
+          <p className="mt-3 text-sm text-[#5a554d]">A straight row is 4 clicks. If it bends, click a pair at every bend too. Zoom in close first: it makes the clicks exact.</p>
           {points.length > 0 && (
             <button type="button" onClick={() => setMode({ kind: "draw", points: points.slice(0, -1) })} className="mt-4 text-sm font-bold text-[var(--accent)] hover:underline">
               Undo the last click
@@ -216,7 +231,7 @@ function Editor({ slug, projectId, projectName, map: initial, sitePlans, models 
         </div>
       )}
 
-      {drawing && points.length === 4 && (
+      {drawing && shaped && (
         <form
           onSubmit={(e) => {
             e.preventDefault()
@@ -225,7 +240,18 @@ function Editor({ slug, projectId, projectName, map: initial, sitePlans, models 
           className="space-y-3"
         >
           <p className="text-xs font-bold uppercase tracking-[0.14em] text-[#1d4ed8]">New row of lots</p>
-          <p className="text-xs text-[#6b665d]">Drag the blue corners if a line is off.</p>
+          {halfPair ? (
+            <p className="border-l-4 border-[#1d4ed8] bg-[#eff4ff] px-3 py-2 text-sm font-semibold text-[#1e3a8a]">{clickHint(points.length)} That finishes this bend.</p>
+          ) : (
+            <p className="text-xs text-[#6b665d]">
+              Drag the blue points if a line is off. Row bends? Keep clicking in pairs: the road side, then straight across.{points.length >= MAX_CORNERS ? ` That's the most (${MAX_CORNERS / 2} pairs).` : ""}
+            </p>
+          )}
+          {points.length > 4 && (
+            <button type="button" onClick={() => setMode({ kind: "draw", points: points.slice(0, -1) })} className="text-xs font-bold text-[var(--accent)] hover:underline">
+              Undo the last click
+            </button>
+          )}
           <div className="grid grid-cols-3 gap-2">
             <label>
               <span className={label}>Block</span>
@@ -259,7 +285,7 @@ function Editor({ slug, projectId, projectName, map: initial, sitePlans, models 
           </label>
           <PhotoPicker files={rowPhotos} onChange={setRowPhotos} hint="Photos for every lot in this row (optional)" />
           <div className="flex flex-wrap gap-2 pt-1">
-            <button type="submit" disabled={pending || !row.block.trim() || !Number(row.lot_count)} className="inline-flex items-center gap-2 bg-[var(--accent)] px-4 py-2.5 text-sm font-bold text-white hover:brightness-110 disabled:opacity-50">
+            <button type="submit" disabled={pending || halfPair || !row.block.trim() || !Number(row.lot_count)} className="inline-flex items-center gap-2 bg-[var(--accent)] px-4 py-2.5 text-sm font-bold text-white hover:brightness-110 disabled:opacity-50">
               {pending ? <LoaderCircle className="h-4 w-4 animate-spin" /> : <Check className="h-4 w-4" strokeWidth={3} />} Add {Number(row.lot_count) || ""} lots
             </button>
             <button type="button" onClick={() => setMode({ kind: "draw", points: [] })} className="px-3 py-2.5 text-sm font-semibold text-[#8a847a] hover:text-[#17150f]">
@@ -333,7 +359,7 @@ function Editor({ slug, projectId, projectName, map: initial, sitePlans, models 
           <p className="text-xs font-bold uppercase tracking-[0.14em] text-[#1d4ed8]">
             <Move className="mr-1 inline h-3.5 w-3.5" /> Adjusting Block {selectedRow?.block}
           </p>
-          <p className="mt-2 text-[15px] text-[#3d3a34]">Drag the four blue corners until the lots sit on the drawing, then save.</p>
+          <p className="mt-2 text-[15px] text-[#3d3a34]">Drag the blue points until the lots sit on the drawing, then save.</p>
           <div className="mt-4 flex gap-2">
             <button type="button" disabled={pending} onClick={() => run(() => moveSiteRow(slug, projectId, mode.rowId, mode.corners), "Row moved", () => setMode({ kind: "idle" }))} className="inline-flex items-center gap-2 bg-[var(--accent)] px-4 py-2.5 text-sm font-bold text-white hover:brightness-110 disabled:opacity-50">
               {pending ? <LoaderCircle className="h-4 w-4 animate-spin" /> : <Check className="h-4 w-4" strokeWidth={3} />} Save position
@@ -403,12 +429,13 @@ function Editor({ slug, projectId, projectName, map: initial, sitePlans, models 
                 {panel}
               </div>
             }
-            cursor={drawing && points.length < 4 ? "crosshair" : undefined}
+            cursor={drawing && points.length < MAX_CORNERS ? "crosshair" : undefined}
             onPoint={(pt) => {
-              if (drawing && points.length < 4) setMode({ kind: "draw", points: [...points, pt] })
+              if (drawing && points.length < MAX_CORNERS) setMode({ kind: "draw", points: [...points, pt] })
             }}
-            onMove={drawing && points.length < 4 ? setCursorAt : undefined}
+            onMove={drawing ? setCursorAt : undefined}
             handles={handles}
+            numbered={drawing}
             onHandles={(c) => {
               if (adjusting) setMode({ ...mode, corners: c })
               else if (drawing) setMode({ kind: "draw", points: c })
@@ -428,28 +455,41 @@ function Editor({ slug, projectId, projectName, map: initial, sitePlans, models 
                 ))}
                 {selectedRow && !adjusting && <polygon points={svgPoints(selectedRow.corners)} fill="none" stroke="#17150f" strokeWidth={1.5} strokeDasharray="6 4" vectorEffect="non-scaling-stroke" pointerEvents="none" />}
                 {adjusting &&
-                  lotQuads(mode.corners, selectedRow?.lot_count ?? 1).map((q, i) => <polygon key={i} points={svgPoints(q)} fill="#2563eb" fillOpacity={0.25} stroke="#1d4ed8" strokeWidth={1.2} vectorEffect="non-scaling-stroke" pointerEvents="none" />)}
-                {drawing && points.length > 0 && (
-                  <polyline points={svgPoints(points.length < 4 && cursorAt ? [...points, cursorAt] : points.length === 4 ? [...points, points[0]] : points)} fill="none" stroke="#1d4ed8" strokeWidth={2} vectorEffect="non-scaling-stroke" pointerEvents="none" />
+                  lotQuads(mode.corners, selectedRow?.lot_count ?? 1, undefined, aspect).map((q, i) => <polygon key={i} points={svgPoints(q)} fill="#2563eb" fillOpacity={0.25} stroke="#1d4ed8" strokeWidth={1.2} vectorEffect="non-scaling-stroke" pointerEvents="none" />)}
+                {drawing && (
+                  <g fill="none" stroke="#1d4ed8" strokeWidth={2} vectorEffect="non-scaling-stroke" pointerEvents="none">
+                    {road.length > 1 && <polyline points={svgPoints(road)} vectorEffect="non-scaling-stroke" />}
+                    {back.length > 1 && <polyline points={svgPoints(back)} vectorEffect="non-scaling-stroke" />}
+                    {back.map((b, i) => (
+                      <line key={i} x1={road[i][0]} y1={road[i][1]} x2={b[0]} y2={b[1]} vectorEffect="non-scaling-stroke" />
+                    ))}
+                    {cursorAt && points.length > 0 && (!shaped || halfPair) && (
+                      <g strokeDasharray="5 4" strokeOpacity={0.8}>
+                        {/* the road side going on, or (for a half pair) the line straight across */}
+                        <line x1={road[road.length - 1][0]} y1={road[road.length - 1][1]} x2={cursorAt[0]} y2={cursorAt[1]} vectorEffect="non-scaling-stroke" />
+                        {!nextOnRoad && back.length > 0 && <line x1={back[back.length - 1][0]} y1={back[back.length - 1][1]} x2={cursorAt[0]} y2={cursorAt[1]} vectorEffect="non-scaling-stroke" />}
+                      </g>
+                    )}
+                  </g>
                 )}
-                {drawing && points.length === 4 && previewCount > 0 && lotQuads(points, previewCount).map((q, i) => <polygon key={i} points={svgPoints(q)} fill="#2563eb" fillOpacity={0.25} stroke="#1d4ed8" strokeWidth={1.2} vectorEffect="non-scaling-stroke" pointerEvents="none" />)}
+                {drawing && shaped && previewCount > 0 && lotQuads(corners, previewCount, undefined, aspect).map((q, i) => <polygon key={i} points={svgPoints(q)} fill="#2563eb" fillOpacity={0.25} stroke="#1d4ed8" strokeWidth={1.2} vectorEffect="non-scaling-stroke" pointerEvents="none" />)}
               </>
             }
             labels={
               <>
                 {drawing &&
-                  points.length < 4 &&
+                  !shaped &&
                   points.map((pt, i) => (
                     <span key={i} className="pointer-events-none absolute z-10 flex h-5 w-5 -translate-x-1/2 -translate-y-1/2 items-center justify-center rounded-full border-2 border-white bg-[#1d4ed8] text-[10px] font-bold text-white shadow" style={{ left: `${pt[0] * 100}%`, top: `${pt[1] * 100}%` }}>
                       {i + 1}
                     </span>
                   ))}
-                {drawing && points.length === 4 && previewCount > 0 && (
+                {drawing && shaped && previewCount > 0 && (
                   <span className="pointer-events-none absolute z-10 -translate-x-1/2 -translate-y-[160%] bg-[#1d4ed8] px-2 py-0.5 text-xs font-bold text-white" style={{ left: `${points[0][0] * 100}%`, top: `${points[0][1] * 100}%` }}>
                     Lot {row.first_lot || 1}
                   </span>
                 )}
-                {hovered && !drawing && <LotTip lot={hovered.lot} at={tipAt(hovered.quad)} />}
+                {hovered && !drawing && !adjusting && <LotTip lot={hovered.lot} at={tipAt(hovered.quad)} />}
               </>
             }
           />
@@ -471,7 +511,7 @@ function Help({ map }: { map: SiteMapData }) {
           Open <b>full screen</b> (the arrows at the top right of the plan) and zoom in on a block.
         </li>
         <li>
-          Click <b>Draw a row of lots</b>, then click the 4 corners of one straight row of lots.
+          Click <b>Draw a row of lots</b>, then click in pairs along one row: the road side, then straight across at the back. A straight row is 4 clicks; add a pair at every bend.
         </li>
         <li>Type the block, the first lot number and how many lots. Add the house model, lot area, price and photos they share.</li>
         <li>Repeat for every row. A block usually has two rows, back to back.</li>
@@ -757,8 +797,8 @@ function RowPanel({
   )
 }
 
-/** The canvas, plus four draggable corner handles (a row being adjusted, or a new row before it is saved). */
-function AdjustableCanvas({ handles, onHandles, labels, ...rest }: Omit<React.ComponentProps<typeof SiteMapCanvas>, "labels"> & { labels?: React.ReactNode; handles: Point[] | null; onHandles: (c: Point[]) => void }) {
+/** The canvas, plus draggable point handles (a row being adjusted, or a new row before it is saved), numbered in click order while drawing. */
+function AdjustableCanvas({ handles, onHandles, numbered, labels, ...rest }: Omit<React.ComponentProps<typeof SiteMapCanvas>, "labels"> & { labels?: React.ReactNode; handles: Point[] | null; onHandles: (c: Point[]) => void; numbered?: boolean }) {
   const drag = useRef<number | null>(null)
   return (
     <SiteMapCanvas
@@ -771,7 +811,7 @@ function AdjustableCanvas({ handles, onHandles, labels, ...rest }: Omit<React.Co
               key={i}
               data-handle
               role="slider"
-              aria-label={`Corner ${i + 1}`}
+              aria-label={`Point ${i + 1}`}
               aria-valuenow={Math.round(pt[0] * 100)}
               tabIndex={0}
               onPointerDown={(e) => {
@@ -790,7 +830,7 @@ function AdjustableCanvas({ handles, onHandles, labels, ...rest }: Omit<React.Co
               className="absolute z-20 flex h-6 w-6 -translate-x-1/2 -translate-y-1/2 cursor-grab touch-none items-center justify-center rounded-full border-2 border-white bg-[#1d4ed8] text-[10px] font-bold text-white shadow-lg active:cursor-grabbing"
               style={{ left: `${pt[0] * 100}%`, top: `${pt[1] * 100}%` }}
             >
-              {i + 1}
+              {numbered ? i + 1 : ""}
             </span>
           ))}
         </>

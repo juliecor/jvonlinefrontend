@@ -8,6 +8,17 @@ import { LOT_TAGS, type Point, type SiteMapData, type SiteMapLot, STATUS_STYLE, 
 const MIN_ZOOM = 1
 const MAX_ZOOM = 8
 
+/** The plan's width ÷ height once its picture loads (1 until then), so a bent row's lots are cut by their real length. */
+export function useAspect(src: string) {
+  const [got, setGot] = useState<{ src: string; aspect: number } | null>(null)
+  useEffect(() => {
+    const img = new Image()
+    img.onload = () => img.naturalHeight && setGot({ src, aspect: img.naturalWidth / img.naturalHeight })
+    img.src = src
+  }, [src])
+  return got?.src === src ? got.aspect : 1
+}
+
 /**
  * The plan image with a drawing layer over it, in plan fractions (0…1 both ways). Zoom with the
  * buttons, or with a pinch / Ctrl+scroll (plain scroll too in full screen) at the pointer; drag to
@@ -342,7 +353,8 @@ export function SiteMapViewer({
   /** A house model's pictures by name, for lots without photos of their own. */
   modelPhotos?: Record<string, string[]>
 }) {
-  const all = useMemo(() => shapes(map), [map])
+  const aspect = useAspect(map.image)
+  const all = useMemo(() => shapes(map, aspect), [map, aspect])
   const [hover, setHover] = useState<number | null>(null)
   const [open, setOpen] = useState<number | null>(details && map.highlight ? map.highlight : null)
   const hovered = all.find((s) => s.lot.id === hover)
