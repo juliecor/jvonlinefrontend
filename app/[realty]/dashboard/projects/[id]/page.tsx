@@ -15,6 +15,7 @@ import { ModelsEditor, WebsiteEditor } from "../public-page"
 import { StatusBar } from "../status-bar"
 import type { ProjectDetail, Unit } from "../types"
 import { UnitList } from "../unit-list"
+import { SiteMapTab } from "../site-map-tab"
 import { Photo } from "@/components/photo"
 
 type Props = { params: Promise<{ realty: string; id: string }>; searchParams: Promise<{ plan_error?: string; unit?: string }> }
@@ -190,6 +191,24 @@ export default async function ProjectPage({ params, searchParams }: Props) {
               <Panel className="!mt-6" title={`Units · ${units.length}`} aside={staff ? <AddUnit slug={slug} projectId={project.id} projectName={project.name} /> : undefined}>
                 <UnitList slug={slug} projectId={project.id} units={units} staff={staff} initialQuery={unitQuery} />
               </Panel>
+            ),
+          },
+          {
+            id: "site-map",
+            label: "Site map",
+            short: "Map",
+            badge: project.site_map?.lots.length || null,
+            content: (
+              <SiteMapTab
+                slug={slug}
+                projectId={project.id}
+                projectName={project.name}
+                map={project.site_map}
+                sitePlans={project.site_plan_urls}
+                models={project.unit_types}
+                staff={staff}
+                canOffer={can(user, "offers") && user.realty.accreditation?.active !== false}
+              />
             ),
           },
           {

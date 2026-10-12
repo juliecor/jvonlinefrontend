@@ -11,6 +11,7 @@ import { Amenities } from "./amenities"
 import { ProjectHero } from "./hero"
 import { SectionHead } from "./section-head"
 import { SitePlan } from "./site-plan"
+import { SiteMapViewer } from "@/components/site-map/site-map"
 import { UnitTypes } from "./unit-types"
 import { Updates } from "./updates"
 import { Photo } from "@/components/photo"
@@ -109,7 +110,7 @@ export default async function ProjectPage({ params }: Props) {
           <div className="mx-auto max-w-[1400px]">
             <SectionHead
               eyebrow="Site development plan"
-              lede="Blocks, lots, roads, parks and open spaces as drawn by Johndorf's planners. Tap to view full screen."
+              lede={p.site_map ? "Every lot, coloured by whether it is still available. Point at one to see its block, lot and size." : "Blocks, lots, roads, parks and open spaces as drawn by Johndorf's planners. Tap to view full screen."}
               action={
                 interactive ? (
                   <Link href="/johndorf/montierra" className="inline-flex items-center gap-2 rounded-sm bg-[#b4241c] px-6 py-3 text-[12px] font-semibold uppercase tracking-[0.14em] text-white hover:bg-[#941414]">
@@ -120,7 +121,17 @@ export default async function ProjectPage({ params }: Props) {
             >
               The lay of the land.
             </SectionHead>
-            <SitePlan plans={p.site_plans} name={p.name} />
+            {p.site_map ? (
+              <>
+                <div className="mt-12 bg-white p-4 sm:p-6">
+                  <SiteMapViewer map={p.site_map} alt={`${p.name} site development plan`} maxHeight="80vh" />
+                  <p className="mt-3 text-sm text-[#6b5a56]">Point at a lot to see it. Use + to zoom in. Ask a Johndorf agent about prices and reservations.</p>
+                </div>
+                {p.site_plans.filter((s) => s !== p.site_map?.image).length > 0 && <SitePlan plans={p.site_plans.filter((s) => s !== p.site_map?.image)} name={p.name} />}
+              </>
+            ) : (
+              <SitePlan plans={p.site_plans} name={p.name} />
+            )}
           </div>
         </section>
       )}

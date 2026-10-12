@@ -1,4 +1,5 @@
 import type { PublicUnitType, PublicUpdate } from "@/lib/public-projects-types"
+import type { SiteMapData } from "@/components/site-map/geometry"
 
 export type Milestone = { label: string; percent: number; days: number | null; months?: number | null }
 
@@ -14,6 +15,12 @@ export type Unit = {
   floor_plan_url: string | null
   notes: string | null
   buyer_notes: string | null
+  /** Where it is on the site plan, when it was drawn there. */
+  block?: string | null
+  lot?: string | null
+  site_row_id?: number | null
+  lot_area_sqm?: string | null
+  tags?: string[] | null
   /** Who a reserved or sold unit went to (the buyer only for realty admins). */
   status_detail?: UnitStatusDetail | null
   /** The house model's picture, else the project's photo (added by the project page API). */
@@ -66,4 +73,6 @@ export type ProjectDetail = Project & {
   site_plan_urls: string[]
   unit_types: PublicUnitType[]
   updates: PublicUpdate[]
+  /** The clickable site plan (null until the project has a plan image). */
+  site_map: SiteMapData | null
 }

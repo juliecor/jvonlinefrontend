@@ -1,4 +1,5 @@
 /** Shapes of Johndorf's public project pages as the API returns them. Safe to import from client components. */
+import type { SiteMapData } from "@/components/site-map/geometry"
 
 /** The realty whose site jvconline.ph is (its landing is at /). */
 export const SITE_REALTY = "johndorf"
@@ -37,6 +38,8 @@ export type PublicProject = {
   unit_types: PublicUnitType[]
   updates: PublicUpdate[]
   total_photos: number
+  /** The clickable site plan, once Johndorf has drawn the lots on it: status only, no prices. */
+  site_map?: SiteMapData | null
 }
 
 export const SPEC_LABELS: Record<keyof PublicSpecs, string> = {

@@ -18,6 +18,8 @@ import { OfferTabs } from "./tabs"
 import { Heading, Installments, LocationBlock } from "./shared"
 import { UnlockForm } from "./unlock-form"
 import { InterestedGate } from "./interested-gate"
+import { SiteMapViewer } from "@/components/site-map/site-map"
+import type { SiteMapData } from "@/components/site-map/geometry"
 import { type OfferSheet, SalesOfferSheet } from "./sheet"
 import { Photo } from "@/components/photo"
 
@@ -47,7 +49,9 @@ type Offer = {
     page_slug: string | null
     completion_date: string | null
   }
-  unit: { name: string; unit_type: string | null; category: string; floor: string | null; area_sqm: number | null; floor_plan_url: string | null; highlights: string | null }
+  unit: { name: string; unit_type: string | null; category: string; floor: string | null; area_sqm: number | null; floor_plan_url: string | null; highlights: string | null; block?: string | null; lot?: string | null; lot_area_sqm?: number | null }
+  /** The site plan with this home marked, when its lot is drawn there. */
+  site_map?: SiteMapData | null
   model: { name: string; specs: Specs | null; images: string[] } | null
   agent: { name: string; email: string } | null
   /** The accredited realty that prepared it, when it isn't Johndorf's own team. */
@@ -135,6 +139,7 @@ export default async function OfferPage({ params, searchParams }: Props) {
   const mailto = agent?.email ? `mailto:${agent.email}?subject=${encodeURIComponent(`Sales offer ${offer.code}`)}` : null
 
   const specRows: { icon: typeof Ruler; label: string; value: string | null }[] = [
+    { icon: SquareDashed, label: "Lot area", value: unit.lot_area_sqm ? sqm(unit.lot_area_sqm) : null },
     { icon: Ruler, label: "Usable floor area", value: area !== null ? sqm(area) : null },
     { icon: SquareDashed, label: "Typical floor area", value: specs?.typical_floor_area ? `${specs.typical_floor_area} sqm` : null },
     { icon: BedDouble, label: "Bedrooms", value: specs?.bedrooms ?? null },
@@ -330,6 +335,16 @@ export default async function OfferPage({ params, searchParams }: Props) {
                     </div>
                   </div>
                 </section>
+                {/* Where it is: the site plan with this lot marked. */}
+                {offer.site_map && (
+                  <section className="mt-12 break-inside-avoid print:hidden">
+                    <Heading n="02" title="Where your home is" aside={unit.block && unit.lot ? `Block ${unit.block} · Lot ${unit.lot}` : project.name} />
+                    <div className="mt-6">
+                      <SiteMapViewer map={offer.site_map} alt={`${project.name} site development plan`} maxHeight="70vh" />
+                    </div>
+                    <p className="mt-2 text-xs text-[#8a847a]">Use + to zoom in. Colours show which lots are still available today.</p>
+                  </section>
+                )}
               </div>
             ),
           },

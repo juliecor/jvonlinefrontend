@@ -3,7 +3,8 @@
 import { useMemo, useState, useTransition } from "react"
 import { DEFAULT_VALIDITY, VALIDITY } from "./validity"
 import Link from "next/link"
-import { BadgeCheck, Clock, ExternalLink, KeyRound, LoaderCircle, Send } from "lucide-react"
+import { BadgeCheck, Clock, ExternalLink, KeyRound, LoaderCircle, Map as MapIcon, Send } from "lucide-react"
+import { SiteMapViewer } from "@/components/site-map/site-map"
 import { CopyButton } from "@/components/copy-button"
 import { Alert, Label, fieldClass } from "@/components/form"
 import { byUnitName, php, sqm } from "@/lib/format"
@@ -36,6 +37,9 @@ export function OfferForm({ slug, projects, initialProject, initialUnit, initial
   const [unitId, setUnitId] = useState<number>(initialUnit ?? 0)
   const unit = units.find((u) => u.id === unitId) ?? units[0]
   const unitGone = !!initialUnit && unitId === initialUnit && !units.some((u) => u.id === initialUnit)
+  // The project's site plan, when its lots are drawn: pick the lot there instead of from the list.
+  const [showMap, setShowMap] = useState(false)
+  const lotsOnMap = (project?.site_map?.lots.length ?? 0) > 0
   const price = Number(unit?.price ?? 0)
   // Terms worked out elsewhere ("Make offer with these terms" in the AI chat): one of the project's plans, or custom terms in pesos.
   const [planId, setPlanId] = useState<number | "custom" | "">(() => (initialTerms?.length && price ? "custom" : initialPlan && project?.payment_plans.some((p) => p.id === initialPlan) ? initialPlan : ""))
@@ -145,6 +149,7 @@ export function OfferForm({ slug, projects, initialProject, initialUnit, initial
                 setProjectId(Number(e.target.value))
                 setUnitId(0)
                 setPlanId("")
+                setShowMap(false)
               }}
               className={fieldClass}
             >
@@ -166,8 +171,29 @@ export function OfferForm({ slug, projects, initialProject, initialUnit, initial
                 </option>
               ))}
             </select>
+            {lotsOnMap && (
+              <button type="button" onClick={() => setShowMap((v) => !v)} className="mt-2 inline-flex items-center gap-1.5 text-sm font-bold text-[var(--accent)] hover:underline">
+                <MapIcon className="h-4 w-4" /> {showMap ? "Hide the site map" : "Pick the lot on the site map"}
+              </button>
+            )}
           </label>
         </div>
+        {showMap && project?.site_map && (
+          <div className="border border-[#e6e2db] bg-white p-3">
+            <p className="mb-2 text-sm text-[#5a554d]">Click a green lot to choose it. Faded lots are taken or have no price yet.</p>
+            <SiteMapViewer
+              map={project.site_map}
+              alt={`${project.name} site plan`}
+              selectedId={unit?.id}
+              canPick={(l) => units.some((u) => u.id === l.id)}
+              onPick={(l) => {
+                setUnitId(l.id)
+                setShowMap(false)
+              }}
+              maxHeight="60vh"
+            />
+          </div>
+        )}
         <label className="block">
           <Label>Payment terms</Label>
           <select name="payment_plan_id" value={custom ? "custom" : (plan?.id ?? "")} onChange={(e) => chooseTerms(e.target.value)} className={fieldClass}>
