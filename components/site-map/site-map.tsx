@@ -254,9 +254,18 @@ export function StatusLegend({ lots }: { lots: SiteMapLot[] }) {
 }
 
 /** What hovering a lot says: its name, status, areas and model (and price where known). */
-export function LotTip({ lot, at }: { lot: SiteMapLot; at: Point }) {
+/** The tip over a hovered lot, with a picture of its house when there is one; under the lot when it is near the top of the plan. */
+export function LotTip({ lot, quad, photo }: { lot: SiteMapLot; quad: Point[]; photo?: string | null }) {
+  const top = Math.min(...quad.map((p) => p[1]))
+  const below = !!photo && top < 0.35
+  const y = below ? Math.max(...quad.map((p) => p[1])) : top
   return (
-    <div className="pointer-events-none absolute z-10 -translate-x-1/2 -translate-y-[calc(100%+10px)] whitespace-nowrap bg-[#17150f] px-3 py-2 text-xs text-white shadow-lg" style={{ left: `${at[0] * 100}%`, top: `${at[1] * 100}%` }}>
+    <div
+      className={`pointer-events-none absolute z-10 -translate-x-1/2 whitespace-nowrap bg-[#17150f] px-3 py-2 text-xs text-white shadow-lg ${below ? "translate-y-[10px]" : "-translate-y-[calc(100%+10px)]"}`}
+      style={{ left: `${centroid(quad)[0] * 100}%`, top: `${y * 100}%` }}
+    >
+      {/* eslint-disable-next-line @next/next/no-img-element */}
+      {photo && <img src={photo} alt="" className="-mx-1 mb-2 mt-1 aspect-[4/3] w-48 max-w-none bg-[#2a2722] object-cover" />}
       <p className="font-bold">
         {lotName(lot)} · <span style={{ color: STATUS_STYLE[lot.status].fill }}>{STATUS_STYLE[lot.status].label}</span>
       </p>
@@ -388,7 +397,7 @@ export function SiteMapViewer({
                     Your home
                   </div>
                 )}
-                {hovered && <LotTip lot={hovered.lot} at={[centroid(hovered.quad)[0], Math.min(...hovered.quad.map((p) => p[1]))]} />}
+                {hovered && <LotTip lot={hovered.lot} quad={hovered.quad} photo={hovered.lot.photos[0] ?? (hovered.lot.model && modelPhotos?.[hovered.lot.model]?.[0])} />}
               </>
             }
           />

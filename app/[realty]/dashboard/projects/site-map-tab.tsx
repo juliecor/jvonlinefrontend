@@ -5,7 +5,7 @@ import Link from "next/link"
 import { useRouter } from "next/navigation"
 import { Camera, Check, ImagePlus, LoaderCircle, MousePointerClick, Move, PencilRuler, Plus, Trash2, X } from "lucide-react"
 import { confirmAction, toast } from "@/components/feedback"
-import { LOT_TAGS, MAX_CORNERS, type Point, type SiteMapData, type SiteMapLot, type SiteMapRow, STATUS_STYLE, centroid, lotName, lotQuads, outline, shapes, svgPoints } from "@/components/site-map/geometry"
+import { LOT_TAGS, MAX_CORNERS, type Point, type SiteMapData, type SiteMapLot, type SiteMapRow, STATUS_STYLE, lotName, lotQuads, outline, shapes, svgPoints } from "@/components/site-map/geometry"
 import { LotDetails, LotShape, LotTip, SiteMapCanvas, StatusLegend, useAspect } from "@/components/site-map/site-map"
 import type { PublicUnitType } from "@/lib/public-projects-types"
 import { type LotInput, type RowInput, addSiteRow, applyToSiteRow, moveSiteRow, removeLotPhoto, removeSiteRow, saveLot, setSiteMapImage, uploadLotPhotos, uploadRowPhotos } from "./site-map-actions"
@@ -32,7 +32,6 @@ const sqm = (v: string | null | undefined) => {
   return m ? m[0] : ""
 }
 const MAX_PHOTOS = 12
-const tipAt = (quad: Point[]): Point => [centroid(quad)[0], Math.min(...quad.map((q) => q[1]))]
 
 /** What the next click is. Clicks go in pairs, from lot 1 on: the road side, then straight across at the back. */
 const clickHint = (n: number) =>
@@ -99,7 +98,7 @@ function Browser({ slug, projectId, projectName, map, models, canOffer }: Props 
           alt={`${projectName} site development plan`}
           side={panel}
           layers={all.map(({ lot, quad }) => <LotShape key={lot.id} quad={quad} lot={lot} selected={lot.id === sel?.id} onClick={() => setSel(lot)} onHover={(on) => setHover(on ? lot.id : null)} />)}
-          labels={hovered && <LotTip lot={hovered.lot} at={tipAt(hovered.quad)} />}
+          labels={hovered && <LotTip lot={hovered.lot} quad={hovered.quad} photo={hovered.lot.photos[0] ?? (hovered.lot.model && modelPhotos[hovered.lot.model]?.[0])} />}
         />
         {map.lots.length === 0 && <p className="text-sm text-[#6b665d]">The lots haven&apos;t been drawn on this plan yet.</p>}
       </div>
@@ -489,7 +488,7 @@ function Editor({ slug, projectId, projectName, map: initial, sitePlans, models 
                     Lot {row.first_lot || 1}
                   </span>
                 )}
-                {hovered && !drawing && !adjusting && <LotTip lot={hovered.lot} at={tipAt(hovered.quad)} />}
+                {hovered && !drawing && !adjusting && <LotTip lot={hovered.lot} quad={hovered.quad} photo={hovered.lot.photos[0] ?? (hovered.lot.model && modelPhotos[hovered.lot.model]?.[0])} />}
               </>
             }
           />
