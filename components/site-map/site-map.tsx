@@ -452,7 +452,19 @@ export function SiteMapViewer({
   const hovered = all.find((s) => s.lot.id === hover)
   const mine = map.highlight ? all.find((s) => s.lot.id === map.highlight) : undefined
   const opened = open ? map.lots.find((l) => l.id === open) : undefined
-  const click = (lot: SiteMapLot) => (details ? setOpen(lot.id) : onPick?.(lot))
+  // Picking a lot in full screen takes the picker back to the form it is for.
+  const [full, setFull] = useState(false)
+  useEffect(() => {
+    if (!full) return
+    const onKey = (e: KeyboardEvent) => e.key === "Escape" && setFull(false)
+    window.addEventListener("keydown", onKey)
+    return () => window.removeEventListener("keydown", onKey)
+  }, [full])
+  const click = (lot: SiteMapLot) => {
+    if (details) return setOpen(lot.id)
+    onPick?.(lot)
+    setFull(false)
+  }
   const card = opened && (
     <LotDetails key={opened.id} lot={opened} modelPhotos={(opened.model && modelPhotos?.[opened.model]) || []} onClose={() => setOpen(null)}>
       {opened.id === map.highlight && <p className="text-sm font-semibold text-[#b4241c]">This is your home.</p>}
@@ -468,6 +480,8 @@ export function SiteMapViewer({
             image={map.image}
             alt={alt}
             maxHeight={maxHeight}
+            fullscreen={full}
+            onFullscreen={setFull}
             side={card || undefined}
             layers={all.map(({ lot, quad }) => {
               const pickable = details || (onPick && (!canPick || canPick(lot)))

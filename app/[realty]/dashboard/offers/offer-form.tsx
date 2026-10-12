@@ -37,9 +37,10 @@ export function OfferForm({ slug, projects, initialProject, initialUnit, initial
   const [unitId, setUnitId] = useState<number>(initialUnit ?? 0)
   const unit = units.find((u) => u.id === unitId) ?? units[0]
   const unitGone = !!initialUnit && unitId === initialUnit && !units.some((u) => u.id === initialUnit)
-  // The project's site plan, when its lots are drawn: pick the lot there instead of from the list.
-  const [showMap, setShowMap] = useState(false)
+  // The project's site plan, when its lots are drawn: open from the start, to pick the lot there instead of from the list.
+  const [showMap, setShowMap] = useState(true)
   const lotsOnMap = (project?.site_map?.lots.length ?? 0) > 0
+  const pickable = project?.site_map?.lots.filter((l) => units.some((u) => u.id === l.id)).length ?? 0
   const price = Number(unit?.price ?? 0)
   // Terms worked out elsewhere ("Make offer with these terms" in the AI chat): one of the project's plans, or custom terms in pesos.
   const [planId, setPlanId] = useState<number | "custom" | "">(() => (initialTerms?.length && price ? "custom" : initialPlan && project?.payment_plans.some((p) => p.id === initialPlan) ? initialPlan : ""))
@@ -149,7 +150,7 @@ export function OfferForm({ slug, projects, initialProject, initialUnit, initial
                 setProjectId(Number(e.target.value))
                 setUnitId(0)
                 setPlanId("")
-                setShowMap(false)
+                setShowMap(true)
               }}
               className={fieldClass}
             >
@@ -178,20 +179,18 @@ export function OfferForm({ slug, projects, initialProject, initialUnit, initial
             )}
           </label>
         </div>
-        {showMap && project?.site_map && (
+        {showMap && lotsOnMap && project?.site_map && (
           <div className="border border-[#e6e2db] bg-white p-3">
-            <p className="mb-2 text-sm text-[#5a554d]">Click a green lot to choose it. Faded lots are taken or have no price yet.</p>
-            <SiteMapViewer
-              map={project.site_map}
-              alt={`${project.name} site plan`}
-              selectedId={unit?.id}
-              canPick={(l) => units.some((u) => u.id === l.id)}
-              onPick={(l) => {
-                setUnitId(l.id)
-                setShowMap(false)
-              }}
-              maxHeight="60vh"
-            />
+            {pickable > 0 ? (
+              <p className="mb-2 text-sm text-[#5a554d]">
+                <b className="text-[#17150f]">Tap or click the lot the buyer wants.</b> {pickable} {pickable === 1 ? "lot can" : "lots can"} be offered. Faded lots are reserved, sold or not priced yet.
+              </p>
+            ) : (
+              <p className="mb-2 border-l-4 border-amber-400 bg-amber-50 px-3 py-2 text-sm text-amber-900">
+                No lot on this map has a price yet, so none can be chosen here. Johndorf&apos;s admin adds prices in the project&apos;s Site map tab. You can still pick from the unit list above.
+              </p>
+            )}
+            <SiteMapViewer map={project.site_map} alt={`${project.name} site plan`} selectedId={unit?.id} canPick={(l) => units.some((u) => u.id === l.id)} onPick={(l) => setUnitId(l.id)} maxHeight="60vh" />
           </div>
         )}
         <label className="block">
