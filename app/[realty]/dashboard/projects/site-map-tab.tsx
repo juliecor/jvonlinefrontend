@@ -75,7 +75,7 @@ function Browser({ slug, projectId, projectName, map, models, canOffer }: Props 
   const modelPhotos = useMemo(() => photosByModel(models), [models])
 
   const panel = sel ? (
-    <LotDetails key={sel.id} lot={sel} modelPhotos={(sel.model && modelPhotos[sel.model]) || []} noPrice="Not priced yet">
+    <LotDetails key={sel.id} lot={sel} modelPhotos={(sel.model && modelPhotos[sel.model]) || []} noPrice="Not priced yet" onClose={() => setSel(null)}>
       {canOffer && sel.status === "available" && sel.price && (
         <Link href={`/${slug}/dashboard/offers/new?project=${projectId}&unit=${sel.id}`} className="inline-flex w-full items-center justify-center gap-2 bg-[var(--accent)] px-4 py-3 text-[15px] font-bold text-white hover:brightness-110">
           <Plus className="h-4 w-4" strokeWidth={2.5} /> Make an offer for this lot
@@ -435,6 +435,7 @@ function Editor({ slug, projectId, projectName, map: initial, sitePlans, models 
             onMove={drawing ? setCursorAt : undefined}
             handles={handles}
             numbered={drawing}
+            tapZoom={!drawing && !adjusting}
             onHandles={(c) => {
               if (adjusting) setMode({ ...mode, corners: c })
               else if (drawing) setMode({ kind: "draw", points: c })

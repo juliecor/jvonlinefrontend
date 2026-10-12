@@ -19,11 +19,16 @@ export function useAspect(src: string) {
   return got?.src === src ? got.aspect : 1
 }
 
+/** Lots smaller than this on screen (px) are too small to tap: a tap zooms in on them first. */
+const TAP_MIN = 18
+
 /**
  * The plan image with a drawing layer over it, in plan fractions (0…1 both ways). Zoom with the
  * buttons, or with a pinch / Ctrl+scroll (plain scroll too in full screen) at the pointer; drag to
  * move around once zoomed in. A click that didn't drag is a click on the plan. Full screen fills the
- * window, with `side` (the editor's panel) beside the plan.
+ * window, with `side` (the editor's panel) beside the plan; on a phone held upright the plan fills
+ * its height. On a touch screen, two fingers zoom the plan (not the page), and with `tapZoom` a tap
+ * on the small plan opens full screen, and a tap on a lot still too small to hit zooms in there.
  */
 export function SiteMapCanvas({
   image,
@@ -37,6 +42,7 @@ export function SiteMapCanvas({
   side,
   fullscreen: controlled,
   onFullscreen,
+  tapZoom = true,
 }: {
   image: string
   alt: string
@@ -52,12 +58,23 @@ export function SiteMapCanvas({
   side?: React.ReactNode
   fullscreen?: boolean
   onFullscreen?: (on: boolean) => void
+  /** Touch: taps open full screen and zoom in on lots too small to hit (off while drawing). */
+  tapZoom?: boolean
 }) {
   const [zoom, setZoom] = useState(1)
   const [own, setOwn] = useState(false)
   const full = controlled ?? own
   const setFull = (on: boolean) => (onFullscreen ? onFullscreen(on) : setOwn(on))
+  // Going in or out of full screen starts from the whole plan again.
+  const [wasFull, setWasFull] = useState(full)
+  if (wasFull !== full) {
+    setWasFull(full)
+    setZoom(1)
+  }
+  const aspect = useAspect(image)
   const scroller = useRef<HTMLDivElement>(null)
+  const pointer = useRef("mouse")
+  const pinch = useRef<{ spread: number; zoom: number } | null>(null)
   const svg = useRef<SVGSVGElement>(null)
   // Where to keep still while zooming: a point of the plan (fractions) under a spot of the view (px).
   const anchor = useRef<{ fx: number; fy: number; vx: number; vy: number } | null>(null)
@@ -100,9 +117,42 @@ export function SiteMapCanvas({
       const r = el.getBoundingClientRect()
       zoomTo(zoom * Math.exp(-e.deltaY * (e.ctrlKey ? 0.01 : 0.002)), e.clientX - r.left, e.clientY - r.top)
     }
+    // Two fingers zoom the plan where they are; one finger keeps scrolling as usual.
+    const spread = (t: TouchList) => Math.hypot(t[0].clientX - t[1].clientX, t[0].clientY - t[1].clientY)
+    const onTouchStart = (e: TouchEvent) => {
+      if (e.touches.length !== 2) return
+      e.preventDefault()
+      pinch.current = { spread: spread(e.touches), zoom }
+    }
+    const onTouchMove = (e: TouchEvent) => {
+      const p = pinch.current
+      if (!p || e.touches.length !== 2) return
+      e.preventDefault()
+      const r = el.getBoundingClientRect()
+      zoomTo((p.zoom * spread(e.touches)) / p.spread, (e.touches[0].clientX + e.touches[1].clientX) / 2 - r.left, (e.touches[0].clientY + e.touches[1].clientY) / 2 - r.top)
+    }
+    const onTouchEnd = (e: TouchEvent) => {
+      if (e.touches.length < 2) pinch.current = null
+    }
     el.addEventListener("wheel", onWheel, { passive: false })
-    return () => el.removeEventListener("wheel", onWheel)
+    el.addEventListener("touchstart", onTouchStart, { passive: false })
+    el.addEventListener("touchmove", onTouchMove, { passive: false })
+    el.addEventListener("touchend", onTouchEnd)
+    el.addEventListener("touchcancel", onTouchEnd)
+    return () => {
+      el.removeEventListener("wheel", onWheel)
+      el.removeEventListener("touchstart", onTouchStart)
+      el.removeEventListener("touchmove", onTouchMove)
+      el.removeEventListener("touchend", onTouchEnd)
+      el.removeEventListener("touchcancel", onTouchEnd)
+    }
   })
+
+  // A plan wider than the screen (a phone held upright) opens on its middle.
+  useLayoutEffect(() => {
+    const el = scroller.current
+    if (full && el && el.scrollWidth > el.clientWidth) el.scrollLeft = (el.scrollWidth - el.clientWidth) / 2
+  }, [full, aspect])
 
   // Full screen: no page scroll behind it. Esc leaves it, unless the parent controls full screen (and Esc) itself.
   useEffect(() => {
@@ -141,10 +191,12 @@ export function SiteMapCanvas({
       {zoomBar}
       <div
         ref={scroller}
-        className={`overflow-auto ${zoom > 1 ? "cursor-grab active:cursor-grabbing" : ""} ${full ? "min-h-0 flex-1" : ""}`}
+        className={`touch-pan-x touch-pan-y overflow-auto ${zoom > 1 ? "cursor-grab active:cursor-grabbing" : ""} ${full ? "min-h-0 flex-1" : ""}`}
         style={full ? undefined : { maxHeight }}
         onPointerDown={(e) => {
-          if (e.button !== 0 || zoom <= 1 || (e.target as HTMLElement).closest("[data-handle]")) return
+          pointer.current = e.pointerType
+          // Fingers scroll the plan natively; the mouse drags it.
+          if (e.pointerType === "touch" || e.button !== 0 || zoom <= 1 || (e.target as HTMLElement).closest("[data-handle]")) return
           pan.current = { x: e.clientX, y: e.clientY, left: e.currentTarget.scrollLeft, top: e.currentTarget.scrollTop, moved: false }
           panned.current = false
         }}
@@ -169,17 +221,32 @@ export function SiteMapCanvas({
             e.stopPropagation()
             e.preventDefault()
             panned.current = false
+            return
           }
+          if (!tapZoom || pointer.current !== "touch") return
+          // A finger can't hit a lot a few pixels wide: open the plan big, then zoom in where it tapped.
+          const lot = (e.target as Element).closest("[data-lot]")
+          const box = lot?.getBoundingClientRect()
+          const tooSmall = !box || Math.min(box.width, box.height) < TAP_MIN
+          if (!tooSmall || (full && !lot)) return
+          e.stopPropagation()
+          e.preventDefault()
+          if (!full) return setFull(true)
+          const r = e.currentTarget.getBoundingClientRect()
+          zoomTo(zoom * 2.5, e.clientX - r.left, e.clientY - r.top)
         }}
       >
-        <div className="relative" style={{ width: `${zoom * 100}%` }}>
+        <div
+          className={`relative [--base:100%] ${full ? "portrait:[--base:max(100%,calc((100dvh_-_4rem)*var(--aspect)))]" : ""}`}
+          style={{ width: `calc(var(--base) * ${zoom})`, ["--aspect" as string]: aspect }}
+        >
           {/* eslint-disable-next-line @next/next/no-img-element */}
           <img src={image} alt={alt} draggable={false} className="block w-full select-none" />
           <svg
             ref={svg}
             viewBox="0 0 1 1"
             preserveAspectRatio="none"
-            className="absolute inset-0 h-full w-full touch-manipulation"
+            className="absolute inset-0 h-full w-full"
             style={{ cursor }}
             onClick={(e) => {
               const p = at(e)
@@ -193,7 +260,15 @@ export function SiteMapCanvas({
           {labels}
         </div>
       </div>
-      <p className="border-t border-[#e6e2db] bg-white px-3 py-1.5 text-xs text-[#8a847a]">{full ? "Scroll or pinch to zoom where you point. Drag to move around." : "Pinch or Ctrl + scroll to zoom where you point. Drag to move around."}</p>
+      {!full && tapZoom && (
+        <span className="pointer-events-none absolute bottom-12 left-1/2 hidden -translate-x-1/2 items-center gap-2 whitespace-nowrap bg-[#17150f]/85 px-4 py-2.5 text-sm font-bold text-white shadow-lg pointer-coarse:flex">
+          <Maximize2 className="h-4 w-4" /> Tap to explore the map
+        </span>
+      )}
+      <p className="border-t border-[#e6e2db] bg-white px-3 py-1.5 text-xs text-[#8a847a]">
+        <span className="pointer-coarse:hidden">{full ? "Scroll or pinch to zoom where you point. Drag to move around." : "Pinch or Ctrl + scroll to zoom where you point. Drag to move around."}</span>
+        <span className="hidden pointer-coarse:inline">{full ? "Pinch to zoom, swipe to move around. Tap a lot to see it." : "Tap the map to open it big."}</span>
+      </p>
     </div>
   )
 
@@ -222,6 +297,7 @@ export function LotShape({ quad, lot, selected, dim, onClick, onHover }: { quad:
       strokeWidth={selected ? 2.5 : 0.8}
       vectorEffect="non-scaling-stroke"
       style={{ cursor: onClick ? "pointer" : "default" }}
+      data-lot={onClick ? "" : undefined}
       onClick={
         onClick
           ? (e) => {
@@ -300,14 +376,21 @@ export function LotPhotos({ photos, fallback = [], name }: { photos: string[]; f
 }
 
 /** A lot's name, status, model, areas, price (where shown), tags and photos. */
-export function LotDetails({ lot, modelPhotos = [], noPrice = "Ask an agent", children }: { lot: SiteMapLot; modelPhotos?: string[]; noPrice?: string; children?: React.ReactNode }) {
+export function LotDetails({ lot, modelPhotos = [], noPrice = "Ask an agent", onClose, children }: { lot: SiteMapLot; modelPhotos?: string[]; noPrice?: string; onClose?: () => void; children?: React.ReactNode }) {
   return (
     <div className="space-y-4">
-      <div>
-        <p className="text-xs font-bold uppercase tracking-[0.14em]" style={{ color: STATUS_STYLE[lot.status].fill }}>
-          {STATUS_STYLE[lot.status].label}
-        </p>
-        <p className="mt-1 text-2xl font-bold tracking-tight">{lotName(lot)}</p>
+      <div className="flex items-start justify-between gap-3">
+        <div>
+          <p className="text-xs font-bold uppercase tracking-[0.14em]" style={{ color: STATUS_STYLE[lot.status].fill }}>
+            {STATUS_STYLE[lot.status].label}
+          </p>
+          <p className="mt-1 text-2xl font-bold tracking-tight">{lotName(lot)}</p>
+        </div>
+        {onClose && (
+          <button type="button" onClick={onClose} aria-label="Close" className="-mr-2 -mt-1 p-2 text-[#6b665d] hover:text-[#17150f]">
+            <X className="h-5 w-5" />
+          </button>
+        )}
       </div>
       <LotPhotos photos={lot.photos} fallback={modelPhotos} name={lotName(lot)} />
       <dl className="grid grid-cols-2 gap-x-4 gap-y-3 text-[15px]">
@@ -371,7 +454,7 @@ export function SiteMapViewer({
   const opened = open ? map.lots.find((l) => l.id === open) : undefined
   const click = (lot: SiteMapLot) => (details ? setOpen(lot.id) : onPick?.(lot))
   const card = opened && (
-    <LotDetails key={opened.id} lot={opened} modelPhotos={(opened.model && modelPhotos?.[opened.model]) || []}>
+    <LotDetails key={opened.id} lot={opened} modelPhotos={(opened.model && modelPhotos?.[opened.model]) || []} onClose={() => setOpen(null)}>
       {opened.id === map.highlight && <p className="text-sm font-semibold text-[#b4241c]">This is your home.</p>}
     </LotDetails>
   )

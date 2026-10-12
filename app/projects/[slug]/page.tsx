@@ -110,7 +110,7 @@ export default async function ProjectPage({ params }: Props) {
           <div className="mx-auto max-w-[1400px]">
             <SectionHead
               eyebrow="Site development plan"
-              lede={p.site_map ? "Every lot, coloured by whether it is still available. Click one to see its photos, block, lot and size." : "Blocks, lots, roads, parks and open spaces as drawn by Johndorf's planners. Tap to view full screen."}
+              lede={p.site_map ? "Every lot, coloured by whether it is still available. Tap or click one to see its photos, block, lot and size." : "Blocks, lots, roads, parks and open spaces as drawn by Johndorf's planners. Tap to view full screen."}
               action={
                 interactive ? (
                   <Link href="/johndorf/montierra" className="inline-flex items-center gap-2 rounded-sm bg-[#b4241c] px-6 py-3 text-[12px] font-semibold uppercase tracking-[0.14em] text-white hover:bg-[#941414]">
@@ -125,7 +125,7 @@ export default async function ProjectPage({ params }: Props) {
               <>
                 <div className="mt-12 bg-white p-4 sm:p-6">
                   <SiteMapViewer map={p.site_map} alt={`${p.name} site development plan`} maxHeight="80vh" details modelPhotos={Object.fromEntries(p.unit_types.map((u) => [u.name, u.images]))} />
-                  <p className="mt-3 text-sm text-[#6b5a56]">Click a lot to see its photos and details. Pinch or use + to zoom in. Ask a Johndorf agent about prices and reservations.</p>
+                  <p className="mt-3 text-sm text-[#6b5a56]">Ask a Johndorf agent about prices and reservations.</p>
                 </div>
                 {p.site_plans.filter((s) => s !== p.site_map?.image).length > 0 && <SitePlan plans={p.site_plans.filter((s) => s !== p.site_map?.image)} name={p.name} />}
               </>
