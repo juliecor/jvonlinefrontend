@@ -3,7 +3,7 @@
 import { useState } from "react"
 import Link from "next/link"
 import { usePathname } from "next/navigation"
-import { ArrowUpRight, BadgeCheck, Ban, Building2, ClipboardCheck, FileText, Globe, Handshake, Landmark, LayoutDashboard, ListChecks, LogOut, Menu, Plus, ShieldCheck, Sparkles, UserCog, UsersRound, Users, X } from "lucide-react"
+import { ArrowUpRight, BadgeCheck, Ban, Building2, ClipboardCheck, FileText, Handshake, Landmark, LayoutDashboard, ListChecks, LogOut, Menu, Plus, ShieldCheck, Sparkles, UserCog, UsersRound, Users, X } from "lucide-react"
 import { Feedback } from "@/components/feedback"
 import { AskPanel } from "./ai/ask-panel"
 import { RealtyMark } from "@/components/form"
@@ -31,8 +31,8 @@ const initials = (name: string) =>
 
 /**
  * The realty dashboard's frame: a plain light sidebar on desktop (a drawer on the phone) with the
- * realty's logo, a "New offer" button, the sections with a quiet count (a red badge when something
- * waits), and the public site and account at the foot.
+ * realty's logo and a link to its public site, a "New offer" button, the sections with a quiet count
+ * (a red badge when something waits), and the account at the foot.
  */
 export function DashboardShell({ slug, user, counts, superAdmin, signOutAction, children }: { slug: string; user: RealtyUser; counts: ShellCounts | null; superAdmin: SuperAdminNav | null; signOutAction: () => Promise<void>; children: React.ReactNode }) {
   const path = usePathname()
@@ -115,17 +115,22 @@ export function DashboardShell({ slug, user, counts, superAdmin, signOutAction, 
           <RealtyMark name={realty.name} logo={realty.logo_url} className="h-10" />
         </Link>
         {/* An accredited realty works inside Johndorf's brand, under its own name. */}
-        {broker ? (
-          <p className="mt-3 text-sm font-semibold leading-snug">
+        {broker && (
+          <p className="mt-3 text-[15px] font-semibold leading-snug">
             {realty.name}
-            <span className="block text-xs font-normal text-[#8a847a]">
-              {staff ? "Admin" : "Agent"}
-              {realty.developer && ` · accredited by ${realty.developer.name}`}
-            </span>
+            {realty.developer && <span className="block text-[13px] font-normal text-[#6b665d]">Accredited by {realty.developer.name}</span>}
           </p>
-        ) : (
-          <p className="mt-2 text-xs font-medium text-[#8a847a]">{staff ? "Admin" : "Agent"} dashboard</p>
         )}
+        <div className="mt-2 flex items-center justify-between gap-3">
+          <p className="truncate text-[13px] font-medium text-[#6b665d]">{staff ? "Admin" : "Agent"} dashboard</p>
+          <Link
+            href={isSite ? "/" : `/${slug}/login`}
+            title={isSite ? (counts ? `${counts.publicProjects} project pages live` : "Johndorf's website") : staff ? "Share it with your agents" : "Where you sign in"}
+            className="inline-flex shrink-0 items-center gap-1 text-[13px] font-semibold text-[#2b2823] outline-none hover:text-[var(--accent)] focus-visible:ring-2 focus-visible:ring-[var(--accent)]"
+          >
+            {isSite ? "Public site" : "Sign-in page"} <ArrowUpRight className="h-3.5 w-3.5" />
+          </Link>
+        </div>
       </div>
 
       {/* Primary action */}
@@ -134,9 +139,9 @@ export function DashboardShell({ slug, user, counts, superAdmin, signOutAction, 
           <Link
             href={`/${slug}/dashboard/offers/new`}
             onClick={() => setOpen(false)}
-            className="flex items-center justify-center gap-2 bg-[var(--accent)] px-3 py-2.5 text-sm font-semibold text-white outline-none transition hover:brightness-110 focus-visible:ring-2 focus-visible:ring-[var(--accent)] focus-visible:ring-offset-2"
+            className="flex items-center justify-center gap-2 bg-[var(--accent)] px-3 py-3 text-[15px] font-semibold text-white outline-none transition hover:brightness-110 focus-visible:ring-2 focus-visible:ring-[var(--accent)] focus-visible:ring-offset-2"
           >
-            <Plus className="h-4 w-4" strokeWidth={2.25} /> New offer
+            <Plus className="h-[18px] w-[18px]" strokeWidth={2.25} /> New offer
           </Link>
         </div>
       )}
@@ -145,7 +150,7 @@ export function DashboardShell({ slug, user, counts, superAdmin, signOutAction, 
       <nav className="mt-4 min-h-0 flex-1 space-y-4 overflow-y-auto px-3 pb-3 [scrollbar-width:thin]">
         {groups.map((g, gi) => (
           <div key={g.title}>
-            {gi > 0 && <p className="px-3 pb-1.5 text-[11px] font-semibold uppercase tracking-[0.12em] text-[#a39d92]">{g.title}</p>}
+            {gi > 0 && <p className="px-3 pb-1.5 text-xs font-semibold uppercase tracking-[0.12em] text-[#8a847a]">{g.title}</p>}
             <ul className="space-y-px">
               {g.items.map(({ href, label, icon: Icon, exact, count, alert }) => {
                 const active = exact ? path === href : path.startsWith(href)
@@ -155,15 +160,15 @@ export function DashboardShell({ slug, user, counts, superAdmin, signOutAction, 
                       href={href}
                       onClick={() => setOpen(false)}
                       aria-current={active ? "page" : undefined}
-                      className={`group flex items-center gap-3 px-3 py-[7px] text-[15px] outline-none transition focus-visible:ring-2 focus-visible:ring-[var(--accent)] ${active ? "bg-[#f2f0ec] font-semibold text-[#17150f]" : "font-medium text-[#4a463f] hover:bg-[#f7f6f3] hover:text-[#17150f]"}`}
+                      className={`group flex items-center gap-3 px-3 py-1.5 text-base outline-none transition focus-visible:ring-2 focus-visible:ring-[var(--accent)] ${active ? "bg-[#f0eeea] font-semibold text-[#17150f]" : "font-medium text-[#2b2823] hover:bg-[#f7f6f3] hover:text-[#17150f]"}`}
                     >
-                      <Icon className={`h-[18px] w-[18px] shrink-0 ${active ? "text-[var(--accent)]" : "text-[#9a948a] group-hover:text-[#4a463f]"}`} strokeWidth={1.75} />
+                      <Icon className={`h-5 w-5 shrink-0 ${active ? "text-[var(--accent)]" : "text-[#7a746b] group-hover:text-[#2b2823]"}`} strokeWidth={1.85} />
                       <span className="min-w-0 flex-1 truncate">{label}</span>
                       {/* Something waiting gets a small red badge; otherwise a quiet count. */}
                       {alert ? (
-                        <span className="shrink-0 bg-[var(--accent)] px-1.5 py-px text-[11px] font-semibold text-white">{alert}</span>
+                        <span className="shrink-0 bg-[var(--accent)] px-1.5 py-0.5 text-xs font-semibold text-white">{alert}</span>
                       ) : (
-                        count !== undefined && <span className="shrink-0 text-xs tabular-nums text-[#9a948a]">{count}</span>
+                        count !== undefined && <span className="shrink-0 text-[13px] font-medium tabular-nums text-[#6b665d]">{count}</span>
                       )}
                     </Link>
                   </li>
@@ -175,34 +180,25 @@ export function DashboardShell({ slug, user, counts, superAdmin, signOutAction, 
 
         {superAdmin && (
           <div className="px-3">
-            <p className="pb-1.5 text-[11px] font-semibold uppercase tracking-[0.12em] text-[#a39d92]">View as</p>
+            <p className="pb-1.5 text-xs font-semibold uppercase tracking-[0.12em] text-[#8a847a]">View as</p>
             <RoleSwitch from="realty" current={`${slug}:${user.role}`} realties={superAdmin.realties} tone="light" />
           </div>
         )}
       </nav>
 
-      {/* Public site and account */}
+      {/* Account */}
       <div className="border-t border-[#efece7] px-3 py-3">
-        <Link
-          href={isSite ? "/" : `/${slug}/login`}
-          title={isSite ? (counts ? `${counts.publicProjects} project pages live` : "Johndorf's website") : staff ? "Share it with your agents" : "Where you sign in"}
-          className="group flex items-center gap-3 px-3 py-2 text-sm font-medium text-[#4a463f] outline-none transition hover:bg-[#f7f6f3] hover:text-[#17150f] focus-visible:ring-2 focus-visible:ring-[var(--accent)]"
-        >
-          <Globe className="h-[18px] w-[18px] shrink-0 text-[#9a948a] group-hover:text-[#4a463f]" strokeWidth={1.75} />
-          <span className="flex-1 truncate">{isSite ? "Public site" : "Sign-in page"}</span>
-          <ArrowUpRight className="h-3.5 w-3.5 text-[#a39d92]" />
-        </Link>
-        <div className="mt-1 flex items-center gap-1">
+        <div className="flex items-center gap-1">
           <Link href={account} onClick={() => setOpen(false)} title="My account" className={`flex min-w-0 flex-1 items-center gap-3 px-2 py-2 outline-none transition hover:bg-[#f7f6f3] focus-visible:ring-2 focus-visible:ring-[var(--accent)] ${path === account ? "bg-[#f2f0ec]" : ""}`}>
-            <span aria-hidden className="flex h-8 w-8 shrink-0 items-center justify-center bg-[#17150f] text-xs font-semibold text-white">{initials(user.name)}</span>
+            <span aria-hidden className="flex h-9 w-9 shrink-0 items-center justify-center bg-[#17150f] text-[13px] font-semibold text-white">{initials(user.name)}</span>
             <span className="min-w-0 flex-1">
-              <span className="block truncate text-sm font-semibold text-[#17150f]">{user.name}</span>
-              <span className="block truncate text-xs text-[#8a847a]">My account</span>
+              <span className="block truncate text-[15px] font-semibold text-[#17150f]">{user.name}</span>
+              <span className="block truncate text-[13px] text-[#6b665d]">My account</span>
             </span>
           </Link>
           <form action={signOutAction}>
-            <button type="submit" title="Sign out" aria-label="Sign out" className="flex h-9 w-9 items-center justify-center text-[#8a847a] outline-none transition hover:bg-[#f7f6f3] hover:text-[#17150f] focus-visible:ring-2 focus-visible:ring-[var(--accent)]">
-              <LogOut className="h-[18px] w-[18px]" strokeWidth={1.75} />
+            <button type="submit" title="Sign out" aria-label="Sign out" className="flex h-10 w-10 items-center justify-center text-[#6b665d] outline-none transition hover:bg-[#f7f6f3] hover:text-[#17150f] focus-visible:ring-2 focus-visible:ring-[var(--accent)]">
+              <LogOut className="h-5 w-5" strokeWidth={1.85} />
             </button>
           </form>
         </div>
