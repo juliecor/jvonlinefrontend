@@ -112,7 +112,7 @@ export function DashboardShell({ slug, user, counts, superAdmin, signOutAction, 
     <Link
       href={isSite ? "/" : `/${slug}/login`}
       title={isSite ? (counts ? `${counts.publicProjects} project pages live` : "Johndorf's website") : staff ? "Share it with your agents" : "Where you sign in"}
-      className="inline-flex shrink-0 items-center gap-1 text-[13px] font-semibold text-[#2b2823] outline-none hover:text-[var(--accent)] focus-visible:ring-2 focus-visible:ring-[var(--accent)]"
+      className="inline-flex shrink-0 items-center gap-1 border border-[#e6e2db] px-2.5 py-1 text-xs font-semibold text-[#2b2823] outline-none transition hover:border-[#17150f] focus-visible:ring-2 focus-visible:ring-[var(--accent)]"
     >
       {isSite ? "Public site" : "Sign-in page"} <ArrowUpRight className="h-3.5 w-3.5" />
     </Link>
@@ -168,7 +168,7 @@ export function DashboardShell({ slug, user, counts, superAdmin, signOutAction, 
                     href={href}
                     onClick={() => setOpen(false)}
                     aria-current={active ? "page" : undefined}
-                    className={`group flex items-center gap-3 px-2 py-1 text-base outline-none transition focus-visible:ring-2 focus-visible:ring-[var(--accent)] ${active ? "bg-[#f2f0ec] font-semibold text-[#17150f]" : "font-medium text-[#2b2823] hover:bg-[#f7f6f3] hover:text-[#17150f]"}`}
+                    className={`group flex items-center gap-3 px-2 py-1 text-base outline-none transition focus-visible:ring-2 focus-visible:ring-[var(--accent)]/40 ${active ? "bg-[#f2f0ec] font-semibold text-[#17150f] shadow-[inset_3px_0_0_var(--accent)]" : "font-medium text-[#2b2823] hover:bg-[#f7f6f3] hover:text-[#17150f]"}`}
                   >
                     <span className={`flex h-8 w-8 shrink-0 items-center justify-center transition ${active ? "bg-[var(--accent)] text-white" : "bg-[#f3f1ed] text-[#6b665d] group-hover:bg-[#ebe8e2] group-hover:text-[#2b2823]"}`}>
                       <Icon className="h-[18px] w-[18px]" strokeWidth={1.9} />
@@ -290,7 +290,7 @@ function ProfileCard({ name, photo, role, sub, account, accountActive, signOutAc
       >
         {photo ? (
           // eslint-disable-next-line @next/next/no-img-element
-          <img src={photo} alt="" className="h-12 w-12 shrink-0 rounded-full object-cover ring-2 ring-white" />
+          <img src={photo} alt="" className="h-12 w-12 shrink-0 rounded-full object-cover ring-2 ring-[var(--accent)]/25" />
         ) : (
           <span aria-hidden className="flex h-12 w-12 shrink-0 items-center justify-center rounded-full bg-[#17150f] text-[15px] font-semibold text-white">
             {initials(name)}
