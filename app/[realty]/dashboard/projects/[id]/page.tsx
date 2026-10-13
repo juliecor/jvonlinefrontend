@@ -1,6 +1,7 @@
 import Link from "next/link"
 import { notFound } from "next/navigation"
-import { ArrowLeft, Building2, ExternalLink, MapPin, Plus } from "lucide-react"
+import { ArrowLeft, Building2, ExternalLink, MapIcon, MapPin, Plus } from "lucide-react"
+import { SiteMapViewer } from "@/components/site-map/site-map"
 import { Empty, Panel, Tag, btn } from "@/components/dashboard-ui"
 import { Alert } from "@/components/form"
 import { HashTabs } from "@/components/hash-tabs"
@@ -78,16 +79,16 @@ export default async function ProjectPage({ params, searchParams }: Props) {
       </Link>
 
       {/* The project at a glance */}
-      <section className="overflow-hidden border border-[#e0dcd5] bg-white">
+      <section className="overflow-hidden border border-[#e6e2db] bg-white">
         <div className="flex flex-col sm:flex-row">
           {photo ? (
-            <Photo src={photo} alt="" sizes="(min-width: 1024px) 320px, (min-width: 640px) 256px, 100vw" loading="eager" className="aspect-[2/1] w-full object-cover sm:aspect-auto sm:w-64 sm:shrink-0 lg:w-80" />
+            <Photo src={photo} alt="" sizes="(min-width: 1024px) 400px, (min-width: 640px) 288px, 100vw" loading="eager" className="aspect-[16/9] w-full object-cover sm:aspect-auto sm:w-72 sm:shrink-0 lg:w-[400px]" />
           ) : (
-            <div className="hidden w-64 shrink-0 items-center justify-center bg-[#efece6] sm:flex lg:w-80">
+            <div className="hidden w-72 shrink-0 items-center justify-center bg-[#efece6] sm:flex lg:w-[400px]">
               <Building2 className="h-10 w-10 text-[#c9c3b9]" />
             </div>
           )}
-          <div className="flex min-w-0 flex-1 flex-col justify-between gap-5 p-5 sm:p-6">
+          <div className="flex min-w-0 flex-1 flex-col justify-between gap-6 p-5 sm:p-7">
             <div>
               <div className="flex flex-wrap items-center gap-2">
                 <p className="text-xs font-bold uppercase tracking-[0.18em] text-[var(--accent)]">Project</p>
@@ -95,7 +96,7 @@ export default async function ProjectPage({ params, searchParams }: Props) {
                 {project.status === "archived" && <Tag>Archived</Tag>}
                 {!project.is_public && <Tag tone="warn">Hidden from website</Tag>}
               </div>
-              <h1 className="mt-1.5 text-2xl font-bold tracking-tight sm:text-3xl">{project.name}</h1>
+              <h1 className="mt-1.5 text-3xl font-bold tracking-tight sm:text-4xl">{project.name}</h1>
               {project.location && (
                 <p className="mt-1 inline-flex items-center gap-1.5 text-[15px] font-semibold text-[#3d3a34]">
                   <MapPin className="h-4 w-4 text-[var(--accent)]" /> {project.location}
@@ -105,7 +106,7 @@ export default async function ProjectPage({ params, searchParams }: Props) {
             </div>
             <div className="flex flex-wrap gap-2">
               {priced > 0 && (
-                <Link href={`/${slug}/dashboard/offers/new?project=${project.id}`} className="inline-flex items-center gap-2 bg-[var(--accent)] px-4 py-2.5 text-sm font-bold text-white transition hover:brightness-110">
+                <Link href={`/${slug}/dashboard/offers/new?project=${project.id}`} className="inline-flex items-center gap-2 bg-[var(--accent)] px-5 py-3 text-[15px] font-bold text-white transition hover:brightness-110">
                   <Plus className="h-4 w-4" strokeWidth={2.5} /> New offer for this project
                 </Link>
               )}
@@ -117,22 +118,25 @@ export default async function ProjectPage({ params, searchParams }: Props) {
             </div>
           </div>
         </div>
-        <dl className="grid grid-cols-3 border-t border-[#e6e2db] sm:grid-cols-6">
-          {[
-            { label: "Units", value: units.length, href: "#units" },
-            { label: "Available", value: by("available"), href: "#units" },
-            { label: "Reserved", value: by("reserved"), href: "#units" },
-            { label: "Sold", value: by("sold"), href: "#units" },
-            { label: "Plans", value: project.payment_plans.length, href: "#plans" },
-            { label: "Offers", value: project.offers_count ?? 0, href: `/${slug}/dashboard/offers` },
-          ].map((st, i) => (
-            <a key={st.label} href={st.href} className={`block px-4 py-3 transition hover:bg-[#faf8f5] sm:px-5 ${i % 3 ? "border-l border-[#e6e2db]" : "sm:border-l sm:first:border-l-0"} ${i > 2 ? "border-t border-[#e6e2db] sm:border-t-0" : ""}`}>
-              <dt className="text-[11px] font-bold uppercase tracking-[0.14em] text-[#8a847a]">{st.label}</dt>
-              <dd className="mt-0.5 text-lg font-bold tabular-nums">{st.value}</dd>
-            </a>
-          ))}
-        </dl>
       </section>
+
+      <dl className="mt-4 grid grid-cols-3 gap-3 sm:gap-4 lg:grid-cols-6">
+        {[
+          { label: "Units", value: units.length, href: "#units", color: "#17150f" },
+          { label: "Available", value: by("available"), href: "#units", color: "#059669" },
+          { label: "Reserved", value: by("reserved"), href: "#units", color: "#d97706" },
+          { label: "Sold", value: by("sold"), href: "#units", color: "#dc2626" },
+          { label: "Plans", value: project.payment_plans.length, href: "#plans", color: "#17150f" },
+          { label: "Offers", value: project.offers_count ?? 0, href: `/${slug}/dashboard/offers`, color: "#17150f" },
+        ].map((st) => (
+          <a key={st.label} href={st.href} className="block border border-[#e6e2db] bg-white px-4 py-3 outline-none transition hover:border-[#17150f] focus-visible:ring-2 focus-visible:ring-[var(--accent)] sm:px-5 sm:py-4" style={{ boxShadow: `inset 0 3px 0 ${st.color}` }}>
+            <dd className="text-2xl font-bold tabular-nums tracking-tight sm:text-3xl" style={{ color: st.color }}>
+              {st.value.toLocaleString("en-PH")}
+            </dd>
+            <dt className="mt-0.5 text-[13px] font-semibold text-[#6b665d] sm:text-sm">{st.label}</dt>
+          </a>
+        ))}
+      </dl>
 
       {planError && (
         <div className="mt-6">
@@ -148,12 +152,25 @@ export default async function ProjectPage({ params, searchParams }: Props) {
             content: (
               <>
                 <StatusBar slug={slug} projectId={project.id} value={{ status: project.status, stage: project.stage, is_public: project.is_public }} pageSlug={project.slug} staff={staff} />
-                <Panel className="!mt-8" title="Units at a glance" aside={priced ? `${priced} ready to offer` : "none ready to offer yet"}>
+                {project.site_map && project.site_map.lots.length > 0 && (
+                  <Panel
+                    className="!mt-6"
+                    title="Site map"
+                    aside={
+                      <a href="#site-map" className="inline-flex items-center gap-1.5 font-semibold text-[var(--accent)] hover:underline">
+                        <MapIcon className="h-4 w-4" /> Open the site map tab
+                      </a>
+                    }
+                  >
+                    <SiteMapViewer map={project.site_map} alt={`${project.name} site development plan`} maxHeight="55vh" details modelPhotos={Object.fromEntries(project.unit_types.map((u) => [u.name, u.images]))} />
+                  </Panel>
+                )}
+                <Panel className="!mt-6" title="Units at a glance" aside={priced ? `${priced} ready to offer` : "none ready to offer yet"}>
                   {types.length ? (
                     <div className="overflow-x-auto">
                       <table className="w-full min-w-[520px] text-[15px]">
                         <thead>
-                          <tr className="border-b border-[#e6e2db] text-left text-xs uppercase tracking-[0.12em] text-[#8a847a]">
+                          <tr className="border-b border-[#e6e2db] text-left text-xs font-bold uppercase tracking-[0.12em] text-[#8a847a]">
                             <th className="py-2.5 pr-3 font-bold">Type</th>
                             <th className="py-2.5 pr-3 text-right font-bold">Units</th>
                             <th className="py-2.5 pr-3 text-right font-bold">Available</th>

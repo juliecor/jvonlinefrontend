@@ -39,9 +39,9 @@ export function StatusBar({ slug, projectId, value: initial, pageSlug, staff }: 
   const stages = value.stage && !STAGES.includes(value.stage) ? [...STAGES, value.stage] : STAGES
 
   return (
-    <section id="status" className="mt-8 scroll-mt-6 border border-[#e0dcd5] bg-white">
-      <div className="flex items-center justify-between gap-3 border-b border-[#e6e2db] px-5 py-3">
-        <h2 className="text-xs font-bold uppercase tracking-[0.16em] text-[#17150f]">Status</h2>
+    <section id="status" className="mt-6 scroll-mt-6 border border-[#e6e2db] bg-white">
+      <div className="flex items-center justify-between gap-3 border-b border-[#e6e2db] px-5 py-4">
+        <h2 className="text-lg font-bold text-[#17150f]">Status</h2>
         <span role="status" className="text-sm font-semibold">
           {pending ? (
             <span className="inline-flex items-center gap-1.5 text-[#6b665d]"><LoaderCircle className="h-4 w-4 animate-spin" /> Saving</span>
