@@ -5,11 +5,12 @@ import { AlertCircle, CircleCheck, FileText, LoaderCircle, Paperclip, Send, X } 
 import { type AgreementDoc, AgreementDocument } from "@/components/agreement-document"
 import { ChoiceBox } from "@/components/choice-box"
 import { fileSize } from "@/lib/requirements-types"
-import { type AccreditationState, submitAccreditation } from "./actions"
+import type { AccreditationState } from "./actions"
 
 export type AccreditationDocumentRow = { kind: string; name: string; label: string; required_for: "corporation" | "sole_proprietor" | null }
 
-type Props = { token: string; developer: string; email: string; documents: AccreditationDocumentRow[]; civilStatuses: string[]; agreement: (AgreementDoc & { signed_copy_days: number }) | null; today: string; adultBy: string }
+/** `submit` sends the form: through the invite's link, or the open form on the developer's website. */
+type Props = { submit: (fd: FormData) => Promise<AccreditationState>; developer: string; email: string; documents: AccreditationDocumentRow[]; civilStatuses: string[]; agreement: (AgreementDoc & { signed_copy_days: number }) | null; today: string; adultBy: string }
 
 const MAX_FILE = 10 * 1024 * 1024
 const inputBase = "block w-full border bg-white px-3.5 py-3 text-[15px] text-[#17150f] outline-none transition placeholder:text-[#b3ada3] focus:border-[var(--accent)] focus:ring-2 focus:ring-[var(--accent)]/15 disabled:bg-[#f6f4f0] disabled:text-[#a39d92]"
@@ -24,7 +25,7 @@ const sameName = (a: string, b: string) => a.trim().replace(/\s+/g, " ").toLower
  * send five files over again; Laravel checks everything once more. The form is submitted by hand
  * (not as a form action) so the chosen files stay put when an answer needs another look.
  */
-export function AccreditationForm({ token, developer, email, documents, civilStatuses, agreement, today, adultBy }: Props) {
+export function AccreditationForm({ submit: send, developer, email, documents, civilStatuses, agreement, today, adultBy }: Props) {
   const formRef = useRef<HTMLFormElement>(null)
   const fileInputs = useRef<Record<string, HTMLInputElement | null>>({})
   const [type, setType] = useState<"corporation" | "sole_proprietor" | "">("")
@@ -123,7 +124,7 @@ export function AccreditationForm({ token, developer, email, documents, civilSta
       return
     }
     start(async () => {
-      const res: AccreditationState = await submitAccreditation(token, fd)
+      const res = await send(fd)
       if (res.ok) {
         setSent({ email: String(fd.get("login_email") ?? email) })
         window.scrollTo({ top: 0, behavior: "smooth" })
@@ -155,6 +156,8 @@ export function AccreditationForm({ token, developer, email, documents, civilSta
 
   return (
     <form ref={formRef} onSubmit={submit} onChange={() => formError && setFormError(undefined)} noValidate className="space-y-14">
+      {/* Honeypot: hidden from people, filled in by bots. */}
+      <input type="text" name="website" tabIndex={-1} autoComplete="off" className="hidden" aria-hidden />
       {/* ACCREDITATION DETAILS */}
       <Section title="Accreditation details">
         <div data-invalid={!!err("business_type")} className="flex flex-wrap gap-x-12 gap-y-3">

@@ -1,10 +1,12 @@
 import Link from "next/link"
 import { redirect } from "next/navigation"
-import { FileSignature } from "lucide-react"
+import { FileSignature, Globe } from "lucide-react"
+import { CopyButton } from "@/components/copy-button"
 import { Empty, PageHeader, Panel, Row, Rows, Tag } from "@/components/dashboard-ui"
 import { api } from "@/lib/api"
 import { shortDate } from "@/lib/format"
 import { requireSection } from "@/lib/realty-auth"
+import { SITE_REALTY } from "@/lib/public-projects-types"
 import { isDeveloperStaff } from "@/lib/realty-roles"
 import { InviteRealtyForm } from "./invite-form"
 import { DeleteButton } from "../delete-button"
@@ -15,10 +17,11 @@ import { PERIOD_TAG, type Period } from "./period"
 export const metadata = { title: "Realty Company Invitation" }
 
 type Overview = {
-  pending: { id: number; firm_name: string; business_type: "corporation" | "sole_proprietor"; representative_name: string; email: string; submitted_at: string; documents_count: number }[]
+  /** source "website": sent from the open form on the website, without an invite. */
+  pending: { id: number; firm_name: string; business_type: "corporation" | "sole_proprietor"; representative_name: string; email: string; source: "invite" | "website"; submitted_at: string; documents_count: number }[]
   brokers: { id: number; name: string; slug: string; contact_name: string | null; email: string | null; phone: string | null; agents_count: number; offers_count: number; accredited_at: string; accreditation_id: number | null; period: Period | null }[]
   invited: { id: number; email: string; invited_at: string; expires_at: string; expired: boolean; invited_by: string | null }[]
-  rejected: { id: number; firm_name: string; email: string; review_note: string | null; reviewed_at: string }[]
+  rejected: { id: number; firm_name: string; email: string; source: "invite" | "website"; review_note: string | null; reviewed_at: string }[]
   /** The agreement's details are filled in, so new realties sign it on their form. */
   agreement_ready: boolean
 }
@@ -35,6 +38,8 @@ export default async function RealtiesPage({ params }: { params: Promise<{ realt
   const { user, token } = await requireSection(slug, "realties")
   if (!isDeveloperStaff(user)) redirect(`/${slug}/dashboard`)
   const { pending, brokers, invited, rejected, agreement_ready } = await api<Overview>("/realty/realties", { token })
+  // The website's own developer also takes the form there, without an invite (jvconline.ph/accreditation).
+  const openForm = slug === SITE_REALTY ? `${process.env.NEXT_PUBLIC_SITE_URL ?? "https://jvconline.ph"}/accreditation` : null
 
   return (
     <div>
@@ -67,6 +72,18 @@ export default async function RealtiesPage({ params }: { params: Promise<{ realt
         <div className="pt-5">
           <InviteRealtyForm slug={slug} />
         </div>
+        {openForm && (
+          <div className="mt-5 flex flex-wrap items-center gap-x-3 gap-y-2 border-t border-[#e6e2db] pt-4 text-sm text-[#5a554d]">
+            <Globe className="h-4 w-4 shrink-0 text-[#8a847a]" />
+            <span>
+              Realties can also send the form from the website, no invite needed:{" "}
+              <a href={openForm} target="_blank" rel="noreferrer" className="font-semibold text-[#17150f] underline-offset-4 hover:underline">
+                {openForm.replace(/^https?:\/\//, "")}
+              </a>
+            </span>
+            <CopyButton text={openForm} />
+          </div>
+        )}
       </Panel>
 
       {pending.length > 0 && (
@@ -79,6 +96,7 @@ export default async function RealtiesPage({ params }: { params: Promise<{ realt
                     <p className="text-lg font-bold">{a.firm_name}</p>
                     <Tag tone="warn">Pending</Tag>
                     <Tag>{TYPE_LABEL[a.business_type]}</Tag>
+                    {a.source === "website" && <Tag tone="accent">From website</Tag>}
                   </div>
                   <p className="mt-0.5 text-sm text-[#6b665d]">
                     {a.representative_name} · {a.email} · sent {shortDate(a.submitted_at)} · {a.documents_count} document{a.documents_count === 1 ? "" : "s"}
@@ -180,6 +198,7 @@ export default async function RealtiesPage({ params }: { params: Promise<{ realt
                   <div className="flex flex-wrap items-center gap-2">
                     <p className="font-semibold">{r.firm_name}</p>
                     <Tag tone="bad">Not accepted</Tag>
+                    {r.source === "website" && <Tag>From website</Tag>}
                   </div>
                   <p className="mt-0.5 text-sm text-[#8a847a]">
                     {r.email} · {shortDate(r.reviewed_at)}

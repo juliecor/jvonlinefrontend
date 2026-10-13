@@ -15,6 +15,8 @@ type Accreditation = {
   id: number
   status: "submitted" | "approved" | "rejected"
   invited_email: string
+  /** "website": sent from the open form on the website, without an invite. */
+  source: "invite" | "website"
   submitted_at: string | null
   details: {
     business_type: "corporation" | "sole_proprietor"
@@ -85,7 +87,7 @@ export default async function AccreditationReviewPage({ params }: { params: Prom
         <PageHeader
           eyebrow="Accreditation"
           title={d.firm_name}
-          lede={`${d.business_type === "corporation" ? "Corporation" : "Sole proprietor"} · sent ${longDate(a.submitted_at)} · invited as ${a.invited_email}`}
+          lede={`${d.business_type === "corporation" ? "Corporation" : "Sole proprietor"} · sent ${longDate(a.submitted_at)} · ${a.source === "website" ? "from the website" : `invited as ${a.invited_email}`}`}
           action={<Tag tone={status.tone}>{status.label}</Tag>}
         />
       </div>

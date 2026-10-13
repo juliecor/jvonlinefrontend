@@ -2,8 +2,9 @@
 
 import { useCallback, useEffect, useState } from "react"
 import Image from "next/image"
+import Link from "next/link"
 import { AnimatePresence, motion, useMotionValue, useMotionValueEvent, useReducedMotion, useScroll, useSpring } from "framer-motion"
-import { Menu, X } from "lucide-react"
+import { BadgeCheck, Menu, X } from "lucide-react"
 import { AccountLink } from "@/components/account-link"
 import { COMPANY } from "@/lib/johndorf/company"
 import type { PublicProjectCard } from "@/lib/public-projects-types"
@@ -149,6 +150,16 @@ function TopBar() {
             ))}
           </nav>
           <div className="flex items-center gap-2">
+            {/* Between lg and xl the nav leaves room for the icon only. */}
+            <Link
+              href="/accreditation"
+              aria-label="Realty accreditation"
+              title="Realty accreditation"
+              className="hidden items-center gap-2 rounded-full border border-[#b4241c] bg-[#b4241c] px-4 py-2 text-[12px] font-semibold uppercase tracking-[0.12em] text-white transition-colors hover:border-[#9b1f18] hover:bg-[#9b1f18] sm:inline-flex lg:max-xl:px-2.5"
+            >
+              <BadgeCheck className="h-4 w-4 shrink-0" />
+              <span className="lg:max-xl:sr-only">Realty accreditation</span>
+            </Link>
             <AccountLink
               className={`hidden items-center gap-2 rounded-full border px-4 py-2 text-[12px] font-semibold uppercase tracking-[0.12em] transition-colors sm:inline-flex ${solid ? "border-[#2a1d1b]/20 text-[#2a1d1b] hover:border-[#b4241c] hover:text-[#b4241c]" : "border-white/30 text-white hover:bg-white/10"}`}
             />
@@ -186,7 +197,10 @@ function TopBar() {
                   {n.label}
                 </motion.a>
               ))}
-              <AccountLink onClick={() => setOpen(false)} className="mt-4 inline-flex items-center gap-2 rounded-full border border-white/30 px-6 py-3 text-sm font-semibold uppercase tracking-[0.12em] text-white" />
+              <Link href="/accreditation" onClick={() => setOpen(false)} className="mt-4 inline-flex items-center gap-2 rounded-full bg-[#b4241c] px-6 py-3 text-sm font-semibold uppercase tracking-[0.12em] text-white">
+                <BadgeCheck className="h-4 w-4" /> Realty accreditation
+              </Link>
+              <AccountLink onClick={() => setOpen(false)} className="inline-flex items-center gap-2 rounded-full border border-white/30 px-6 py-3 text-sm font-semibold uppercase tracking-[0.12em] text-white" />
             </nav>
           </motion.div>
         )}
