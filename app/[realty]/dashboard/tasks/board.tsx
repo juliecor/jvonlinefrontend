@@ -120,13 +120,13 @@ export function TaskBoard({ slug, tasks, manager, scope, options, openTask, star
                 setDragging(null)
                 if (t) move(t, col.status)
               }}
-              className={`flex min-h-40 flex-col border bg-[#f1eee9]/60 transition ${over === col.status ? "border-[var(--accent)] bg-[color-mix(in_srgb,var(--accent)_6%,white)]" : "border-[#e0dcd5]"}`}
+              className={`flex min-h-40 flex-col border bg-white transition ${over === col.status ? "border-[var(--accent)] bg-[color-mix(in_srgb,var(--accent)_6%,white)]" : "border-[#e6e2db]"}`}
             >
-              <header className="flex items-center justify-between border-b border-[#e0dcd5] px-4 py-3">
-                <h2 className="text-xs font-bold uppercase tracking-[0.14em] text-[#17150f]">{col.label}</h2>
-                <span className="bg-white px-2 py-0.5 text-xs font-bold tabular-nums text-[#3d3a34]">{cards.length}</span>
+              <header className="flex items-center justify-between border-b border-[#e6e2db] px-4 py-3">
+                <h2 className="text-[15px] font-bold text-[#17150f]">{col.label}</h2>
+                <span className="bg-[#f3f1ed] px-2 py-0.5 text-xs font-bold tabular-nums text-[#3d3a34]">{cards.length}</span>
               </header>
-              <ul className="flex-1 space-y-2.5 p-3">
+              <ul className="flex-1 space-y-2.5 bg-[#faf9f7] p-3">
                 {cards.map((t) => {
                   const due = dueText(t)
                   return (

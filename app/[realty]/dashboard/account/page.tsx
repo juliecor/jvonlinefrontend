@@ -16,7 +16,7 @@ export default async function AccountPage({ params }: { params: Promise<{ realty
   return (
     <div>
       <PageHeader eyebrow="Account" title="My account" lede="Your photo, name, email, mobile number and password. Only you can change them." />
-      <div className="mt-8">
+      <div className="mt-8 max-w-3xl">
         <ProfilePhoto slug={slug} name={account.name} photo={account.photo_url ?? null} />
       </div>
       <div className="mt-6">

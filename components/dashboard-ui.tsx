@@ -11,7 +11,7 @@ export const display = "font-sans font-bold"
 
 export function PageHeader({ eyebrow, title, lede, action }: { eyebrow?: string; title: string; lede?: string; action?: React.ReactNode }) {
   return (
-    <header className="flex flex-wrap items-end justify-between gap-x-8 gap-y-4 border-b border-[#e6e2db] pb-6">
+    <header className="flex flex-wrap items-end justify-between gap-x-8 gap-y-4">
       <div>
         {eyebrow && <p className="text-xs font-bold uppercase tracking-[0.2em] text-[var(--accent)]">{eyebrow}</p>}
         <h1 className={`${display} mt-2 text-3xl tracking-tight text-[#17150f] sm:text-4xl`}>{title}</h1>
@@ -22,21 +22,21 @@ export function PageHeader({ eyebrow, title, lede, action }: { eyebrow?: string;
   )
 }
 
-/** A row of big numbers separated by hairlines — the dashboard's ledger line. */
+/** A row of big numbers, each on its own white card. */
 export function Ledger({ items }: { items: { label: string; value: string | number; note?: string; href?: string }[] }) {
   return (
-    <dl className="grid grid-cols-2 divide-[#e6e2db] border-b border-[#e6e2db] sm:flex sm:divide-x">
+    <dl className="mt-8 grid grid-cols-2 gap-3 sm:gap-4 xl:grid-cols-4">
       {items.map((it) => {
         const body = (
           <>
-            <dt className="text-xs font-bold uppercase tracking-[0.16em] text-[#6b665d]">{it.label}</dt>
-            <dd className={`${display} mt-2 tabular-nums tracking-tight text-[#17150f] ${String(it.value).length > 8 ? "text-3xl sm:text-4xl" : "text-4xl sm:text-[2.75rem]"}`}>{typeof it.value === "number" ? it.value.toLocaleString("en-PH") : it.value}</dd>
-            {it.note && <dd className="mt-1 text-sm text-[#6b665d]">{it.note}</dd>}
+            <dd className={`${display} tabular-nums tracking-tight text-[#17150f] ${String(it.value).length > 8 ? "text-2xl sm:text-3xl" : "text-3xl sm:text-4xl"}`}>{typeof it.value === "number" ? it.value.toLocaleString("en-PH") : it.value}</dd>
+            <dt className="mt-1 text-sm font-semibold text-[#17150f] sm:text-[15px]">{it.label}</dt>
+            {it.note && <dd className="mt-0.5 text-[13px] text-[#6b665d] sm:text-sm">{it.note}</dd>}
           </>
         )
-        const cls = "py-6 pr-6 sm:flex-1 sm:px-6 sm:first:pl-0 sm:last:pr-0"
+        const cls = "flex flex-col border border-[#e6e2db] bg-white p-4 sm:p-5"
         return it.href ? (
-          <Link key={it.label} href={it.href} className={`${cls} group transition hover:text-[var(--accent)]`}>
+          <Link key={it.label} href={it.href} className={`${cls} outline-none transition hover:border-[#17150f] focus-visible:ring-2 focus-visible:ring-[var(--accent)]`}>
             {body}
           </Link>
         ) : (
@@ -49,22 +49,22 @@ export function Ledger({ items }: { items: { label: string; value: string | numb
   )
 }
 
-/** A section with a small-caps title and a hairline — lists and forms live inside. */
+/** A white card with a title bar — lists and forms live inside. */
 export function Panel({ title, aside, children, className = "" }: { title: string; aside?: React.ReactNode; children: React.ReactNode; className?: string }) {
   return (
-    <section className={`mt-10 ${className}`}>
-      <div className="flex flex-wrap items-center justify-between gap-3 border-b border-[#17150f] pb-2">
-        <h2 className="text-xs font-bold uppercase tracking-[0.16em] text-[#17150f]">{title}</h2>
-        {aside && <div className="text-xs text-[#8a847a]">{aside}</div>}
+    <section className={`mt-8 border border-[#e6e2db] bg-white ${className}`}>
+      <div className="flex flex-wrap items-center justify-between gap-x-4 gap-y-1 border-b border-[#e6e2db] px-5 py-4">
+        <h2 className="text-lg font-bold text-[#17150f]">{title}</h2>
+        {aside && <div className="text-sm text-[#6b665d]">{aside}</div>}
       </div>
-      {children}
+      <div className="px-5 py-4">{children}</div>
     </section>
   )
 }
 
-/** Row list: hairlines between rows, no boxes. */
+/** Row list inside a Panel: hairlines between rows. */
 export function Rows({ children }: { children: React.ReactNode }) {
-  return <ul className="divide-y divide-[#e6e2db]">{children}</ul>
+  return <ul className="-my-4 divide-y divide-[#efece7]">{children}</ul>
 }
 
 export function Row({ children, muted = false }: { children: React.ReactNode; muted?: boolean }) {
@@ -72,7 +72,7 @@ export function Row({ children, muted = false }: { children: React.ReactNode; mu
 }
 
 export function Empty({ children }: { children: React.ReactNode }) {
-  return <p className="py-10 text-center text-sm text-[#8a847a]">{children}</p>
+  return <p className="py-6 text-center text-[15px] text-[#8a847a]">{children}</p>
 }
 
 export function Tag({ tone = "neutral", children }: { tone?: "neutral" | "good" | "warn" | "bad" | "accent"; children: React.ReactNode }) {

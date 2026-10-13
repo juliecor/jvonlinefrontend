@@ -31,13 +31,18 @@ export const roleLabel = (a: Account) => (a.is_superadmin ? "Super admin" : a.ro
 export function AccountSettings({ account, buyersSee, save, changePassword }: { account: Account; buyersSee?: string; save: Action; changePassword: Action }) {
   return (
     <div className="max-w-3xl">
-      <div className="flex items-center gap-4 border border-[#e0dcd5] bg-white p-5">
-        <span aria-hidden className="flex h-16 w-16 shrink-0 items-center justify-center bg-[var(--accent)] text-2xl font-bold text-white">{initials(account.name)}</span>
+      <div className="flex items-center gap-4 border border-[#e6e2db] bg-white p-5">
+        {account.photo_url ? (
+          // eslint-disable-next-line @next/next/no-img-element
+          <img src={account.photo_url} alt="" className="h-16 w-16 shrink-0 rounded-full object-cover ring-2 ring-[var(--accent)]/25" />
+        ) : (
+          <span aria-hidden className="flex h-16 w-16 shrink-0 items-center justify-center rounded-full bg-[#17150f] text-2xl font-bold text-white">{initials(account.name)}</span>
+        )}
         <div className="min-w-0">
           <p className="truncate text-xl font-bold tracking-tight text-[#17150f]">{account.name}</p>
           <p className="truncate text-sm text-[#6b665d]">{account.email}</p>
           <p className="mt-1.5 flex flex-wrap items-center gap-x-2 gap-y-1 text-xs font-semibold text-[#8a847a]">
-            <span className="bg-[#f1eee9] px-2 py-0.5 font-bold uppercase tracking-[0.12em] text-[#3d3a34]">{roleLabel(account)}</span>
+            <span className="px-2 py-0.5 font-bold uppercase tracking-[0.12em] text-[var(--accent)]" style={{ backgroundColor: "color-mix(in srgb, var(--accent) 10%, white)" }}>{roleLabel(account)}</span>
             {account.realty && <span>{account.realty}</span>}
           </p>
         </div>
@@ -62,10 +67,10 @@ function Details({ account, buyersSee, save }: { account: Account; buyersSee?: s
   }, [state.ok])
 
   return (
-    <section className="mt-8 border border-[#e0dcd5] bg-white">
-      <header className="flex items-center gap-2 border-b border-[#e6e2db] px-5 py-3.5">
-        <UserRound className="h-4 w-4 text-[var(--accent)]" />
-        <h2 className="text-sm font-bold uppercase tracking-[0.12em] text-[#17150f]">Your details</h2>
+    <section className="mt-6 border border-[#e6e2db] bg-white">
+      <header className="flex items-center gap-2.5 border-b border-[#e6e2db] px-5 py-4">
+        <UserRound className="h-5 w-5 text-[var(--accent)]" />
+        <h2 className="text-lg font-bold text-[#17150f]">Your details</h2>
       </header>
       <form action={action} className="space-y-5 p-5">
         {buyersSee && <p className="border-l-4 border-[var(--accent)] bg-[#faf8f5] px-3.5 py-2.5 text-sm text-[#3d3a34]">{buyersSee}</p>}
@@ -110,10 +115,10 @@ function Password({ changePassword }: { changePassword: Action }) {
   }, [state.ok])
 
   return (
-    <section className="mt-6 border border-[#e0dcd5] bg-white">
-      <header className="flex items-center gap-2 border-b border-[#e6e2db] px-5 py-3.5">
-        <KeyRound className="h-4 w-4 text-[var(--accent)]" />
-        <h2 className="text-sm font-bold uppercase tracking-[0.12em] text-[#17150f]">Password</h2>
+    <section className="mt-6 border border-[#e6e2db] bg-white">
+      <header className="flex items-center gap-2.5 border-b border-[#e6e2db] px-5 py-4">
+        <KeyRound className="h-5 w-5 text-[var(--accent)]" />
+        <h2 className="text-lg font-bold text-[#17150f]">Password</h2>
       </header>
       <form action={action} className="space-y-5 p-5">
         <p className="text-sm text-[#5a554d]">At least 8 characters. Changing it signs you out everywhere else, like on another phone or computer.</p>
