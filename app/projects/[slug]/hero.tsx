@@ -8,7 +8,7 @@ import { ease, serif } from "../../johndorf/home/ui"
 import { Photo } from "@/components/photo"
 
 /** Full-screen opening: the project's own renders crossfading, its name set large. */
-export function ProjectHero({ name, place, status, photos, interactive }: { name: string; place: string; status?: string; photos: string[]; interactive?: boolean }) {
+export function ProjectHero({ name, place, status, photos, interactive, lots }: { name: string; place: string; status?: string; photos: string[]; interactive?: boolean; lots?: { available: number; total: number } }) {
   const reduce = useReducedMotion()
   const [i, setI] = useState(0)
   useEffect(() => {
@@ -40,16 +40,28 @@ export function ProjectHero({ name, place, status, photos, interactive }: { name
         <motion.div initial={reduce ? false : { opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.9, delay: 0.3, ease }} className="mt-6 flex flex-wrap items-center gap-x-6 gap-y-3">
           <p className="inline-flex items-center gap-2 text-base text-white/85 sm:text-lg"><MapPin className="h-4 w-4 text-[#f0b6b1]" /> {place}</p>
           {status && <span className="rounded-sm border border-white/30 px-3 py-1 text-[11px] font-semibold uppercase tracking-[0.16em] text-white/85">{status}</span>}
+          {lots && (
+            <span className="inline-flex items-center gap-2 rounded-sm bg-white/10 px-3 py-1 text-[11px] font-semibold uppercase tracking-[0.16em] text-white/90 backdrop-blur">
+              <span className="h-2 w-2 bg-[#10b981]" /> {lots.available.toLocaleString("en-PH")} of {lots.total.toLocaleString("en-PH")} lots available
+            </span>
+          )}
           {interactive && (
             <Link href="/johndorf/montierra" className="rounded-sm bg-[#b4241c] px-4 py-1.5 text-[11px] font-semibold uppercase tracking-[0.16em] text-white hover:bg-[#941414]">
               Open the interactive site plan
             </Link>
           )}
         </motion.div>
-        <div className="mt-10 flex items-center justify-between">
-          <a href="#homes" className="inline-flex items-center gap-2 text-[11px] font-semibold uppercase tracking-[0.2em] text-white/60 hover:text-white">
-            <ArrowDown className="h-3.5 w-3.5 animate-bounce" /> See the homes
-          </a>
+        <div className="mt-10 flex flex-wrap items-center justify-between gap-4">
+          <div className="flex flex-wrap items-center gap-3">
+            {lots && (
+              <a href="#site-plan" className="inline-flex items-center gap-2 rounded-sm bg-white px-5 py-2.5 text-[11px] font-semibold uppercase tracking-[0.16em] text-[#2a1d1b] hover:bg-[#f0b6b1]">
+                <MapPin className="h-3.5 w-3.5" /> Pick a lot on the map
+              </a>
+            )}
+            <a href="#homes" className="inline-flex items-center gap-2 text-[11px] font-semibold uppercase tracking-[0.2em] text-white/60 hover:text-white">
+              <ArrowDown className="h-3.5 w-3.5 animate-bounce" /> See the homes
+            </a>
+          </div>
           {photos.length > 1 && (
             <div className="flex gap-1.5">
               {photos.map((_, n) => (

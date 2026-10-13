@@ -61,28 +61,73 @@ export default async function ProjectPage({ params }: Props) {
     { href: "#location", label: "Location" },
     ...(p.updates.length ? [{ href: "#updates", label: "Updates" }] : []),
   ]
+  const lotsDrawn = !!p.site_map && p.site_map.lots.length > 0
+  const lotsAvailable = p.site_map?.lots.filter((l) => l.status === "available").length ?? 0
   const facts = [
+    ...(lotsDrawn ? [{ v: lotsAvailable.toLocaleString("en-PH"), l: "Lots available" }] : []),
     { v: String(p.unit_types.length), l: p.unit_types.length === 1 ? "Unit type" : "Unit types" },
     { v: String(p.amenities.length), l: "Amenities & facilities" },
     ...(p.updates.length ? [{ v: String(p.updates.length), l: "Months of updates" }, { v: String(p.total_photos), l: "Progress photos" }] : []),
     ...(p.region ? [{ v: p.region, l: "Region" }] : []),
   ]
 
+  const sitePlan = p.site_plans.length > 0 && (
+        <section id="site-plan" className="scroll-mt-20 bg-[#f3ece9] px-5 py-24 sm:px-8 sm:py-32">
+          <div className="mx-auto max-w-[1400px]">
+            <SectionHead
+              eyebrow="Site development plan"
+              lede={p.site_map ? `Every lot, coloured by whether it is still available: ${lotsAvailable.toLocaleString("en-PH")} of ${p.site_map.lots.length.toLocaleString("en-PH")} are. Tap or click one to see its photos, block, lot and size.` : "Blocks, lots, roads, parks and open spaces as drawn by Johndorf's planners. Tap to view full screen."}
+              action={
+                interactive ? (
+                  <Link href="/johndorf/montierra" className="inline-flex items-center gap-2 rounded-sm bg-[#b4241c] px-6 py-3 text-[12px] font-semibold uppercase tracking-[0.14em] text-white hover:bg-[#941414]">
+                    Open the interactive plan <ArrowRight className="h-4 w-4" />
+                  </Link>
+                ) : undefined
+              }
+            >
+              The lay of the land.
+            </SectionHead>
+            {p.site_map ? (
+              <>
+                <div className="mt-12 bg-white p-4 sm:p-6">
+                  <SiteMapViewer map={p.site_map} alt={`${p.name} site development plan`} maxHeight="80vh" details modelPhotos={Object.fromEntries(p.unit_types.map((u) => [u.name, u.images]))} />
+                  <div className="mt-5 flex flex-wrap items-center justify-between gap-4 border-t border-[#2a1d1b]/10 pt-5">
+                    <p className="text-[15px] text-[#4b3b37]">
+                      <b className="text-[#2a1d1b]">{lotsAvailable.toLocaleString("en-PH")} of {p.site_map.lots.length.toLocaleString("en-PH")} lots</b> still available. Prices and reservations are through a Johndorf agent.
+                    </p>
+                    {p.official_url && (
+                      <a href={p.official_url} target="_blank" rel="noopener noreferrer" className="inline-flex items-center gap-2 rounded-sm bg-[#b4241c] px-6 py-3 text-[12px] font-semibold uppercase tracking-[0.14em] text-white hover:bg-[#941414]">
+                        Ask a Johndorf agent <ExternalLink className="h-4 w-4" />
+                      </a>
+                    )}
+                  </div>
+                </div>
+                {p.site_plans.filter((s) => s !== p.site_map?.image).length > 0 && <SitePlan plans={p.site_plans.filter((s) => s !== p.site_map?.image)} name={p.name} />}
+              </>
+            ) : (
+              <SitePlan plans={p.site_plans} name={p.name} />
+            )}
+          </div>
+        </section>
+  )
+
   return (
     <div className="bg-[#fbf8f6] text-[#2a1d1b]">
       <SiteHeader light />
-      <ProjectHero name={p.name} place={p.location ?? ""} status={p.stage ?? undefined} photos={hero} interactive={interactive} />
+      <ProjectHero name={p.name} place={p.location ?? ""} status={p.stage ?? undefined} photos={hero} interactive={interactive} lots={lotsDrawn ? { available: lotsAvailable, total: p.site_map!.lots.length } : undefined} />
 
       <section className="border-b border-[#2a1d1b]/10 bg-white">
-        <dl className="mx-auto grid max-w-[1400px] grid-cols-2 divide-[#2a1d1b]/10 px-5 sm:grid-cols-3 sm:divide-x sm:px-8 lg:grid-cols-5">
+        <dl className="mx-auto grid max-w-[1400px] grid-cols-2 divide-[#2a1d1b]/10 px-5 sm:grid-cols-3 sm:divide-x sm:px-8 lg:grid-cols-6">
           {facts.map((f) => (
             <div key={f.l} className="py-7 sm:px-6 sm:first:pl-0">
-              <dd className={`${serif} text-3xl font-semibold tracking-tight sm:text-4xl`}>{f.v}</dd>
+              <dd className={`${serif} text-3xl font-semibold tracking-tight sm:text-4xl ${f.l === "Lots available" ? "text-[#b4241c]" : ""}`}>{f.v}</dd>
               <dt className="mt-1 text-[11px] font-semibold uppercase tracking-[0.18em] text-[#a8968f]">{f.l}</dt>
             </div>
           ))}
         </dl>
       </section>
+
+      {lotsDrawn && sitePlan}
 
       {p.unit_types.length > 0 && (
         <section id="homes" className="scroll-mt-20 px-5 py-24 sm:px-8 sm:py-32">
@@ -105,36 +150,7 @@ export default async function ProjectPage({ params }: Props) {
         </section>
       )}
 
-      {p.site_plans.length > 0 && (
-        <section id="site-plan" className="scroll-mt-20 bg-[#f3ece9] px-5 py-24 sm:px-8 sm:py-32">
-          <div className="mx-auto max-w-[1400px]">
-            <SectionHead
-              eyebrow="Site development plan"
-              lede={p.site_map ? "Every lot, coloured by whether it is still available. Tap or click one to see its photos, block, lot and size." : "Blocks, lots, roads, parks and open spaces as drawn by Johndorf's planners. Tap to view full screen."}
-              action={
-                interactive ? (
-                  <Link href="/johndorf/montierra" className="inline-flex items-center gap-2 rounded-sm bg-[#b4241c] px-6 py-3 text-[12px] font-semibold uppercase tracking-[0.14em] text-white hover:bg-[#941414]">
-                    Open the interactive plan <ArrowRight className="h-4 w-4" />
-                  </Link>
-                ) : undefined
-              }
-            >
-              The lay of the land.
-            </SectionHead>
-            {p.site_map ? (
-              <>
-                <div className="mt-12 bg-white p-4 sm:p-6">
-                  <SiteMapViewer map={p.site_map} alt={`${p.name} site development plan`} maxHeight="80vh" details modelPhotos={Object.fromEntries(p.unit_types.map((u) => [u.name, u.images]))} />
-                  <p className="mt-3 text-sm text-[#6b5a56]">Ask a Johndorf agent about prices and reservations.</p>
-                </div>
-                {p.site_plans.filter((s) => s !== p.site_map?.image).length > 0 && <SitePlan plans={p.site_plans.filter((s) => s !== p.site_map?.image)} name={p.name} />}
-              </>
-            ) : (
-              <SitePlan plans={p.site_plans} name={p.name} />
-            )}
-          </div>
-        </section>
-      )}
+      {!lotsDrawn && sitePlan}
 
       {p.amenities.length > 0 && (
         <section id="amenities" className="scroll-mt-20 px-5 py-24 sm:px-8 sm:py-32">
@@ -188,11 +204,11 @@ export default async function ProjectPage({ params }: Props) {
               <div>
                 <Eyebrow>Interested?</Eyebrow>
                 <h2 className={`${serif} mt-4 text-4xl font-semibold leading-[1.05] tracking-tight sm:text-6xl`}>Ask about {p.name}.</h2>
-                <p className="mt-5 max-w-lg text-[#6b5a56]">Reserve through Johndorf&apos;s official page, or sign in if you&apos;re a Johndorf agent to prepare a sales offer for your buyer.</p>
+                <p className="mt-5 max-w-lg text-[#6b5a56]">{lotsDrawn ? `${lotsAvailable.toLocaleString("en-PH")} lots are still available. ` : ""}Ask a Johndorf agent about prices and reservations on Johndorf&apos;s official page, or sign in if you&apos;re an agent to prepare a sales offer for your buyer.</p>
                 <div className="mt-8 flex flex-wrap gap-3">
                   {p.official_url && (
                     <a href={p.official_url} target="_blank" rel="noopener noreferrer" className="inline-flex items-center gap-2 rounded-sm bg-[#b4241c] px-7 py-4 text-[13px] font-semibold uppercase tracking-[0.14em] text-white hover:bg-[#941414]">
-                      Inquire on johndorfventures.com <ExternalLink className="h-4 w-4" />
+                      Ask a Johndorf agent <ExternalLink className="h-4 w-4" />
                     </a>
                   )}
                   <AccountLink signIn="Agent sign in" dashboard="Open your dashboard" icon={false} className="inline-flex items-center gap-2 rounded-sm border border-[#2a1d1b]/20 px-7 py-4 text-[13px] font-semibold uppercase tracking-[0.14em] text-[#2a1d1b] hover:border-[#b4241c] hover:text-[#b4241c]" />
