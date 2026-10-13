@@ -1,8 +1,8 @@
 "use client"
 
-import { useState } from "react"
+import { useEffect, useRef, useState } from "react"
 import Link from "next/link"
-import { ArrowRight, MapPin, Search, X } from "lucide-react"
+import { ArrowRight, ChevronDown, Globe, House, Map as MapIcon, MapPin, Pencil, Search, Shapes, Wallet, X } from "lucide-react"
 import { Tag } from "@/components/dashboard-ui"
 import { DeleteButton } from "../delete-button"
 import { deleteProject } from "./actions"
@@ -61,47 +61,54 @@ export function ProjectList({ slug, projects, staff, initial }: { slug: string; 
 
       <ul className="mt-5 grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
         {shown.map((p) => (
-          <li key={p.id} className="relative">
-            <Link href={`/${slug}/dashboard/projects/${p.id}`} className={`group flex h-full flex-col overflow-hidden border border-[#e6e2db] bg-white transition hover:border-[var(--accent)] ${p.status === "archived" ? "opacity-75 hover:opacity-100" : ""}`}>
-              <div className="relative">
-                {p.cover_url ? (
-                  <Photo src={p.cover_url} sizes="(min-width: 1280px) 400px, (min-width: 640px) 50vw, 100vw" className="aspect-[16/9] w-full object-cover" />
-                ) : (
-                  <div className="aspect-[16/9] w-full bg-[#efece6]" />
-                )}
-                {p.stage && <span className="absolute left-0 top-0 bg-white px-3 py-1.5 text-[11px] font-bold uppercase tracking-[0.14em] text-[#17150f]">{p.stage}</span>}
-              </div>
-              <div className="flex flex-1 flex-col p-5">
-                <div className="flex items-start justify-between gap-3">
-                  <p className="text-lg font-bold">{p.name}</p>
-                  <span className="flex shrink-0 flex-wrap justify-end gap-1.5">
-                    {p.status === "archived" && <Tag>Archived</Tag>}
-                    {!p.is_public && <Tag tone="warn">Hidden</Tag>}
-                  </span>
-                </div>
-                {p.location && (
-                  <p className="mt-1 inline-flex items-center gap-1 text-sm text-[#6b665d]">
-                    <MapPin className="h-3.5 w-3.5" /> {p.location}
-                  </p>
-                )}
-                <p className="mt-4 text-xs text-[#8a847a]">
-                  {p.units_count} unit{p.units_count === 1 ? "" : "s"} · {p.payment_plans_count} plan{p.payment_plans_count === 1 ? "" : "s"} · {p.offers_count} offer{p.offers_count === 1 ? "" : "s"}
-                </p>
-                {p.status === "active" && (
-                  <p className={`mt-1 text-xs font-bold ${ready(p) ? "text-emerald-700" : "text-amber-700"}`}>{ready(p) ? `${p.ready_units_count} ready to offer` : "Not ready to offer: no unit with a price"}</p>
-                )}
-                <span className="mt-auto inline-flex items-center gap-1.5 pt-4 text-sm font-semibold text-[var(--accent)]">
-                  Open <ArrowRight className="h-4 w-4 transition-transform group-hover:translate-x-1" />
+          // The name's link stretches over the whole card, so the buttons can sit inside it; an open Edit menu lifts the card over the next row.
+          <li
+            key={p.id}
+            className={`group relative flex flex-col border border-[#e6e2db] bg-white transition hover:border-[var(--accent)] has-[[aria-expanded=true]]:z-20 ${p.status === "archived" ? "opacity-75 hover:opacity-100 has-[[aria-expanded=true]]:opacity-100" : ""}`}
+          >
+            <div className="relative overflow-hidden">
+              {p.cover_url ? (
+                <Photo src={p.cover_url} sizes="(min-width: 1280px) 400px, (min-width: 640px) 50vw, 100vw" className="aspect-[16/9] w-full object-cover" />
+              ) : (
+                <div className="aspect-[16/9] w-full bg-[#efece6]" />
+              )}
+              {p.stage && <span className="absolute left-0 top-0 bg-white px-3 py-1.5 text-[11px] font-bold uppercase tracking-[0.14em] text-[#17150f]">{p.stage}</span>}
+            </div>
+            <div className="flex flex-1 flex-col p-5">
+              <div className="flex items-start justify-between gap-3">
+                <Link href={`/${slug}/dashboard/projects/${p.id}`} className="text-lg font-bold after:absolute after:inset-0">
+                  {p.name}
+                </Link>
+                <span className="flex shrink-0 flex-wrap justify-end gap-1.5">
+                  {p.status === "archived" && <Tag>Archived</Tag>}
+                  {!p.is_public && <Tag tone="warn">Hidden</Tag>}
                 </span>
               </div>
-            </Link>
+              {p.location && (
+                <p className="mt-1 inline-flex items-center gap-1 text-sm text-[#6b665d]">
+                  <MapPin className="h-3.5 w-3.5" /> {p.location}
+                </p>
+              )}
+              <p className="mt-4 text-xs text-[#8a847a]">
+                {p.units_count} unit{p.units_count === 1 ? "" : "s"} · {p.payment_plans_count} plan{p.payment_plans_count === 1 ? "" : "s"} · {p.offers_count} offer{p.offers_count === 1 ? "" : "s"}
+              </p>
+              {p.status === "active" && (
+                <p className={`mt-1 text-xs font-bold ${ready(p) ? "text-emerald-700" : "text-amber-700"}`}>{ready(p) ? `${p.ready_units_count} ready to offer` : "Not ready to offer: no unit with a price"}</p>
+              )}
+              <div className="mt-auto flex items-center justify-between gap-3 pt-4">
+                <span aria-hidden className="inline-flex items-center gap-1.5 text-sm font-semibold text-[var(--accent)]">
+                  Open <ArrowRight className="h-4 w-4 transition-transform group-hover:translate-x-1" />
+                </span>
+                {staff && <EditMenu href={`/${slug}/dashboard/projects/${p.id}`} name={p.name} counts={{ units: p.units_count, plans: p.payment_plans_count }} />}
+              </div>
+            </div>
             {staff && (
               <DeleteButton
                 action={() => deleteProject(slug, p.id)}
                 title={`Delete ${p.name}?`}
                 body={`${p.name}, its ${p.units_count} unit${p.units_count === 1 ? "" : "s"}, payment plans and public page pictures are deleted for good. A project that has offers can't be deleted: archive it instead. This can't be undone.`}
                 success={`${p.name} deleted`}
-                className="absolute right-2 top-2 border border-[#d9d4cb] bg-white/95 px-2.5 py-1.5 text-xs font-bold text-[#17150f] shadow-sm hover:border-red-400 hover:text-red-700"
+                className="absolute right-2 top-2 z-10 border border-[#d9d4cb] bg-white/95 px-2.5 py-1.5 text-xs font-bold text-[#17150f] shadow-sm hover:border-red-400 hover:text-red-700"
               />
             )}
           </li>
@@ -122,6 +129,62 @@ export function ProjectList({ slug, projects, staff, initial }: { slug: string; 
         )}
       </ul>
     </>
+  )
+}
+
+// The project page's tabs (projects/[id]/page.tsx): each id opens its tab there.
+const EDIT_TABS = [
+  { id: "details", label: "Project details", icon: Pencil },
+  { id: "units", label: "Units", icon: House, count: "units" },
+  { id: "plans", label: "Payment plans", icon: Wallet, count: "plans" },
+  { id: "site-map", label: "Site map", icon: MapIcon },
+  { id: "website", label: "Website", icon: Globe },
+  { id: "models", label: "Models & updates", icon: Shapes },
+] as const
+
+/** A card's Edit button: a short menu that opens the project straight on the part to change. */
+function EditMenu({ href, name, counts }: { href: string; name: string; counts: { units?: number; plans?: number } }) {
+  const [open, setOpen] = useState(false)
+  const box = useRef<HTMLDivElement>(null)
+  useEffect(() => {
+    if (!open) return
+    const away = (e: MouseEvent) => !box.current?.contains(e.target as Node) && setOpen(false)
+    const esc = (e: KeyboardEvent) => e.key === "Escape" && setOpen(false)
+    document.addEventListener("mousedown", away)
+    document.addEventListener("keydown", esc)
+    return () => {
+      document.removeEventListener("mousedown", away)
+      document.removeEventListener("keydown", esc)
+    }
+  }, [open])
+
+  return (
+    <div ref={box} className="relative z-10">
+      <button
+        type="button"
+        onClick={() => setOpen((o) => !o)}
+        aria-expanded={open}
+        aria-haspopup="menu"
+        aria-label={`Edit ${name}`}
+        className={`inline-flex items-center gap-1.5 border bg-white px-3 py-1.5 text-sm font-bold text-[#17150f] transition hover:border-[#17150f] ${open ? "border-[#17150f]" : "border-[#d9d4cb]"}`}
+      >
+        <Pencil className="h-3.5 w-3.5" /> Edit <ChevronDown className={`h-3.5 w-3.5 text-[#8a847a] transition ${open ? "rotate-180" : ""}`} />
+      </button>
+      {open && (
+        <div role="menu" aria-label={`Edit ${name}`} className="absolute right-0 top-full mt-1 w-56 border border-[#e6e2db] bg-white py-1 shadow-lg">
+          {EDIT_TABS.map((t) => {
+            const count = "count" in t ? counts[t.count] : undefined
+            return (
+              <Link key={t.id} href={`${href}#${t.id}`} role="menuitem" onClick={() => setOpen(false)} className="flex items-center gap-3 px-4 py-2.5 text-sm font-semibold text-[#2b2823] outline-none hover:bg-[#f7f6f3] focus-visible:bg-[#f7f6f3]">
+                <t.icon className="h-4 w-4 shrink-0 text-[#6b665d]" />
+                <span className="flex-1">{t.label}</span>
+                {count !== undefined && <span className="bg-[#f1eee9] px-1.5 py-0.5 text-[11px] font-bold tabular-nums text-[#3d3a34]">{count}</span>}
+              </Link>
+            )
+          })}
+        </div>
+      )}
+    </div>
   )
 }
 
