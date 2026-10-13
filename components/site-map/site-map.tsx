@@ -3,7 +3,7 @@
 import { useEffect, useLayoutEffect, useMemo, useRef, useState } from "react"
 import { Maximize2, Minimize2, Minus, Plus, Scan, X } from "lucide-react"
 import { php } from "@/lib/format"
-import { LOT_TAGS, type Point, type SiteMapData, type SiteMapLot, STATUS_STYLE, centroid, countBy, lotName, shapes, svgPoints } from "./geometry"
+import { LOT_TAGS, type Point, type SiteMapData, type SiteMapLot, STATUS_STYLE, bounds, centroid, countBy, lotName, shapes, svgPoints } from "./geometry"
 
 const MIN_ZOOM = 1
 const MAX_ZOOM = 8
@@ -22,6 +22,12 @@ export function useAspect(src: string) {
 /** Lots smaller than this on screen (px) are too small to tap: a tap zooms in on them first. */
 const TAP_MIN = 18
 
+/** A focused lot ends up about this share of the view (its longer side), so it reads clearly with its street around it. */
+const FOCUS_SHARE = 0.14
+
+/** Where to zoom in: a box in plan fractions ([left, top, right, bottom]); a new `key` runs it again. */
+export type MapFocus = { box: [number, number, number, number]; key: number }
+
 /**
  * The plan image with a drawing layer over it, in plan fractions (0…1 both ways). Zoom with the
  * buttons, or with a pinch / Ctrl+scroll (plain scroll too in full screen) at the pointer; drag to
@@ -29,6 +35,7 @@ const TAP_MIN = 18
  * window, with `side` (the editor's panel) beside the plan; on a phone held upright the plan fills
  * its height. On a touch screen, two fingers zoom the plan (not the page), and with `tapZoom` a tap
  * on the small plan opens full screen, and a tap on a lot still too small to hit zooms in there.
+ * With `focus`, the plan zooms in on that box and glides it to the middle of the view.
  */
 export function SiteMapCanvas({
   image,
@@ -43,6 +50,7 @@ export function SiteMapCanvas({
   fullscreen: controlled,
   onFullscreen,
   tapZoom = true,
+  focus,
 }: {
   image: string
   alt: string
@@ -60,6 +68,8 @@ export function SiteMapCanvas({
   onFullscreen?: (on: boolean) => void
   /** Touch: taps open full screen and zoom in on lots too small to hit (off while drawing). */
   tapZoom?: boolean
+  /** Zoom in on this (a lot that was clicked) and bring it to the middle. */
+  focus?: MapFocus | null
 }) {
   const [zoom, setZoom] = useState(1)
   const [own, setOwn] = useState(false)
@@ -73,6 +83,8 @@ export function SiteMapCanvas({
   }
   const aspect = useAspect(image)
   const scroller = useRef<HTMLDivElement>(null)
+  // The plan itself (picture + drawing): what fractions of the plan are measured against.
+  const content = useRef<HTMLDivElement>(null)
   const pointer = useRef("mouse")
   const pinch = useRef<{ spread: number; zoom: number } | null>(null)
   const svg = useRef<SVGSVGElement>(null)
@@ -90,22 +102,70 @@ export function SiteMapCanvas({
   /** Zoom to `next`, keeping the plan point under (vx, vy) of the view where it is (the middle when not given). */
   const zoomTo = (next: number, vx?: number, vy?: number) => {
     const el = scroller.current
+    const plan = content.current
     const z = Math.min(MAX_ZOOM, Math.max(MIN_ZOOM, next))
-    if (!el || z === zoom) return
+    if (!el || !plan || z === zoom) return
+    stopGlide()
     const x = vx ?? el.clientWidth / 2
     const y = vy ?? el.clientHeight / 2
-    anchor.current = { fx: (el.scrollLeft + x) / el.scrollWidth, fy: (el.scrollTop + y) / el.scrollHeight, vx: x, vy: y }
+    anchor.current = { fx: (el.scrollLeft + x) / plan.offsetWidth, fy: (el.scrollTop + y) / plan.offsetHeight, vx: x, vy: y }
     setZoom(z)
   }
 
   useLayoutEffect(() => {
     const el = scroller.current
+    const plan = content.current
     const a = anchor.current
-    if (!el || !a) return
-    el.scrollLeft = a.fx * el.scrollWidth - a.vx
-    el.scrollTop = a.fy * el.scrollHeight - a.vy
+    if (!el || !plan || !a) return
+    el.scrollLeft = a.fx * plan.offsetWidth - a.vx
+    el.scrollTop = a.fy * plan.offsetHeight - a.vy
     anchor.current = null
   }, [zoom, full])
+
+  // Focus: zoom in on the box (never out, if they are already closer) while it glides to the middle of the view.
+  const zoomNow = useRef(zoom)
+  useLayoutEffect(() => {
+    zoomNow.current = zoom
+  }, [zoom])
+  const glide = useRef(0)
+  const stopGlide = () => cancelAnimationFrame(glide.current)
+  useEffect(() => {
+    const el = scroller.current
+    const plan = content.current
+    if (!focus || !el || !plan) return
+    const [left, top, right, bottom] = focus.box
+    const from = zoomNow.current
+    const box = plan.getBoundingClientRect()
+    const view = el.getBoundingClientRect()
+    // The box's longer side on screen at the whole-plan size, and the zoom that makes it FOCUS_SHARE of the view.
+    const side = Math.max(((right - left) * box.width) / from, ((bottom - top) * box.height) / from, 1)
+    const to = Math.min(MAX_ZOOM, Math.max(from, (FOCUS_SHARE * Math.min(el.clientWidth, el.clientHeight)) / side))
+    const fx = (left + right) / 2
+    const fy = (top + bottom) / 2
+    // Where its middle is in the view now.
+    const startX = box.left + fx * box.width - view.left - el.clientLeft
+    const startY = box.top + fy * box.height - view.top - el.clientTop
+    const ms = window.matchMedia("(prefers-reduced-motion: reduce)").matches ? 0 : 500
+    const start = performance.now()
+    const step = (now: number) => {
+      const t = ms ? Math.min(1, (now - start) / ms) : 1
+      const e = t < 0.5 ? 4 * t ** 3 : 1 - (-2 * t + 2) ** 3 / 2
+      // The view can grow while zooming (up to maxHeight): aim at its middle as it is now.
+      const vx = startX + (el.clientWidth / 2 - startX) * e
+      const vy = startY + (el.clientHeight / 2 - startY) * e
+      const z = from * (to / from) ** e
+      if (Math.abs(z - zoomNow.current) > 0.001) {
+        anchor.current = { fx, fy, vx, vy }
+        setZoom(z)
+      } else {
+        el.scrollLeft = fx * plan.offsetWidth - vx
+        el.scrollTop = fy * plan.offsetHeight - vy
+      }
+      if (t < 1) glide.current = requestAnimationFrame(step)
+    }
+    glide.current = requestAnimationFrame(step)
+    return () => cancelAnimationFrame(glide.current)
+  }, [focus])
 
   // Pinch (Ctrl+wheel on a trackpad) or Ctrl+scroll zooms at the pointer; in full screen plain scroll does too.
   useEffect(() => {
@@ -114,12 +174,14 @@ export function SiteMapCanvas({
     const onWheel = (e: WheelEvent) => {
       if (!e.ctrlKey && !e.metaKey && !full) return
       e.preventDefault()
+      stopGlide()
       const r = el.getBoundingClientRect()
       zoomTo(zoom * Math.exp(-e.deltaY * (e.ctrlKey ? 0.01 : 0.002)), e.clientX - r.left, e.clientY - r.top)
     }
     // Two fingers zoom the plan where they are; one finger keeps scrolling as usual.
     const spread = (t: TouchList) => Math.hypot(t[0].clientX - t[1].clientX, t[0].clientY - t[1].clientY)
     const onTouchStart = (e: TouchEvent) => {
+      stopGlide()
       if (e.touches.length !== 2) return
       e.preventDefault()
       pinch.current = { spread: spread(e.touches), zoom }
@@ -174,7 +236,13 @@ export function SiteMapCanvas({
       <button type="button" onClick={() => zoomTo(zoom / 1.5)} disabled={zoom <= MIN_ZOOM} aria-label="Zoom out" className="p-2.5 text-[#17150f] hover:bg-[#f6f4f0] disabled:opacity-30">
         <Minus className="h-4 w-4" />
       </button>
-      <button type="button" onClick={() => setZoom(1)} aria-label="Fit the whole plan" className="min-w-[3.25rem] border-x border-[#e6e2db] px-2.5 text-xs font-bold tabular-nums text-[#3d3a34] hover:bg-[#f6f4f0]">
+      <button
+        type="button"
+        onClick={() => {
+          stopGlide()
+          setZoom(1)
+        }}
+        aria-label="Fit the whole plan" className="min-w-[3.25rem] border-x border-[#e6e2db] px-2.5 text-xs font-bold tabular-nums text-[#3d3a34] hover:bg-[#f6f4f0]">
         {zoom <= 1.01 ? <Scan className="mx-auto h-4 w-4" /> : `${Math.round(zoom * 100)}%`}
       </button>
       <button type="button" onClick={() => zoomTo(zoom * 1.5)} disabled={zoom >= MAX_ZOOM} aria-label="Zoom in" className="p-2.5 text-[#17150f] hover:bg-[#f6f4f0] disabled:opacity-30">
@@ -195,6 +263,7 @@ export function SiteMapCanvas({
         style={full ? undefined : { maxHeight }}
         onPointerDown={(e) => {
           pointer.current = e.pointerType
+          stopGlide()
           // Fingers scroll the plan natively; the mouse drags it.
           if (e.pointerType === "touch" || e.button !== 0 || zoom <= 1 || (e.target as HTMLElement).closest("[data-handle]")) return
           pan.current = { x: e.clientX, y: e.clientY, left: e.currentTarget.scrollLeft, top: e.currentTarget.scrollTop, moved: false }
@@ -237,6 +306,7 @@ export function SiteMapCanvas({
         }}
       >
         <div
+          ref={content}
           className={`relative [--base:100%] ${full ? "portrait:[--base:max(100%,calc((100dvh_-_4rem)*var(--aspect)))]" : ""}`}
           style={{ width: `calc(var(--base) * ${zoom})`, ["--aspect" as string]: aspect }}
         >
@@ -423,7 +493,7 @@ export function LotDetails({ lot, modelPhotos = [], noPrice = "Ask an agent", on
 /**
  * The read-only map: lots coloured by status, a tip on hover, and a click on the lots `canPick`
  * allows (every lot when it's left out). `highlight` marks one lot as "Your home". With `details`,
- * a click opens the lot's card (photos and details) beside the map instead.
+ * a click opens the lot's card (photos and details) beside the map instead, and zooms in on the lot.
  */
 export function SiteMapViewer({
   map,
@@ -448,8 +518,11 @@ export function SiteMapViewer({
   const aspect = useAspect(map.image)
   const all = useMemo(() => shapes(map, aspect), [map, aspect])
   const [hover, setHover] = useState<number | null>(null)
+  // Zooming in moves the plan under a pointer that stayed put: the clicked lot keeps its tip until the pointer itself moves.
+  const [pinned, setPinned] = useState<{ id: number; x: number; y: number } | null>(null)
+  const clickAt = useRef({ x: 0, y: 0 })
   const [open, setOpen] = useState<number | null>(details && map.highlight ? map.highlight : null)
-  const hovered = all.find((s) => s.lot.id === hover)
+  const hovered = all.find((s) => s.lot.id === (pinned?.id ?? hover))
   const mine = map.highlight ? all.find((s) => s.lot.id === map.highlight) : undefined
   const opened = open ? map.lots.find((l) => l.id === open) : undefined
   // Picking a lot in full screen takes the picker back to the form it is for.
@@ -460,8 +533,15 @@ export function SiteMapViewer({
     window.addEventListener("keydown", onKey)
     return () => window.removeEventListener("keydown", onKey)
   }, [full])
-  const click = (lot: SiteMapLot) => {
-    if (details) return setOpen(lot.id)
+  // The lot that was clicked, to zoom in on (the key runs it again on a second click).
+  const [focus, setFocus] = useState<MapFocus | null>(null)
+  const click = (lot: SiteMapLot, quad: Point[]) => {
+    if (details) {
+      setOpen(lot.id)
+      setPinned({ id: lot.id, ...clickAt.current })
+      setFocus((f) => ({ box: bounds(quad), key: (f?.key ?? 0) + 1 }))
+      return
+    }
     onPick?.(lot)
     setFull(false)
   }
@@ -475,7 +555,12 @@ export function SiteMapViewer({
     <div className="space-y-3">
       <StatusLegend lots={map.lots} />
       <div className={details && opened ? "grid gap-4 lg:grid-cols-[1fr_320px]" : ""}>
-        <div className="min-w-0">
+        <div
+          className="min-w-0"
+          onClickCapture={(e) => (clickAt.current = { x: e.clientX, y: e.clientY })}
+          onPointerMove={(e) => pinned && Math.hypot(e.clientX - pinned.x, e.clientY - pinned.y) > 4 && setPinned(null)}
+          onPointerLeave={() => setPinned(null)}
+        >
           <SiteMapCanvas
             image={map.image}
             alt={alt}
@@ -483,9 +568,10 @@ export function SiteMapViewer({
             fullscreen={full}
             onFullscreen={setFull}
             side={card || undefined}
+            focus={focus}
             layers={all.map(({ lot, quad }) => {
               const pickable = details || (onPick && (!canPick || canPick(lot)))
-              return <LotShape key={lot.id} quad={quad} lot={lot} selected={lot.id === selectedId || lot.id === map.highlight || lot.id === open} dim={!details && !!onPick && !!canPick && !canPick(lot)} onClick={pickable ? () => click(lot) : undefined} onHover={(on) => setHover(on ? lot.id : null)} />
+              return <LotShape key={lot.id} quad={quad} lot={lot} selected={lot.id === selectedId || lot.id === map.highlight || lot.id === open} dim={!details && !!onPick && !!canPick && !canPick(lot)} onClick={pickable ? () => click(lot, quad) : undefined} onHover={(on) => setHover(on ? lot.id : null)} />
             })}
             labels={
               <>

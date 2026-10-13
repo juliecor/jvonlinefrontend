@@ -100,6 +100,14 @@ export function lotQuads(corners: Point[], count: number, areas?: (number | null
 
 export const centroid = (pts: Point[]): Point => [pts.reduce((s, p) => s + p[0], 0) / pts.length, pts.reduce((s, p) => s + p[1], 0) / pts.length]
 
+/** The box around a shape: [left, top, right, bottom] in plan fractions. */
+export const bounds = (pts: Point[]): [number, number, number, number] => [
+  Math.min(...pts.map((p) => p[0])),
+  Math.min(...pts.map((p) => p[1])),
+  Math.max(...pts.map((p) => p[0])),
+  Math.max(...pts.map((p) => p[1])),
+]
+
 export const svgPoints = (pts: Point[]) => pts.map((p) => `${p[0]},${p[1]}`).join(" ")
 
 /** Every drawn lot with its shape: a row's lots by their place in it. `aspect` is the plan's width ÷ height. */
