@@ -8,7 +8,7 @@ import { ease, serif } from "../../johndorf/home/ui"
 import { Photo } from "@/components/photo"
 
 /** Full-screen opening: the project's own renders crossfading, its name set large. */
-export function ProjectHero({ name, place, status, photos, interactive, lots }: { name: string; place: string; status?: string; photos: string[]; interactive?: boolean; lots?: { available: number; total: number } }) {
+export function ProjectHero({ name, place, status, photos, lots }: { name: string; place: string; status?: string; photos: string[]; lots?: { available: number; total: number } }) {
   const reduce = useReducedMotion()
   const [i, setI] = useState(0)
   useEffect(() => {
@@ -44,11 +44,6 @@ export function ProjectHero({ name, place, status, photos, interactive, lots }: 
             <span className="inline-flex items-center gap-2 rounded-sm bg-white/10 px-3 py-1 text-[11px] font-semibold uppercase tracking-[0.16em] text-white/90 backdrop-blur">
               <span className="h-2 w-2 bg-[#10b981]" /> {lots.available.toLocaleString("en-PH")} of {lots.total.toLocaleString("en-PH")} lots available
             </span>
-          )}
-          {interactive && (
-            <Link href="/johndorf/montierra" className="rounded-sm bg-[#b4241c] px-4 py-1.5 text-[11px] font-semibold uppercase tracking-[0.16em] text-white hover:bg-[#941414]">
-              Open the interactive site plan
-            </Link>
           )}
         </motion.div>
         <div className="mt-10 flex flex-wrap items-center justify-between gap-4">

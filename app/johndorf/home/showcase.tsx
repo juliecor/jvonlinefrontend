@@ -6,7 +6,6 @@ import Link from "next/link"
 import { AnimatePresence, motion, useMotionValue, useMotionValueEvent, useReducedMotion, useScroll, useSpring, useTransform } from "framer-motion"
 import { ArrowRight, ArrowUpRight, Compass, MapPin, Sparkles } from "lucide-react"
 import { FLAGSHIPS, PROJECTS } from "@/lib/johndorf/company"
-import { BLOCKS, TOTALS } from "@/lib/johndorf/montierra"
 import { PROJECT_DETAILS } from "@/lib/johndorf/projects"
 import { ProjectDetail } from "./project-detail"
 import { Eyebrow, Magnetic, Odometer, Reveal, RiseWords, ease, serif } from "./ui"
@@ -218,12 +217,17 @@ function ProjectCard({ p, n, strip = false, onOpen }: { p: (typeof PROJECTS)[num
 
 /* ─── Montierra: the live plan, tilting under the mouse ───────────────────── */
 
+/** Where each of Montierra's 14 residential blocks sits on the plan picture (percent across and down). */
+const MONTIERRA_PINS = [
+  { id: "b1", x: 54.8, y: 17.8 }, { id: "b2", x: 39.6, y: 24.8 }, { id: "b3", x: 70.8, y: 24.8 }, { id: "b4", x: 41, y: 33.6 }, { id: "b5", x: 70.8, y: 33.6 },
+  { id: "b6", x: 41.9, y: 42 }, { id: "b7", x: 70.8, y: 42 }, { id: "b8", x: 43.4, y: 51.9 }, { id: "b9", x: 70.8, y: 51.9 }, { id: "b10", x: 45.3, y: 61 },
+  { id: "b11", x: 73.9, y: 60 }, { id: "b12", x: 87.1, y: 39.3 }, { id: "b13", x: 22.6, y: 30.5 }, { id: "b14", x: 41.5, y: 61.6 },
+]
+// Montierra's site map in the dashboard: 14 blocks, 522 home lots, in three clusters on Johndorf's plan.
+const MONTIERRA = { blocks: 14, lots: 522, clusters: 3 }
+
 export function MontierraSpotlight() {
-  const pins = BLOCKS.filter((b) => b.kind === "residential").map((b) => {
-    const xs = b.polygon.map((q) => q[0])
-    const ys = b.polygon.map((q) => q[1])
-    return { id: b.id, x: ((Math.min(...xs) + Math.max(...xs)) / 2 / 2000) * 100, y: ((Math.min(...ys) + Math.max(...ys)) / 2 / 1414) * 100 }
-  })
+  const pins = MONTIERRA_PINS
   const rx = useSpring(0, { stiffness: 120, damping: 18 })
   const ry = useSpring(0, { stiffness: 120, damping: 18 })
   return (
@@ -241,9 +245,9 @@ export function MontierraSpotlight() {
           <Reveal delay={0.15}>
             <div className="mt-10 grid grid-cols-3 gap-3">
               {[
-                { v: BLOCKS.filter((b) => b.kind === "residential").length, l: "Blocks" },
-                { v: TOTALS.lots, l: "Home lots" },
-                { v: 3, l: "Clusters" },
+                { v: MONTIERRA.blocks, l: "Blocks" },
+                { v: MONTIERRA.lots, l: "Home lots" },
+                { v: MONTIERRA.clusters, l: "Clusters" },
               ].map((s) => (
                 <div key={s.l} className="rounded-2xl border border-white/12 bg-white/5 px-4 py-5">
                   <p className={`${serif} text-4xl font-semibold`}>
@@ -257,7 +261,7 @@ export function MontierraSpotlight() {
           <Reveal delay={0.22}>
             <div className="mt-10">
               <Magnetic>
-                <Link href="/johndorf/montierra" data-cursor="Open" className="group inline-flex items-center gap-2.5 rounded-full bg-[#b4241c] px-7 py-4 text-[13px] font-semibold uppercase tracking-[0.14em] text-white shadow-[0_18px_40px_-14px_rgba(180,36,28,0.9)] transition-colors hover:bg-[#941414]">
+                <Link href="/projects/montierra#site-plan" data-cursor="Open" className="group inline-flex items-center gap-2.5 rounded-full bg-[#b4241c] px-7 py-4 text-[13px] font-semibold uppercase tracking-[0.14em] text-white shadow-[0_18px_40px_-14px_rgba(180,36,28,0.9)] transition-colors hover:bg-[#941414]">
                   <Compass className="h-4 w-4" /> Montierra map <ArrowRight className="h-4 w-4 transition-transform group-hover:translate-x-1" />
                 </Link>
               </Magnetic>
@@ -280,7 +284,7 @@ export function MontierraSpotlight() {
             }}
           >
             <motion.div style={{ rotateX: rx, rotateY: ry }} className="[transform-style:preserve-3d]">
-              <Link href="/johndorf/montierra" data-cursor="Explore" className="relative block overflow-hidden rounded-[26px] border border-white/10 bg-white shadow-[0_50px_100px_-30px_rgba(0,0,0,0.75)]">
+              <Link href="/projects/montierra#site-plan" data-cursor="Explore" className="relative block overflow-hidden rounded-[26px] border border-white/10 bg-white shadow-[0_50px_100px_-30px_rgba(0,0,0,0.75)]">
                 <Image src="/johndorf/montierra-plan.jpg" alt="Montierra subdivision plan" width={2048} height={1448} sizes="(min-width:1024px) 56vw, 100vw" className="h-auto w-full" />
                 {pins.map(({ id, x, y }, n) => (
                   <span key={id} className="absolute -translate-x-1/2 -translate-y-1/2" style={{ left: `${x}%`, top: `${y}%` }}>

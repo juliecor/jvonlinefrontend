@@ -417,7 +417,7 @@ function HeroContent({ opacity, y, live, slide, setSlide }: { opacity: MotionVal
         <div className="mt-8 flex flex-wrap gap-3">
           <Magnetic>
             <Link
-              href="/johndorf/montierra"
+              href="/projects/montierra"
               data-cursor="Open"
               className="group inline-flex items-center gap-2.5 rounded-full bg-[#b4241c] px-7 py-4 text-[13px] font-semibold uppercase tracking-[0.14em] text-white shadow-[0_18px_40px_-14px_rgba(180,36,28,0.9)] transition-colors hover:bg-[#941414]"
             >

@@ -179,8 +179,8 @@ export function ProjectDetail({ project, detail, onClose }: { project: Card; det
 
           <div className="mt-8 flex flex-wrap gap-3">
             {project.interactive && (
-              <Link href="/johndorf/montierra" className="inline-flex items-center gap-2 rounded-full bg-[#b4241c] px-6 py-3 text-[12px] font-semibold uppercase tracking-[0.14em] text-white shadow-[0_14px_30px_-12px_rgba(180,36,28,0.8)] transition hover:bg-[#941414]">
-                <Compass className="h-4 w-4" /> Open interactive site plan
+              <Link href={`/projects/${detail.slug}#site-plan`} className="inline-flex items-center gap-2 rounded-full bg-[#b4241c] px-6 py-3 text-[12px] font-semibold uppercase tracking-[0.14em] text-white shadow-[0_14px_30px_-12px_rgba(180,36,28,0.8)] transition hover:bg-[#941414]">
+                <Compass className="h-4 w-4" /> Open the site plan
               </Link>
             )}
             <Link href={`/projects/${detail.slug}`} className="inline-flex items-center gap-2 rounded-full bg-[#2a1d1b] px-6 py-3 text-[12px] font-semibold uppercase tracking-[0.14em] text-white transition hover:bg-[#b4241c]">

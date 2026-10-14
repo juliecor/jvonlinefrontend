@@ -151,7 +151,7 @@ export function Footer() {
           </div>
           <div className="flex flex-col items-start gap-3">
             <p className="text-[11px] font-semibold uppercase tracking-[0.2em] text-[#f0b6b1]">Explore</p>
-            <Link href="/johndorf/montierra" className="inline-flex items-center gap-2 text-sm font-semibold text-white/85 hover:text-white">
+            <Link href="/projects/montierra#site-plan" className="inline-flex items-center gap-2 text-sm font-semibold text-white/85 hover:text-white">
               <Compass className="h-4 w-4" /> Montierra site plan
             </Link>
             <a href={COMPANY.website} target="_blank" rel="noopener noreferrer" className="inline-flex items-center gap-2 text-sm font-semibold text-white/85 hover:text-white">

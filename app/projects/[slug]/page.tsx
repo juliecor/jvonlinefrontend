@@ -2,7 +2,7 @@ import type { Metadata } from "next"
 import Link from "next/link"
 import { AccountLink } from "@/components/account-link"
 import { notFound } from "next/navigation"
-import { ArrowRight, ArrowUpRight, ExternalLink, MapPin } from "lucide-react"
+import { ArrowUpRight, ExternalLink, MapPin } from "lucide-react"
 import { publicProject, publicProjects } from "@/lib/public-projects"
 import { Eyebrow, Reveal } from "../../johndorf/home/ui"
 import { serif } from "../../johndorf/tokens"
@@ -53,7 +53,6 @@ export default async function ProjectPage({ params }: Props) {
   const spot = hasPin ? `${p.lat},${p.lng}` : [p.name, p.location, "Philippines"].filter(Boolean).join(", ")
   const mapOpen = `https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(spot)}`
   const mapImg = key ? `https://maps.googleapis.com/maps/api/staticmap?size=640x400&scale=2&zoom=${hasPin ? 15 : 13}&maptype=roadmap&markers=color:0xb4241c%7C${encodeURIComponent(spot)}&key=${key}` : null
-  const interactive = slug === "montierra"
 
   const sections = [
     ...(p.site_plans.length ? [{ href: "#site-plan", label: "Site plan" }] : []),
@@ -77,13 +76,6 @@ export default async function ProjectPage({ params }: Props) {
             <SectionHead
               eyebrow="Site development plan"
               lede={p.site_map ? `Every lot, coloured by whether it is still available: ${lotsAvailable.toLocaleString("en-PH")} of ${p.site_map.lots.length.toLocaleString("en-PH")} are. Tap or click one to see its photos, block, lot and size.` : "Blocks, lots, roads, parks and open spaces as drawn by Johndorf's planners. Tap to view full screen."}
-              action={
-                interactive ? (
-                  <Link href="/johndorf/montierra" className="inline-flex items-center gap-2 rounded-sm bg-[#b4241c] px-6 py-3 text-[12px] font-semibold uppercase tracking-[0.14em] text-white hover:bg-[#941414]">
-                    Open the interactive plan <ArrowRight className="h-4 w-4" />
-                  </Link>
-                ) : undefined
-              }
             >
               The lay of the land.
             </SectionHead>
@@ -114,7 +106,7 @@ export default async function ProjectPage({ params }: Props) {
   return (
     <div className="bg-[#fbf8f6] text-[#2a1d1b]">
       <SiteHeader light />
-      <ProjectHero name={p.name} place={p.location ?? ""} status={p.stage ?? undefined} photos={hero} interactive={interactive} lots={lotsDrawn ? { available: lotsAvailable, total: p.site_map!.lots.length } : undefined} />
+      <ProjectHero name={p.name} place={p.location ?? ""} status={p.stage ?? undefined} photos={hero} lots={lotsDrawn ? { available: lotsAvailable, total: p.site_map!.lots.length } : undefined} />
 
       <section className="border-b border-[#2a1d1b]/10 bg-white">
         <dl className="mx-auto grid max-w-[1400px] grid-cols-2 divide-[#2a1d1b]/10 px-5 sm:grid-cols-3 sm:divide-x sm:px-8 lg:grid-cols-6">

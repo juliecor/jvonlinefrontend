@@ -15,6 +15,8 @@ const nextConfig: NextConfig = {
       // jvconline.ph is Johndorf's site: the landing is at /. These keep the old addresses working.
       { source: "/johndorf", destination: "/", permanent: true },
       { source: "/johndorf/home", destination: "/", permanent: true },
+      // The early Montierra demo page is gone: its lots now live on the real project page.
+      { source: "/johndorf/montierra", destination: "/projects/montierra", permanent: true },
     ];
   },
 };
