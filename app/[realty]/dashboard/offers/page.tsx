@@ -44,6 +44,8 @@ type Offer = {
   custom: boolean
   /** The unit is reserved or sold through this offer. */
   unit_status: "reserved" | "sold" | null
+  /** Where the buyer's reservation stands; null when the agent set no fee. */
+  reservation_status: "none" | "pending" | "paid" | "confirmed" | "declined" | null
   approval_status: "pending" | "approved" | "rejected" | null
   approval_note: string | null
   /** The house model's picture, else the project's photo. */
@@ -95,6 +97,7 @@ export default async function OffersPage({ params }: { params: Promise<{ realty:
                   {o.status === "active" && o.expired && <Tag tone="bad">Expired</Tag>}
                   {o.unit_status === "sold" && <span className="bg-[#17150f] px-1.5 py-0.5 text-[10px] font-bold uppercase tracking-[0.14em] text-white">Sold</span>}
                   {o.unit_status === "reserved" && <Tag tone="warn">Reserved</Tag>}
+                  {(o.reservation_status === "pending" || o.reservation_status === "paid") && <Tag tone="accent">Reservation to confirm</Tag>}
                   {o.status === "active" && o.approval_status === "pending" && <Tag tone="warn">Waiting for approval</Tag>}
                   {o.status === "active" && o.approval_status === "rejected" && <Tag tone="bad">Sent back</Tag>}
                   {o.approval_status === "approved" && <Tag>Custom terms</Tag>}

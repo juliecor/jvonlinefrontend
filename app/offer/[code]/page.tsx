@@ -13,6 +13,8 @@ import { realtyIcons } from "@/lib/realty-icon"
 import { PrintButton, Zoomable } from "./parts"
 import { RequirementsSection } from "./requirements"
 import { RespondSection } from "./respond"
+import { ReserveSection } from "./reserve"
+import type { Reservation } from "./actions"
 import { offerAccessHeaders } from "./access"
 import { OfferTabs } from "./tabs"
 import { Heading, Installments, LocationBlock } from "./shared"
@@ -59,6 +61,8 @@ type Offer = {
   requirements: Requirement[]
   details_submitted_at: string | null
   buyer_contact: { email: string | null; phone: string | null }
+  /** Reserving the home: the fee and how to pay it, once the agent set one. */
+  reservation: Reservation | null
   /** Set when one of the realty's people previews custom terms that aren't approved yet. */
   preview: "pending" | "rejected" | null
   /** The realty's own people looking at a private offer: buyers need the login. */
@@ -76,7 +80,7 @@ type Locked = {
   sheet: OfferSheet
 }
 
-type Props = { params: Promise<{ code: string }>; searchParams?: Promise<{ guide?: string }> }
+type Props = { params: Promise<{ code: string }>; searchParams?: Promise<{ guide?: string; paid?: string }> }
 
 /** One load per request, shared by the page and its metadata (each load counts as a buyer view). */
 const loadOffer = cache(async (code: string): Promise<{ offer: Offer | null; locked: Locked | null; problem: string | null }> => {
@@ -106,7 +110,10 @@ const SHARE_MIN = 4 // % of the bar a tiny milestone still gets, so it stays vis
 export default async function OfferPage({ params, searchParams }: Props) {
   const { code } = await params
   // Coming from a reminder email: the requirements tab marks what is still missing.
-  const guided = (await searchParams)?.guide === "1"
+  const query = await searchParams
+  const guided = query?.guide === "1"
+  // Back from PayMongo's payment page.
+  const backFromPayment = query?.paid === "1"
   const { offer, locked, problem } = await loadOffer(code)
 
   if (locked) {
@@ -162,6 +169,7 @@ export default async function OfferPage({ params, searchParams }: Props) {
   const steps = [
     { title: "Look over the home and the price", text: "The house, its floor area, and the payment schedule from your purchase date.", links: [{ id: "home", label: "The home" }, { id: "payment", label: "Payment schedule" }] },
     { title: `Tell ${talkTo.split(" ")[0]} what you think`, text: "Interested, or have a question? It takes a minute, and they'll get back to you.", links: [{ id: "respond", label: "Respond" }] },
+    ...(offer.reservation ? [{ title: offer.reservation.status === "confirmed" ? "Reserved for you" : "Reserve this home", text: offer.reservation.status === "confirmed" ? `${unit.name} is held in your name.` : `Pay the reservation fee of ${php(offer.reservation.fee)}${offer.reservation.online ? " online, or" : ""} by bank deposit or GCash, and ${realty.name} holds the home for you.`, links: [{ id: "reserve", label: "Reserve" }] }] : []),
     ...(offer.requirements.length > 0 ? [{ title: "Send your requirements", text: "Your details and documents, from your phone. They're needed to reserve this home.", links: [{ id: "requirements", label: "Requirements" }] }] : []),
   ]
 
@@ -536,6 +544,25 @@ export default async function OfferPage({ params, searchParams }: Props) {
                           realtyName={realty.name}
                           guided={guided}
                         />
+                      </div>
+                    </section>
+                  ),
+                },
+              ]
+            : []),
+          ...(offer.reservation
+            ? [
+                {
+                  id: "reserve",
+                  label: offer.reservation.status === "confirmed" ? "Reserved" : "Reserve",
+                  print: false,
+                  content: (
+                    <section className={`${pad} bg-[#f6f4f0]`}>
+                      <p className="text-xs font-bold uppercase tracking-[0.16em] text-[var(--accent)]">Reservation</p>
+                      <h2 className="mt-2 text-3xl font-bold tracking-tight">{offer.reservation.status === "confirmed" ? "Your home is reserved" : `Reserve ${unit.name}`}</h2>
+                      <p className="mt-2 max-w-2xl text-[15px] text-[#5a554d]">{offer.reservation.status === "confirmed" ? "Thank you. Here is where it stands." : `Pay the reservation fee and ${realty.name} holds this home for you. Nothing else is charged on this page.`}</p>
+                      <div className="mt-6">
+                        <ReserveSection code={offer.code} initial={offer.reservation} unitName={unit.name} sellerName={realty.name} backFromPayment={backFromPayment} />
                       </div>
                     </section>
                   ),

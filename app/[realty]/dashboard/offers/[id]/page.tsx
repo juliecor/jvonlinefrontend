@@ -16,6 +16,8 @@ import type { UnitHold } from "../actions"
 import { LoginPanel } from "../buyer-login"
 import { HashTabs } from "@/components/hash-tabs"
 import { UnitStatusPanel } from "./unit-status"
+import { ReservationPanel } from "./reservation-panel"
+import type { ReservationInfo } from "../actions"
 import { ApprovalPanel } from "./approval-panel"
 import { FollowUp, RequirementsPanel } from "./requirements-panel"
 import { SyncCounts } from "./sync"
@@ -72,6 +74,8 @@ type OfferDetail = {
   approved_at: string | null
   plan_name: string | null
   official_plans: { name: string; schedule: ScheduleRow[] }[]
+  /** The buyer's reservation (null: the agent set no fee). */
+  reservation: ReservationInfo | null
 }
 
 /** The buyer information form, grouped the way the buyer filled it in. */
@@ -154,6 +158,7 @@ export default async function OfferDetailPage({ params }: { params: Promise<{ re
                 {o.status === "active" && o.expired && <Tag tone="bad">Expired</Tag>}
                 {o.unit_hold?.this_offer && o.unit_hold.status === "sold" && <span className="bg-[#17150f] px-1.5 py-0.5 text-[10px] font-bold uppercase tracking-[0.14em] text-white">Sold</span>}
                 {o.unit_hold?.this_offer && o.unit_hold.status === "reserved" && <Tag tone="warn">Reserved</Tag>}
+                {o.reservation && (o.reservation.status === "pending" || o.reservation.status === "paid") && <Tag tone="accent">Reservation to confirm</Tag>}
                 {o.approval_status === "approved" && <Tag>Custom terms</Tag>}
               </div>
               <h1 className="mt-1.5 text-2xl font-bold tracking-tight sm:text-3xl">{o.buyer_name}</h1>
@@ -242,6 +247,7 @@ export default async function OfferDetailPage({ params }: { params: Promise<{ re
                 {o.unit_hold && (o.status === "active" || o.unit_hold.this_offer) && (
                   <UnitStatusPanel slug={slug} offerId={o.id} unitName={o.unit_detail.name ?? o.unit ?? "Unit"} project={o.project} initial={o.unit_hold} canChange={developerStaff} />
                 )}
+                {o.reservation && <ReservationPanel slug={slug} offerId={o.id} initial={o.reservation} canSettle={developerStaff} buyerFirst={first} />}
                 </div>
                 {o.status === "active" && !awaiting && (
                   <p className="mt-6 text-sm text-[#6b665d]">

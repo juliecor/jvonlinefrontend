@@ -20,6 +20,8 @@ export async function createOffer(slug: string, _: OfferState, formData: FormDat
   const purchase_date = String(formData.get("purchase_date") ?? "")
   // How long the buyer can open it, in hours.
   const valid_hours = Number(formData.get("valid_hours")) || null
+  // What the buyer pays on the offer page to hold the home (none: no Reserve step).
+  const reservation_fee = Number(formData.get("reservation_fee")) || null
   if (!unit_id || !buyer_name || !purchase_date) return { error: "Pick a unit, enter the buyer's name and the purchase date." }
   const custom = plan === "custom"
   const custom_milestones = custom ? JSON.parse(String(formData.get("custom_milestones") ?? "[]")) : undefined
@@ -33,7 +35,7 @@ export async function createOffer(slug: string, _: OfferState, formData: FormDat
     const res = await api<{ id: number; code: string; url: string; emailed_to: string | null; approval_status: string | null }>("/realty/offers", {
       method: "POST",
       token,
-      body: { unit_id, payment_plan_id: plan && !custom ? Number(plan) : null, buyer_name, buyer_email: buyer_email || null, buyer_phone: buyer_phone || null, purchase_date, email_buyer, custom, custom_milestones, approval_reason, access_username, access_password, valid_hours },
+      body: { unit_id, payment_plan_id: plan && !custom ? Number(plan) : null, buyer_name, buyer_email: buyer_email || null, buyer_phone: buyer_phone || null, purchase_date, email_buyer, custom, custom_milestones, approval_reason, access_username, access_password, valid_hours, reservation_fee },
     })
     revalidatePath(`/${slug}/dashboard`, "layout")
     return { url: res.url, code: res.code, id: res.id, emailed: res.emailed_to, approval: res.approval_status, emailOnApproval: email_buyer, buyer: buyer_name, username: access_username, password: access_password }
@@ -172,6 +174,44 @@ export async function resubmitTerms(slug: string, offerId: number, milestones: u
     const r = await api<{ approval_status: string }>(`/realty/offers/${offerId}/terms`, { method: "POST", token, body: { custom_milestones: milestones, approval_reason: reason || null } })
     revalidatePath(`/${slug}/dashboard`, "layout")
     return { ok: r.approval_status === "approved" ? "Terms saved." : "Sent for approval again." }
+  } catch (e) {
+    return { error: errorMessage(e) }
+  }
+}
+
+export type ReservationInfo = {
+  fee: number
+  status: "pending" | "paid" | "confirmed" | "declined" | null
+  method: "online" | "proof" | null
+  reference: string | null
+  note: string | null
+  has_proof: boolean
+  requested_at: string | null
+  paid_at: string | null
+  confirmed_at: string | null
+  online: boolean
+  confirmed_by: string | null
+}
+
+/** The developer's admin confirms the buyer's reservation: the unit turns reserved for them, and they're emailed. */
+export async function confirmReservation(slug: string, offerId: number): Promise<{ reservation?: ReservationInfo; emailed?: string | null; error?: string }> {
+  const { token } = await requireRealtyUser(slug)
+  try {
+    const r = await api<{ reservation: ReservationInfo; emailed: string | null }>(`/realty/offers/${offerId}/reservation/confirm`, { method: "POST", token })
+    revalidatePath(`/${slug}/dashboard`, "layout")
+    return r
+  } catch (e) {
+    return { error: errorMessage(e) }
+  }
+}
+
+/** Send it back with a reason the buyer will see. */
+export async function declineReservation(slug: string, offerId: number, note: string): Promise<{ reservation?: ReservationInfo; emailed?: string | null; error?: string }> {
+  const { token } = await requireRealtyUser(slug)
+  try {
+    const r = await api<{ reservation: ReservationInfo; emailed: string | null }>(`/realty/offers/${offerId}/reservation/decline`, { method: "POST", token, body: { note } })
+    revalidatePath(`/${slug}/dashboard`, "layout")
+    return r
   } catch (e) {
     return { error: errorMessage(e) }
   }

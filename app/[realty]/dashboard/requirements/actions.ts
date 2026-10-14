@@ -57,3 +57,15 @@ export async function deleteRequirement(slug: string, id: number): Promise<ReqTy
   refresh(slug)
   return { ok: "Deleted." }
 }
+
+/** Where buyers pay the reservation fee (bank, GCash), shown on their offers. */
+export async function saveReservationSettings(slug: string, payment_instructions: string): Promise<ReqTypeState> {
+  const token = await staff(slug)
+  try {
+    await api("/realty/reservation-settings", { method: "POST", token, body: { payment_instructions: payment_instructions.trim() || null } })
+    refresh(slug)
+    return { ok: "Saved" }
+  } catch (e) {
+    return { error: errorMessage(e) }
+  }
+}

@@ -283,6 +283,11 @@ export function OfferForm({ slug, projects, initialProject, initialUnit, initial
               <input name="purchase_date" type="date" required value={date} onChange={(e) => setDate(e.target.value)} className={fieldClass} />
             </label>
             <label className="block">
+              <Label>Reservation fee (₱, optional)</Label>
+              <input name="reservation_fee" type="number" min={1} step="1" inputMode="numeric" placeholder="e.g. 10000" className={fieldClass} />
+              <span className="mt-1 block text-xs text-slate-500">The buyer pays this on the offer page to hold the home. Leave it empty for no Reserve step.</span>
+            </label>
+            <label className="block">
               <Label>Offer valid for</Label>
               <select name="valid_hours" defaultValue={DEFAULT_VALIDITY} className={fieldClass}>
                 {VALIDITY.map((v) => (

@@ -94,3 +94,57 @@ export async function removeDocument(code: string, docId: number): Promise<ReqRe
     return { error: errorMessage(e) }
   }
 }
+
+export type Reservation = {
+  fee: number
+  status: "pending" | "paid" | "confirmed" | "declined" | null
+  method: "online" | "proof" | null
+  reference: string | null
+  note: string | null
+  has_proof: boolean
+  requested_at: string | null
+  paid_at: string | null
+  confirmed_at: string | null
+  /** Online payment (PayMongo) is set up for this developer. */
+  online: boolean
+  /** Where to pay by bank or GCash, as the developer typed it. */
+  instructions: string | null
+}
+export type ReserveResult = { error?: string; reservation?: Reservation }
+
+/** Proof of a bank deposit or GCash payment for the reservation fee. */
+export async function uploadReservationProof(code: string, fd: FormData): Promise<ReserveResult> {
+  const out = new FormData()
+  const f = fd.get("proof")
+  if (!(f instanceof File) || f.size === 0) return { error: "Add a photo or a PDF of your payment." }
+  out.append("proof", f)
+  for (const k of ["reference", "note"]) {
+    const v = fd.get(k)
+    if (typeof v === "string" && v.trim()) out.append(k, v.trim())
+  }
+  try {
+    const r = await api<{ reservation: Reservation }>(`/offers/${encodeURIComponent(code)}/reservation/proof`, { ...(await as(code)), method: "POST", body: out })
+    return { reservation: r.reservation }
+  } catch (e) {
+    return { error: errorMessage(e) }
+  }
+}
+
+/** Pay the fee online: the address of PayMongo's checkout page for this offer. */
+export async function startReservationCheckout(code: string): Promise<{ error?: string; url?: string }> {
+  try {
+    return await api<{ url: string }>(`/offers/${encodeURIComponent(code)}/reservation/checkout`, { ...(await as(code)), method: "POST" })
+  } catch (e) {
+    return { error: errorMessage(e) }
+  }
+}
+
+/** Back from PayMongo: where the reservation stands now. */
+export async function reservationStatus(code: string): Promise<ReserveResult> {
+  try {
+    const r = await api<{ reservation: Reservation }>(`/offers/${encodeURIComponent(code)}/reservation`, { ...(await as(code)) })
+    return { reservation: r.reservation }
+  } catch (e) {
+    return { error: errorMessage(e) }
+  }
+}
