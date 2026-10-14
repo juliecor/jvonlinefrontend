@@ -6,7 +6,7 @@ import { useRouter } from "next/navigation"
 import { Camera, Check, ImagePlus, LoaderCircle, MousePointerClick, Move, PencilRuler, Plus, Trash2, X } from "lucide-react"
 import { confirmAction, toast } from "@/components/feedback"
 import { LOT_TAGS, MAX_CORNERS, type Point, type SiteMapData, type SiteMapLot, type SiteMapRow, STATUS_STYLE, lotName, lotQuads, outline, shapes, svgPoints } from "@/components/site-map/geometry"
-import { LotDetails, LotShape, LotTip, SiteMapCanvas, StatusLegend, useAspect } from "@/components/site-map/site-map"
+import { LotDetails, LotShape, LotTip, SiteMapCanvas, StatusLegend, photosFor, tipPhoto, useAspect } from "@/components/site-map/site-map"
 import type { PublicUnitType } from "@/lib/public-projects-types"
 import { type LotInput, type RowInput, addSiteRow, applyToSiteRow, moveSiteRow, removeLotPhoto, removeSiteRow, saveLot, setSiteMapImage, uploadLotPhotos, uploadRowPhotos } from "./site-map-actions"
 
@@ -75,7 +75,7 @@ function Browser({ slug, projectId, projectName, map, models, canOffer }: Props 
   const modelPhotos = useMemo(() => photosByModel(models), [models])
 
   const panel = sel ? (
-    <LotDetails key={sel.id} lot={sel} modelPhotos={(sel.model && modelPhotos[sel.model]) || []} noPrice="Not priced yet" onClose={() => setSel(null)}>
+    <LotDetails key={sel.id} lot={sel} modelPhotos={photosFor(sel, modelPhotos)} modelNames={Object.keys(modelPhotos)} noPrice="Not priced yet" onClose={() => setSel(null)}>
       {canOffer && sel.status === "available" && sel.price && (
         <Link href={`/${slug}/dashboard/offers/new?project=${projectId}&unit=${sel.id}`} className="inline-flex w-full items-center justify-center gap-2 bg-[var(--accent)] px-4 py-3 text-[15px] font-bold text-white hover:brightness-110">
           <Plus className="h-4 w-4" strokeWidth={2.5} /> Make an offer for this lot
@@ -98,7 +98,7 @@ function Browser({ slug, projectId, projectName, map, models, canOffer }: Props 
           alt={`${projectName} site development plan`}
           side={panel}
           layers={all.map(({ lot, quad }) => <LotShape key={lot.id} quad={quad} lot={lot} selected={lot.id === sel?.id} onClick={() => setSel(lot)} onHover={(on) => setHover(on ? lot.id : null)} />)}
-          labels={hovered && <LotTip lot={hovered.lot} quad={hovered.quad} photo={hovered.lot.photos[0] ?? (hovered.lot.model && modelPhotos[hovered.lot.model]?.[0])} />}
+          labels={hovered && <LotTip lot={hovered.lot} quad={hovered.quad} photo={tipPhoto(hovered.lot, modelPhotos)} />}
         />
         {map.lots.length === 0 && <p className="text-sm text-[#6b665d]">The lots haven&apos;t been drawn on this plan yet.</p>}
       </div>
@@ -310,7 +310,7 @@ function Editor({ slug, projectId, projectName, map: initial, sitePlans, models 
           />
           <LotPhotoManager
             lot={selectedLot}
-            modelPhotos={(selectedLot.model && modelPhotos[selectedLot.model]) || []}
+            modelPhotos={photosFor(selectedLot, modelPhotos)}
             onUpload={async (fd) => {
               const r = await uploadLotPhotos(slug, projectId, selectedLot.id, fd)
               if (r.error) return toast(r.error, "error")
@@ -489,7 +489,7 @@ function Editor({ slug, projectId, projectName, map: initial, sitePlans, models 
                     Lot {row.first_lot || 1}
                   </span>
                 )}
-                {hovered && !drawing && !adjusting && <LotTip lot={hovered.lot} quad={hovered.quad} photo={hovered.lot.photos[0] ?? (hovered.lot.model && modelPhotos[hovered.lot.model]?.[0])} />}
+                {hovered && !drawing && !adjusting && <LotTip lot={hovered.lot} quad={hovered.quad} photo={tipPhoto(hovered.lot, modelPhotos)} />}
               </>
             }
           />
@@ -612,7 +612,7 @@ function LotPhotoManager({ lot, modelPhotos, onUpload, onRemove }: { lot: SiteMa
           </button>
         )}
       </div>
-      {lot.photos.length === 0 && <p className="mt-2 text-xs text-[#8a847a]">{modelPhotos.length ? `Without its own photos, the lot shows the ${lot.model} model's ${modelPhotos.length} picture${modelPhotos.length === 1 ? "" : "s"}.` : "Add photos of the actual house or lot."}</p>}
+      {lot.photos.length === 0 && <p className="mt-2 text-xs text-[#8a847a]">{modelPhotos.length ? (lot.model ? `Without its own photos, the lot shows the ${lot.model} model's ${modelPhotos.length} picture${modelPhotos.length === 1 ? "" : "s"}.` : `No house model set: the lot shows the pictures of every model in this project (${modelPhotos.length}). Set its model above to show the right one.`) : "Add photos of the actual house or lot."}</p>}
       <input
         ref={input}
         type="file"

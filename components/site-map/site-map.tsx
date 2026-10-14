@@ -433,7 +433,13 @@ export function LotTip({ lot, quad, photo }: { lot: SiteMapLot; quad: Point[]; p
 }
 
 /** A lot's photos: its own first, else the pictures it is given (its house model's). Click a thumbnail to show it big. */
-export function LotPhotos({ photos, fallback = [], name }: { photos: string[]; fallback?: string[]; name: string }) {
+/** The pictures to show for a lot: its own, else its house model's, else (no model set) every model's in the project. */
+export const photosFor = (lot: Pick<SiteMapLot, "model">, modelPhotos?: Record<string, string[]>): string[] => (lot.model ? (modelPhotos?.[lot.model] ?? []) : Object.values(modelPhotos ?? {}).flat())
+
+/** The one picture for a lot's hover tip. */
+export const tipPhoto = (lot: Pick<SiteMapLot, "model" | "photos">, modelPhotos?: Record<string, string[]>): string | undefined => lot.photos[0] ?? photosFor(lot, modelPhotos)[0]
+
+export function LotPhotos({ photos, fallback = [], name, caption = "Photos of the house model." }: { photos: string[]; fallback?: string[]; name: string; caption?: string }) {
   const list = photos.length ? photos : fallback
   const [i, setI] = useState(0)
   if (!list.length) return null
@@ -452,13 +458,14 @@ export function LotPhotos({ photos, fallback = [], name }: { photos: string[]; f
           ))}
         </div>
       )}
-      {!photos.length && <p className="mt-1 text-xs text-[#8a847a]">Photos of the house model.</p>}
+      {!photos.length && <p className="mt-1 text-xs text-[#8a847a]">{caption}</p>}
     </div>
   )
 }
 
 /** A lot's name, status, model, areas, price (where shown), tags and photos. */
-export function LotDetails({ lot, modelPhotos = [], noPrice = "Ask an agent", onClose, children }: { lot: SiteMapLot; modelPhotos?: string[]; noPrice?: string; onClose?: () => void; children?: React.ReactNode }) {
+export function LotDetails({ lot, modelPhotos = [], modelNames = [], noPrice = "Ask an agent", onClose, children }: { lot: SiteMapLot; modelPhotos?: string[]; /** The project's house models, named, for a lot that has none set yet. */ modelNames?: string[]; noPrice?: string; onClose?: () => void; children?: React.ReactNode }) {
+  const unsetModel = !lot.model && modelNames.length > 0
   return (
     <div className="space-y-4">
       <div className="flex items-start justify-between gap-3">
@@ -474,10 +481,10 @@ export function LotDetails({ lot, modelPhotos = [], noPrice = "Ask an agent", on
           </button>
         )}
       </div>
-      <LotPhotos photos={lot.photos} fallback={modelPhotos} name={lotName(lot)} />
+      <LotPhotos photos={lot.photos} fallback={modelPhotos} name={lotName(lot)} caption={unsetModel ? `The house models in this project: ${modelNames.join(", ")}.` : "Photos of the house model."} />
       <dl className="grid grid-cols-2 gap-x-4 gap-y-3 text-[15px]">
         {[
-          ["House model", lot.model ?? "—"],
+          ["House model", lot.model ?? (unsetModel ? "Ask an agent" : "—")],
           ...(lot.price !== null || lot.status === "available" ? [[lot.price_from_model ? "Model price" : "Price", lot.price ? php(lot.price) : noPrice]] : []),
           ["Lot area", lot.lot_area ? `${Number(lot.lot_area)} sqm` : "—"],
           ["Floor area", lot.floor_area ? `${Number(lot.floor_area)} sqm` : "—"],
@@ -568,7 +575,7 @@ export function SiteMapViewer({
     setFull(false)
   }
   const card = opened && (
-    <LotDetails key={opened.id} lot={opened.id === map.highlight && highlightPrice != null ? { ...opened, price: String(highlightPrice) } : opened} modelPhotos={(opened.model && modelPhotos?.[opened.model]) || []} onClose={() => setOpen(null)}>
+    <LotDetails key={opened.id} lot={opened.id === map.highlight && highlightPrice != null ? { ...opened, price: String(highlightPrice) } : opened} modelPhotos={photosFor(opened, modelPhotos)} modelNames={Object.keys(modelPhotos ?? {})} onClose={() => setOpen(null)}>
       {opened.id === map.highlight && <p className="text-sm font-semibold text-[#b4241c]">This is your home.</p>}
     </LotDetails>
   )
@@ -607,7 +614,7 @@ export function SiteMapViewer({
                     </span>
                   </div>
                 )}
-                {hovered && <LotTip lot={hovered.lot} quad={hovered.quad} photo={hovered.lot.photos[0] ?? (hovered.lot.model && modelPhotos?.[hovered.lot.model]?.[0])} />}
+                {hovered && <LotTip lot={hovered.lot} quad={hovered.quad} photo={tipPhoto(hovered.lot, modelPhotos)} />}
               </>
             }
           />
