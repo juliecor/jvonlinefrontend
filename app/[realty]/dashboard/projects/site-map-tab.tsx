@@ -6,7 +6,7 @@ import { useRouter } from "next/navigation"
 import { Camera, Check, ImagePlus, LoaderCircle, MousePointerClick, Move, PencilRuler, Plus, Trash2, X } from "lucide-react"
 import { confirmAction, toast } from "@/components/feedback"
 import { LOT_TAGS, MAX_CORNERS, type Point, type SiteMapData, type SiteMapLot, type SiteMapRow, STATUS_STYLE, lotName, lotQuads, outline, shapes, svgPoints } from "@/components/site-map/geometry"
-import { LotDetails, LotShape, LotTip, SiteMapCanvas, StatusLegend, photosFor, tipPhoto, useAspect } from "@/components/site-map/site-map"
+import { LotDetails, LotHolder, LotShape, LotTip, SiteMapCanvas, StatusLegend, photosFor, tipPhoto, useAspect } from "@/components/site-map/site-map"
 import type { PublicUnitType } from "@/lib/public-projects-types"
 import { type LotInput, type RowInput, addSiteRow, applyToSiteRow, moveSiteRow, removeLotPhoto, removeSiteRow, saveLot, setSiteMapImage, uploadLotPhotos, uploadRowPhotos } from "./site-map-actions"
 
@@ -76,6 +76,7 @@ function Browser({ slug, projectId, projectName, map, models, canOffer }: Props 
 
   const panel = sel ? (
     <LotDetails key={sel.id} lot={sel} modelPhotos={photosFor(sel, modelPhotos)} modelNames={Object.keys(modelPhotos)} noPrice="Not priced yet" onClose={() => setSel(null)}>
+      <LotHolder lot={sel} offerHref={(id) => `/${slug}/dashboard/offers/${id}`} />
       {canOffer && sel.status === "available" && sel.price && (
         <Link href={`/${slug}/dashboard/offers/new?project=${projectId}&unit=${sel.id}`} className="inline-flex w-full items-center justify-center gap-2 bg-[var(--accent)] px-4 py-3 text-[15px] font-bold text-white hover:brightness-110">
           <Plus className="h-4 w-4" strokeWidth={2.5} /> Make an offer for this lot
@@ -296,6 +297,7 @@ function Editor({ slug, projectId, projectName, map: initial, sitePlans, models 
 
       {mode.kind === "lot" && selectedLot && selectedRow && (
         <div className="space-y-5">
+          <LotHolder lot={selectedLot} offerHref={(id) => `/${slug}/dashboard/offers/${id}`} />
           <LotEditor
             key={selectedLot.id}
             lot={selectedLot}

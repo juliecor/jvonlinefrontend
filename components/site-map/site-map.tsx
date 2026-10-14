@@ -428,7 +428,43 @@ export function LotTip({ lot, quad, photo }: { lot: SiteMapLot; quad: Point[]; p
         {lotName(lot)} · <span style={{ color: STATUS_STYLE[lot.status].fill }}>{STATUS_STYLE[lot.status].label}</span>
       </p>
       <p className="mt-0.5 text-[#d9d4cb]">{[lot.lot_area && `${Number(lot.lot_area)} sqm lot`, lot.model, lot.price && `₱${Number(lot.price).toLocaleString("en-PH")}`].filter(Boolean).join(" · ") || "No details yet"}</p>
+      {lot.holder && lot.status !== "available" && (lot.holder.buyer || lot.holder.agent) && (
+        <p className="mt-0.5 font-semibold text-[#f5c86b]">
+          {STATUS_STYLE[lot.status].label} for {lot.holder.buyer ?? "a buyer"}
+          {lot.holder.agent ? ` · ${lot.holder.agent}` : ""}
+        </p>
+      )}
     </div>
+  )
+}
+
+/** "Reserved for Rosa Cruz · by Juan · Oct 14, 2026", with the offer behind it. Dashboard only. */
+export function LotHolder({ lot, offerHref }: { lot: SiteMapLot; offerHref?: (offerId: number) => string }) {
+  const h = lot.holder
+  if (!h || lot.status === "available") return null
+  const when = h.at ? new Date(h.at).toLocaleDateString("en-PH", { month: "short", day: "numeric", year: "numeric" }) : null
+  const body = (
+    <>
+      <span className="font-bold" style={{ color: STATUS_STYLE[lot.status].fill }}>
+        {STATUS_STYLE[lot.status].label}
+      </span>
+      {h.buyer ? ` for ${h.buyer}` : ""}
+      {h.agent ? ` · by ${h.agent}` : ""}
+      {when ? ` · ${when}` : ""}
+    </>
+  )
+  return (
+    <p className="border-l-4 bg-[#faf8f5] px-3 py-2 text-sm text-[#17150f]" style={{ borderColor: STATUS_STYLE[lot.status].fill }}>
+      {body}
+      {h.offer_id && offerHref && (
+        <>
+          {" · "}
+          <a href={offerHref(h.offer_id)} className="font-semibold text-[var(--accent)] hover:underline">
+            Open the offer{h.offer_code ? ` ${h.offer_code}` : ""}
+          </a>
+        </>
+      )}
+    </p>
   )
 }
 
@@ -524,6 +560,7 @@ export function SiteMapViewer({
   details,
   modelPhotos,
   highlightPrice,
+  offerPath,
 }: {
   map: SiteMapData
   alt: string
@@ -536,6 +573,8 @@ export function SiteMapViewer({
   modelPhotos?: Record<string, string[]>
   /** The price the highlighted lot was offered at (the buyer's own; other lots show none). */
   highlightPrice?: string | number | null
+  /** Dashboard only: the offers page's path (e.g. "/johndorf/dashboard/offers"), for a reserved lot's "Open the offer" link. */
+  offerPath?: string
 }) {
   const aspect = useAspect(map.image)
   const all = useMemo(() => shapes(map, aspect), [map, aspect])
@@ -577,6 +616,7 @@ export function SiteMapViewer({
   const card = opened && (
     <LotDetails key={opened.id} lot={opened.id === map.highlight && highlightPrice != null ? { ...opened, price: String(highlightPrice) } : opened} modelPhotos={photosFor(opened, modelPhotos)} modelNames={Object.keys(modelPhotos ?? {})} onClose={() => setOpen(null)}>
       {opened.id === map.highlight && <p className="text-sm font-semibold text-[#b4241c]">This is your home.</p>}
+      <LotHolder lot={opened} offerHref={offerPath ? (id) => `${offerPath}/${id}` : undefined} />
     </LotDetails>
   )
 

@@ -162,7 +162,7 @@ export default async function ProjectPage({ params, searchParams }: Props) {
                       </a>
                     }
                   >
-                    <SiteMapViewer map={project.site_map} alt={`${project.name} site development plan`} maxHeight="55vh" details modelPhotos={Object.fromEntries(project.unit_types.map((u) => [u.name, u.images]))} />
+                    <SiteMapViewer map={project.site_map} alt={`${project.name} site development plan`} maxHeight="55vh" details modelPhotos={Object.fromEntries(project.unit_types.map((u) => [u.name, u.images]))} offerPath={`/${slug}/dashboard/offers`} />
                   </Panel>
                 )}
                 <Panel className="!mt-6" title="Units at a glance" aside={priced ? `${priced} ready to offer` : "none ready to offer yet"}>

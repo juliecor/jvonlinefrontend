@@ -28,6 +28,8 @@ export type SiteMapLot = {
   tags: string[]
   /** The lot's own photos (the actual house or lot). */
   photos: string[]
+  /** Who holds a reserved or sold lot (dashboard only; never on the website or a buyer's page). */
+  holder?: { offer_id: number | null; offer_code: string | null; buyer: string | null; agent: string | null; by: string | null; at: string | null } | null
 }
 
 export type SiteMapData = { image: string; rows: SiteMapRow[]; lots: SiteMapLot[]; highlight?: number }
