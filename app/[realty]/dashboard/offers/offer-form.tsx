@@ -32,7 +32,9 @@ export function OfferForm({ slug, projects, initialProject, initialUnit, initial
   const [projectId, setProjectId] = useState<number>(initialProject ?? projects[0]?.id ?? 0)
   const project = projects.find((p) => p.id === projectId)
   // Only what can actually be offered: available, and with a price.
-  const units = useMemo(() => (project?.units ?? []).filter((u) => u.status === "available" && u.price !== null).sort(byUnitName), [project])
+  // A unit's own price, or (a lot on the site map) its house model's.
+  const priceOf = (u: { price: string | null; offer_price?: string | null }) => u.offer_price ?? u.price
+  const units = useMemo(() => (project?.units ?? []).filter((u) => u.status === "available" && priceOf(u) !== null).sort(byUnitName), [project])
   // A unit picked elsewhere (e.g. "Make offer" on a card in the AI chat) comes in already chosen.
   const [unitId, setUnitId] = useState<number>(initialUnit ?? 0)
   const unit = units.find((u) => u.id === unitId) ?? units[0]
@@ -41,7 +43,7 @@ export function OfferForm({ slug, projects, initialProject, initialUnit, initial
   const [showMap, setShowMap] = useState(true)
   const lotsOnMap = (project?.site_map?.lots.length ?? 0) > 0
   const pickable = project?.site_map?.lots.filter((l) => units.some((u) => u.id === l.id)).length ?? 0
-  const price = Number(unit?.price ?? 0)
+  const price = Number(unit ? priceOf(unit) : 0)
   // Terms worked out elsewhere ("Make offer with these terms" in the AI chat): one of the project's plans, or custom terms in pesos.
   const [planId, setPlanId] = useState<number | "custom" | "">(() => (initialTerms?.length && price ? "custom" : initialPlan && project?.payment_plans.some((p) => p.id === initialPlan) ? initialPlan : ""))
   const custom = planId === "custom"
@@ -137,185 +139,197 @@ export function OfferForm({ slug, projects, initialProject, initialUnit, initial
     return <Alert kind="error">There are no projects with units yet. Add a project and a unit first.</Alert>
   }
 
+  const mapBlock = showMap && lotsOnMap && project?.site_map && (
+    <div className="border border-[#e6e2db] bg-white p-3">
+      {pickable > 0 ? (
+        <p className="mb-2 text-sm text-[#5a554d]">
+          <b className="text-[#17150f]">Tap or click the lot the buyer wants.</b> {pickable} {pickable === 1 ? "lot can" : "lots can"} be offered. Faded lots are reserved or sold.
+        </p>
+      ) : (
+        <p className="mb-2 border-l-4 border-amber-400 bg-amber-50 px-3 py-2 text-sm text-amber-900">
+          No lot on this map can be offered yet: none has a price, and the project&apos;s house model has none either. Johndorf&apos;s admin adds prices in the project&apos;s Site map tab.
+        </p>
+      )}
+      <SiteMapViewer map={project.site_map} alt={`${project.name} site plan`} selectedId={unit?.id} canPick={(l) => units.some((u) => u.id === l.id)} onPick={(l) => setUnitId(l.id)} maxHeight="55vh" />
+      {unit && (
+        <p className="mt-3 flex flex-wrap items-center gap-x-2 border-t border-[#efece7] pt-3 text-[15px]">
+          <span className="text-[#6b665d]">Chosen:</span>
+          <b className="text-[#17150f]">{unit.name}</b>
+          <span className="text-[#6b665d]">·</span>
+          <b className="tabular-nums text-[#17150f]">{php(price)}</b>
+          {unit.price_from_model && <span className="text-sm text-[#6b665d]">({unit.unit_type} model price)</span>}
+        </p>
+      )}
+    </div>
+  )
+
   return (
-    <form onSubmit={submit} className="grid gap-6 lg:grid-cols-[1fr_380px]">
-      <div className="min-w-0 space-y-5">
-        {unitGone && <Alert kind="error">That unit was just reserved or sold, so it can&apos;t get an offer. Pick another one below.</Alert>}
-        <div className="grid gap-5 sm:grid-cols-2">
-          <label className="block">
-            <Label>Project</Label>
-            <select
-              value={projectId}
-              onChange={(e) => {
-                setProjectId(Number(e.target.value))
-                setUnitId(0)
-                setPlanId("")
-                setShowMap(true)
-              }}
-              className={fieldClass}
-            >
-              {projects.map((p) => (
-                <option key={p.id} value={p.id}>
-                  {p.name}
-                </option>
-              ))}
-            </select>
-          </label>
-          <label className="block">
-            <Label>Unit (available, with a price)</Label>
-            <select name="unit_id" value={unit?.id ?? ""} onChange={(e) => setUnitId(Number(e.target.value))} required className={fieldClass}>
-              {units.length === 0 && <option value="">No available priced units</option>}
-              {units.map((u) => (
-                <option key={u.id} value={u.id}>
-                  {u.name}
-                  {u.unit_type && u.unit_type !== u.name ? ` · ${u.unit_type}` : ""} · {php(u.price)}
-                </option>
-              ))}
-            </select>
-            {lotsOnMap && (
-              <button type="button" onClick={() => setShowMap((v) => !v)} className="mt-2 inline-flex items-center gap-1.5 text-sm font-bold text-[var(--accent)] hover:underline">
-                <MapIcon className="h-4 w-4" /> {showMap ? "Hide the site map" : "Pick the lot on the site map"}
-              </button>
-            )}
-          </label>
-        </div>
-        {showMap && lotsOnMap && project?.site_map && (
-          <div className="border border-[#e6e2db] bg-white p-3">
-            {pickable > 0 ? (
-              <p className="mb-2 text-sm text-[#5a554d]">
-                <b className="text-[#17150f]">Tap or click the lot the buyer wants.</b> {pickable} {pickable === 1 ? "lot can" : "lots can"} be offered. Faded lots are reserved, sold or not priced yet.
-              </p>
-            ) : (
-              <p className="mb-2 border-l-4 border-amber-400 bg-amber-50 px-3 py-2 text-sm text-amber-900">
-                No lot on this map has a price yet, so none can be chosen here. Johndorf&apos;s admin adds prices in the project&apos;s Site map tab. You can still pick from the unit list above.
-              </p>
-            )}
-            <SiteMapViewer map={project.site_map} alt={`${project.name} site plan`} selectedId={unit?.id} canPick={(l) => units.some((u) => u.id === l.id)} onPick={(l) => setUnitId(l.id)} maxHeight="60vh" />
-          </div>
-        )}
+    <form onSubmit={submit} className="space-y-6">
+      {unitGone && <Alert kind="error">That unit was just reserved or sold, so it can&apos;t get an offer. Pick another one below.</Alert>}
+      <div className="grid gap-5 sm:grid-cols-2">
         <label className="block">
-          <Label>Payment terms</Label>
-          <select name="payment_plan_id" value={custom ? "custom" : (plan?.id ?? "")} onChange={(e) => chooseTerms(e.target.value)} className={fieldClass}>
-            {(project?.payment_plans.length ?? 0) > 0 && (
-              <optgroup label={`${project?.name}'s plans`}>
-                {project?.payment_plans.map((p) => (
-                  <option key={p.id} value={p.id}>
-                    {p.name}
-                  </option>
-                ))}
-              </optgroup>
-            )}
-            {(project?.payment_plans.length ?? 0) === 0 && <option value="">Full payment on the purchase date</option>}
-            <option value="custom">{isStaff ? "Custom terms for this buyer…" : "Custom terms for this buyer (needs approval)…"}</option>
+          <Label>Project</Label>
+          <select
+            value={projectId}
+            onChange={(e) => {
+              setProjectId(Number(e.target.value))
+              setUnitId(0)
+              setPlanId("")
+              setShowMap(true)
+            }}
+            className={fieldClass}
+          >
+            {projects.map((p) => (
+              <option key={p.id} value={p.id}>
+                {p.name}
+              </option>
+            ))}
           </select>
         </label>
-
-        {custom && (
-          <div className="space-y-4 border-l-4 border-[var(--accent)] bg-[#fbfaf8] p-4">
-            <div className="flex items-start gap-2.5 text-sm text-[#3d3a34]">
-              {isStaff ? <BadgeCheck className="mt-0.5 h-4 w-4 shrink-0 text-emerald-700" /> : <Clock className="mt-0.5 h-4 w-4 shrink-0 text-amber-700" />}
-              <p>
-                {isStaff
-                  ? "You're an admin, so your custom terms are approved right away."
-                  : `Custom terms need approval from ${realtyName}'s admins. The buyer can open the offer once it's approved, and you'll get an email.`}{" "}
-                The project&apos;s own plans don&apos;t change.
-              </p>
-            </div>
-            <TermsEditor rows={rows} setRows={setRows} price={price} />
-            {!isStaff && (
-              <label className="block">
-                <Label>Note for the approver (optional)</Label>
-                <textarea name="approval_reason" rows={2} maxLength={500} placeholder="e.g. The buyer can pay the equity in 12 months, not 24." className={fieldClass} />
-              </label>
-            )}
-          </div>
-        )}
-
-        <div className="grid gap-5 sm:grid-cols-2">
-          <label className="block">
-            <Label>Buyer&apos;s name</Label>
-            <input name="buyer_name" required value={buyerName} onChange={(e) => typeBuyerName(e.target.value)} placeholder="Full name" className={fieldClass} />
-          </label>
-          <label className="block">
-            <Label>Buyer&apos;s mobile (optional)</Label>
-            <input name="buyer_phone" type="tel" placeholder="09XX XXX XXXX" className={fieldClass} />
-          </label>
-          <label className="block sm:col-span-2">
-            <Label>Buyer&apos;s email (optional)</Label>
-            <input name="buyer_email" type="email" placeholder="buyer@example.com" className={fieldClass} />
-            <span className="mt-1 block text-xs text-slate-500">Needed to email the offer and requirement reminders.</span>
-          </label>
-        </div>
-        <div className="border border-[#e0dcd5] bg-[#faf8f5] p-4 sm:p-5">
-          <p className="flex items-center gap-2 text-sm font-bold text-[#17150f]">
-            <KeyRound className="h-4 w-4 text-[var(--accent)]" /> Buyer&apos;s login
-          </p>
-          <p className="mb-4 mt-1 text-sm text-[#5a554d]">The offer is private: the buyer types these to open the link. You send them by Viber or text.</p>
-          <LoginFields
-            username={username}
-            password={password}
-            onUsername={(v) => {
-              setUsername(v)
-              setUsernameEdited(true)
-            }}
-            onPassword={setPassword}
-          />
-        </div>
-        <label className="flex items-center gap-3 text-sm font-medium text-slate-800">
-          <input type="checkbox" name="email_buyer" defaultChecked className="h-4 w-4 accent-[var(--accent)]" />
-          {custom && !isStaff ? "Email the offer to the buyer once it's approved (if you entered their email)" : "Email the offer to the buyer now (if you entered their email)"}
+        <label className="block">
+          <Label>Unit (available, with a price)</Label>
+          <select name="unit_id" value={unit?.id ?? ""} onChange={(e) => setUnitId(Number(e.target.value))} required className={fieldClass}>
+            {units.length === 0 && <option value="">No available priced units</option>}
+            {units.map((u) => (
+              <option key={u.id} value={u.id}>
+                {u.name}
+                {u.unit_type && u.unit_type !== u.name ? ` · ${u.unit_type}` : ""} · {php(priceOf(u))}
+              </option>
+            ))}
+          </select>
+          {lotsOnMap && (
+            <button type="button" onClick={() => setShowMap((v) => !v)} className="mt-2 inline-flex items-center gap-1.5 text-sm font-bold text-[var(--accent)] hover:underline">
+              <MapIcon className="h-4 w-4" /> {showMap ? "Hide the site map" : "Pick the lot on the site map"}
+            </button>
+          )}
         </label>
-        <div className="grid gap-5 sm:grid-cols-2">
-          <label className="block">
-            <Label>Purchase / reservation date</Label>
-            <input name="purchase_date" type="date" required value={date} onChange={(e) => setDate(e.target.value)} className={fieldClass} />
-          </label>
-          <label className="block">
-            <Label>Offer valid for</Label>
-            <select name="valid_hours" defaultValue={DEFAULT_VALIDITY} className={fieldClass}>
-              {VALIDITY.map((v) => (
-                <option key={v.hours} value={v.hours}>
-                  {v.label}
-                </option>
-              ))}
-            </select>
-            <span className="mt-1 block text-xs text-slate-500">After this the buyer&apos;s link stops opening. You can extend it any time.</span>
-          </label>
-        </div>
-        {state.error && <Alert kind="error">{state.error}</Alert>}
-        <button type="submit" disabled={pending || !unit || !termsOk} className="inline-flex items-center gap-2 bg-[var(--accent)] px-6 py-3.5 text-[15px] font-bold text-white transition hover:brightness-110 disabled:opacity-60">
-          {pending ? <LoaderCircle className="h-4 w-4 animate-spin" /> : <Send className="h-4 w-4" />}
-          {custom && !isStaff ? "Send for approval" : "Create offer link"}
-        </button>
-        {custom && !termsOk && <p className="text-xs font-semibold text-amber-700">The payments need a name and an amount each, and must add up to the price.</p>}
       </div>
+      {mapBlock}
+      <div className="grid gap-6 lg:grid-cols-[1fr_380px]">
+        <div className="min-w-0 space-y-5">
+          <label className="block">
+            <Label>Payment terms</Label>
+            <select name="payment_plan_id" value={custom ? "custom" : (plan?.id ?? "")} onChange={(e) => chooseTerms(e.target.value)} className={fieldClass}>
+              {(project?.payment_plans.length ?? 0) > 0 && (
+                <optgroup label={`${project?.name}'s plans`}>
+                  {project?.payment_plans.map((p) => (
+                    <option key={p.id} value={p.id}>
+                      {p.name}
+                    </option>
+                  ))}
+                </optgroup>
+              )}
+              {(project?.payment_plans.length ?? 0) === 0 && <option value="">Full payment on the purchase date</option>}
+              <option value="custom">{isStaff ? "Custom terms for this buyer…" : "Custom terms for this buyer (needs approval)…"}</option>
+            </select>
+          </label>
 
-      <aside className="h-fit border border-[#e0dcd5] bg-white p-5 lg:sticky lg:top-6">
-        <p className="text-xs font-semibold uppercase tracking-[0.14em] text-slate-500">Preview{custom ? " · custom terms" : ""}</p>
-        {unit ? (
-          <>
-            <p className="mt-3 text-lg font-semibold">{unit.name}</p>
-            <p className="text-sm text-slate-500">{[project?.name, unit.unit_type !== unit.name ? unit.unit_type : null, unit.floor, unit.area_sqm ? sqm(unit.area_sqm) : null].filter(Boolean).join(" · ")}</p>
-            <p className="mt-3 text-2xl font-semibold tabular-nums">{php(unit.price)}</p>
-            <table className="mt-4 w-full text-sm">
-              <tbody className="divide-y divide-slate-200">
-                {preview.map((m, i) => (
-                  <tr key={i}>
-                    <td className="py-2 pr-2">
-                      <p className="font-medium">{m.label || "—"}</p>
-                      <p className="text-xs text-slate-500">{m.months && m.end_date ? `${m.months} × ${php(m.monthly)} · ${fmt(m.date)} – ${fmt(m.end_date)}` : m.date ? fmt(m.date) : "On completion"}</p>
-                    </td>
-                    <td className="py-2 text-right tabular-nums text-slate-500">{pct(m.percent)}</td>
-                    <td className="py-2 pl-3 text-right font-medium tabular-nums">{php(m.amount)}</td>
-                  </tr>
+          {custom && (
+            <div className="space-y-4 border-l-4 border-[var(--accent)] bg-[#fbfaf8] p-4">
+              <div className="flex items-start gap-2.5 text-sm text-[#3d3a34]">
+                {isStaff ? <BadgeCheck className="mt-0.5 h-4 w-4 shrink-0 text-emerald-700" /> : <Clock className="mt-0.5 h-4 w-4 shrink-0 text-amber-700" />}
+                <p>
+                  {isStaff ? "You're an admin, so your custom terms are approved right away." : `Custom terms need approval from ${realtyName}'s admins. The buyer can open the offer once it's approved, and you'll get an email.`} The
+                  project&apos;s own plans don&apos;t change.
+                </p>
+              </div>
+              <TermsEditor rows={rows} setRows={setRows} price={price} />
+              {!isStaff && (
+                <label className="block">
+                  <Label>Note for the approver (optional)</Label>
+                  <textarea name="approval_reason" rows={2} maxLength={500} placeholder="e.g. The buyer can pay the equity in 12 months, not 24." className={fieldClass} />
+                </label>
+              )}
+            </div>
+          )}
+
+          <div className="grid gap-5 sm:grid-cols-2">
+            <label className="block">
+              <Label>Buyer&apos;s name</Label>
+              <input name="buyer_name" required value={buyerName} onChange={(e) => typeBuyerName(e.target.value)} placeholder="Full name" className={fieldClass} />
+            </label>
+            <label className="block">
+              <Label>Buyer&apos;s mobile (optional)</Label>
+              <input name="buyer_phone" type="tel" placeholder="09XX XXX XXXX" className={fieldClass} />
+            </label>
+            <label className="block sm:col-span-2">
+              <Label>Buyer&apos;s email (optional)</Label>
+              <input name="buyer_email" type="email" placeholder="buyer@example.com" className={fieldClass} />
+              <span className="mt-1 block text-xs text-slate-500">Needed to email the offer and requirement reminders.</span>
+            </label>
+          </div>
+          <div className="border border-[#e0dcd5] bg-[#faf8f5] p-4 sm:p-5">
+            <p className="flex items-center gap-2 text-sm font-bold text-[#17150f]">
+              <KeyRound className="h-4 w-4 text-[var(--accent)]" /> Buyer&apos;s login
+            </p>
+            <p className="mb-4 mt-1 text-sm text-[#5a554d]">The offer is private: the buyer types these to open the link. You send them by Viber or text.</p>
+            <LoginFields
+              username={username}
+              password={password}
+              onUsername={(v) => {
+                setUsername(v)
+                setUsernameEdited(true)
+              }}
+              onPassword={setPassword}
+            />
+          </div>
+          <label className="flex items-center gap-3 text-sm font-medium text-slate-800">
+            <input type="checkbox" name="email_buyer" defaultChecked className="h-4 w-4 accent-[var(--accent)]" />
+            {custom && !isStaff ? "Email the offer to the buyer once it's approved (if you entered their email)" : "Email the offer to the buyer now (if you entered their email)"}
+          </label>
+          <div className="grid gap-5 sm:grid-cols-2">
+            <label className="block">
+              <Label>Purchase / reservation date</Label>
+              <input name="purchase_date" type="date" required value={date} onChange={(e) => setDate(e.target.value)} className={fieldClass} />
+            </label>
+            <label className="block">
+              <Label>Offer valid for</Label>
+              <select name="valid_hours" defaultValue={DEFAULT_VALIDITY} className={fieldClass}>
+                {VALIDITY.map((v) => (
+                  <option key={v.hours} value={v.hours}>
+                    {v.label}
+                  </option>
                 ))}
-              </tbody>
-            </table>
-          </>
-        ) : (
-          <p className="mt-3 text-sm text-slate-500">Pick a project with an available unit.</p>
-        )}
-      </aside>
+              </select>
+              <span className="mt-1 block text-xs text-slate-500">After this the buyer&apos;s link stops opening. You can extend it any time.</span>
+            </label>
+          </div>
+          {state.error && <Alert kind="error">{state.error}</Alert>}
+          <button type="submit" disabled={pending || !unit || !termsOk} className="inline-flex items-center gap-2 bg-[var(--accent)] px-6 py-3.5 text-[15px] font-bold text-white transition hover:brightness-110 disabled:opacity-60">
+            {pending ? <LoaderCircle className="h-4 w-4 animate-spin" /> : <Send className="h-4 w-4" />}
+            {custom && !isStaff ? "Send for approval" : "Create offer link"}
+          </button>
+          {custom && !termsOk && <p className="text-xs font-semibold text-amber-700">The payments need a name and an amount each, and must add up to the price.</p>}
+        </div>
+
+        <aside className="h-fit border border-[#e0dcd5] bg-white p-5 lg:sticky lg:top-6">
+          <p className="text-xs font-semibold uppercase tracking-[0.14em] text-slate-500">Preview{custom ? " · custom terms" : ""}</p>
+          {unit ? (
+            <>
+              <p className="mt-3 text-lg font-semibold">{unit.name}</p>
+              <p className="text-sm text-slate-500">{[project?.name, unit.unit_type !== unit.name ? unit.unit_type : null, unit.floor, unit.area_sqm ? sqm(unit.area_sqm) : null].filter(Boolean).join(" · ")}</p>
+              <p className="mt-3 text-2xl font-semibold tabular-nums">{php(price)}</p>
+              {unit.price_from_model && <p className="text-xs text-slate-500">{unit.unit_type} model price</p>}
+              <table className="mt-4 w-full text-sm">
+                <tbody className="divide-y divide-slate-200">
+                  {preview.map((m, i) => (
+                    <tr key={i}>
+                      <td className="py-2 pr-2">
+                        <p className="font-medium">{m.label || "—"}</p>
+                        <p className="text-xs text-slate-500">{m.months && m.end_date ? `${m.months} × ${php(m.monthly)} · ${fmt(m.date)} – ${fmt(m.end_date)}` : m.date ? fmt(m.date) : "On completion"}</p>
+                      </td>
+                      <td className="py-2 text-right tabular-nums text-slate-500">{pct(m.percent)}</td>
+                      <td className="py-2 pl-3 text-right font-medium tabular-nums">{php(m.amount)}</td>
+                    </tr>
+                  ))}
+                </tbody>
+              </table>
+            </>
+          ) : (
+            <p className="mt-3 text-sm text-slate-500">Pick a project with an available unit.</p>
+          )}
+        </aside>
+      </div>
     </form>
   )
 }

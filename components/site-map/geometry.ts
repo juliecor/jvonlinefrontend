@@ -22,8 +22,9 @@ export type SiteMapLot = {
   model: string | null
   lot_area: string | null
   floor_area: string | null
-  /** Null on the website and the buyer's page. */
+  /** Null on the website and the buyer's page. In the dashboard, a lot without its own price carries its house model's. */
   price: string | null
+  price_from_model?: boolean
   tags: string[]
   /** The lot's own photos (the actual house or lot). */
   photos: string[]

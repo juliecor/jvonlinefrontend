@@ -129,10 +129,22 @@ export function SiteMapCanvas({
   }, [zoom])
   const glide = useRef(0)
   const stopGlide = () => cancelAnimationFrame(glide.current)
+  // A plan hidden when asked to zoom (a tab not open yet) zooms once it is shown.
+  const [shown, setShown] = useState(0)
   useEffect(() => {
     const el = scroller.current
     const plan = content.current
     if (!focus || !el || !plan) return
+    if (el.clientWidth === 0) {
+      const ro = new ResizeObserver(() => {
+        if (el.clientWidth > 0) {
+          ro.disconnect()
+          setShown((n) => n + 1)
+        }
+      })
+      ro.observe(el)
+      return () => ro.disconnect()
+    }
     const [left, top, right, bottom] = focus.box
     const from = zoomNow.current
     const box = plan.getBoundingClientRect()
@@ -165,7 +177,7 @@ export function SiteMapCanvas({
     }
     glide.current = requestAnimationFrame(step)
     return () => cancelAnimationFrame(glide.current)
-  }, [focus])
+  }, [focus, shown])
 
   // Pinch (Ctrl+wheel on a trackpad) or Ctrl+scroll zooms at the pointer; in full screen plain scroll does too.
   useEffect(() => {
@@ -466,7 +478,7 @@ export function LotDetails({ lot, modelPhotos = [], noPrice = "Ask an agent", on
       <dl className="grid grid-cols-2 gap-x-4 gap-y-3 text-[15px]">
         {[
           ["House model", lot.model ?? "—"],
-          ...(lot.price !== null || lot.status === "available" ? [["Price", lot.price ? php(lot.price) : noPrice]] : []),
+          ...(lot.price !== null || lot.status === "available" ? [[lot.price_from_model ? "Model price" : "Price", lot.price ? php(lot.price) : noPrice]] : []),
           ["Lot area", lot.lot_area ? `${Number(lot.lot_area)} sqm` : "—"],
           ["Floor area", lot.floor_area ? `${Number(lot.floor_area)} sqm` : "—"],
         ].map(([k, v]) => (
@@ -504,6 +516,7 @@ export function SiteMapViewer({
   maxHeight,
   details,
   modelPhotos,
+  highlightPrice,
 }: {
   map: SiteMapData
   alt: string
@@ -514,6 +527,8 @@ export function SiteMapViewer({
   details?: boolean
   /** A house model's pictures by name, for lots without photos of their own. */
   modelPhotos?: Record<string, string[]>
+  /** The price the highlighted lot was offered at (the buyer's own; other lots show none). */
+  highlightPrice?: string | number | null
 }) {
   const aspect = useAspect(map.image)
   const all = useMemo(() => shapes(map, aspect), [map, aspect])
@@ -535,6 +550,13 @@ export function SiteMapViewer({
   }, [full])
   // The lot that was clicked, to zoom in on (the key runs it again on a second click).
   const [focus, setFocus] = useState<MapFocus | null>(null)
+  // A buyer's own lot is zoomed in on from the start, once the plan's picture is there to measure.
+  const mineBox = details && mine && aspect !== 1 ? bounds(mine.quad).join(",") : null
+  const [focusedMine, setFocusedMine] = useState<string | null>(null)
+  if (mineBox && focusedMine !== mineBox) {
+    setFocusedMine(mineBox)
+    if (!focus) setFocus({ box: mineBox.split(",").map(Number) as MapFocus["box"], key: 1 })
+  }
   const click = (lot: SiteMapLot, quad: Point[]) => {
     if (details) {
       setOpen(lot.id)
@@ -546,7 +568,7 @@ export function SiteMapViewer({
     setFull(false)
   }
   const card = opened && (
-    <LotDetails key={opened.id} lot={opened} modelPhotos={(opened.model && modelPhotos?.[opened.model]) || []} onClose={() => setOpen(null)}>
+    <LotDetails key={opened.id} lot={opened.id === map.highlight && highlightPrice != null ? { ...opened, price: String(highlightPrice) } : opened} modelPhotos={(opened.model && modelPhotos?.[opened.model]) || []} onClose={() => setOpen(null)}>
       {opened.id === map.highlight && <p className="text-sm font-semibold text-[#b4241c]">This is your home.</p>}
     </LotDetails>
   )
@@ -576,8 +598,13 @@ export function SiteMapViewer({
             labels={
               <>
                 {mine && (
-                  <div className="pointer-events-none absolute z-10 -translate-x-1/2 -translate-y-[calc(100%+6px)] bg-[#b4241c] px-2.5 py-1 text-xs font-bold text-white shadow" style={{ left: `${centroid(mine.quad)[0] * 100}%`, top: `${Math.min(...mine.quad.map((p) => p[1])) * 100}%` }}>
-                    Your home
+                  <div className="pointer-events-none absolute z-10 flex -translate-x-1/2 -translate-y-[calc(100%+4px)] flex-col items-center" style={{ left: `${centroid(mine.quad)[0] * 100}%`, top: `${Math.min(...mine.quad.map((p) => p[1])) * 100}%` }}>
+                    <span className="whitespace-nowrap bg-[#b4241c] px-3 py-1.5 text-sm font-bold text-white shadow-lg">Your home · {lotName(mine.lot)}</span>
+                    <span aria-hidden className="h-0 w-0 border-x-8 border-t-8 border-x-transparent border-t-[#b4241c]" />
+                    <span aria-hidden className="relative mt-1 flex h-5 w-5 items-center justify-center">
+                      <span className="absolute inline-flex h-full w-full animate-ping rounded-full bg-[#b4241c] opacity-60" />
+                      <span className="relative inline-flex h-3 w-3 rounded-full border-2 border-white bg-[#b4241c]" />
+                    </span>
                   </div>
                 )}
                 {hovered && <LotTip lot={hovered.lot} quad={hovered.quad} photo={hovered.lot.photos[0] ?? (hovered.lot.model && modelPhotos?.[hovered.lot.model]?.[0])} />}

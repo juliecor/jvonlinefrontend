@@ -340,7 +340,7 @@ export default async function OfferPage({ params, searchParams }: Props) {
                   <section className="mt-12 break-inside-avoid print:hidden">
                     <Heading n="02" title="Where your home is" aside={unit.block && unit.lot ? `Block ${unit.block} · Lot ${unit.lot}` : project.name} />
                     <div className="mt-6">
-                      <SiteMapViewer map={offer.site_map} alt={`${project.name} site development plan`} maxHeight="70vh" details modelPhotos={model ? { [model.name]: model.images } : undefined} />
+                      <SiteMapViewer map={offer.site_map} alt={`${project.name} site development plan`} maxHeight="70vh" details modelPhotos={model ? { [model.name]: model.images } : undefined} highlightPrice={offer.price} />
                     </div>
                     <p className="mt-2 text-xs text-[#8a847a]">Use + to zoom in. Colours show which lots are still available today.</p>
                   </section>
@@ -465,8 +465,21 @@ export default async function OfferPage({ params, searchParams }: Props) {
                       {/* Site plan */}
                       {project.site_plans.length > 0 && (
                         <section className="break-inside-avoid">
-                          <Heading n={String(++section).padStart(2, "0")} title="Site development plan" aside={project.name} />
-                          <Zoomable images={project.site_plans} alt={`${project.name} site development plan`} caption="Site development plan" className="mt-6 border border-[#ebe7e1]" />
+                          <Heading n={String(++section).padStart(2, "0")} title="Site development plan" aside={unit.block && unit.lot ? `Your home: Block ${unit.block} · Lot ${unit.lot}` : project.name} />
+                          {offer.site_map ? (
+                            <>
+                              <div className="mt-6 print:hidden">
+                                <SiteMapViewer map={offer.site_map} alt={`${project.name} site development plan`} maxHeight="75vh" details modelPhotos={model ? { [model.name]: model.images } : undefined} highlightPrice={offer.price} />
+                                <p className="mt-2 text-xs text-[#8a847a]">The red pin marks your home. Pinch or use + to zoom; tap any lot to see it.</p>
+                              </div>
+                              {project.site_plans.filter((s) => s !== offer.site_map?.image).length > 0 && (
+                                <Zoomable images={project.site_plans.filter((s) => s !== offer.site_map?.image)} alt={`${project.name} site development plan`} caption="Other plans" className="mt-6 border border-[#ebe7e1]" />
+                              )}
+                              <Zoomable images={[offer.site_map.image]} alt={`${project.name} site development plan`} caption="Site development plan" className="mt-6 hidden border border-[#ebe7e1] print:block" />
+                            </>
+                          ) : (
+                            <Zoomable images={project.site_plans} alt={`${project.name} site development plan`} caption="Site development plan" className="mt-6 border border-[#ebe7e1]" />
+                          )}
                         </section>
                       )}
 

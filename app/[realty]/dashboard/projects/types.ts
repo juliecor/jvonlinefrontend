@@ -21,6 +21,9 @@ export type Unit = {
   site_row_id?: number | null
   lot_area_sqm?: string | null
   tags?: string[] | null
+  /** What it can be offered at: its own price, else its house model's (then price_from_model is true). */
+  offer_price?: string | null
+  price_from_model?: boolean
   /** Who a reserved or sold unit went to (the buyer only for realty admins). */
   status_detail?: UnitStatusDetail | null
   /** The house model's picture, else the project's photo (added by the project page API). */
