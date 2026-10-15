@@ -561,6 +561,7 @@ export function SiteMapViewer({
   modelPhotos,
   highlightPrice,
   offerPath,
+  markedIds,
 }: {
   map: SiteMapData
   alt: string
@@ -575,6 +576,8 @@ export function SiteMapViewer({
   highlightPrice?: string | number | null
   /** Dashboard only: the offers page's path (e.g. "/johndorf/dashboard/offers"), for a reserved lot's "Open the offer" link. */
   offerPath?: string
+  /** Lots to outline (e.g. the ones an answer is about); the first is zoomed in on and its card opened. */
+  markedIds?: number[]
 }) {
   const aspect = useAspect(map.image)
   const all = useMemo(() => shapes(map, aspect), [map, aspect])
@@ -582,9 +585,12 @@ export function SiteMapViewer({
   // Zooming in moves the plan under a pointer that stayed put: the clicked lot keeps its tip until the pointer itself moves.
   const [pinned, setPinned] = useState<{ id: number; x: number; y: number } | null>(null)
   const clickAt = useRef({ x: 0, y: 0 })
-  const [open, setOpen] = useState<number | null>(details && map.highlight ? map.highlight : null)
+  const [open, setOpen] = useState<number | null>(details ? (map.highlight ?? markedIds?.[0] ?? null) : null)
   const hovered = all.find((s) => s.lot.id === (pinned?.id ?? hover))
   const mine = map.highlight ? all.find((s) => s.lot.id === map.highlight) : undefined
+  const marked = markedIds?.length ? new Set(markedIds) : null
+  // What the plan opens zoomed in on: the buyer's own lot, else the first marked lot.
+  const first = mine ?? (markedIds?.[0] ? all.find((s) => s.lot.id === markedIds[0]) : undefined)
   const opened = open ? map.lots.find((l) => l.id === open) : undefined
   // Picking a lot in full screen takes the picker back to the form it is for.
   const [full, setFull] = useState(false)
@@ -597,7 +603,7 @@ export function SiteMapViewer({
   // The lot that was clicked, to zoom in on (the key runs it again on a second click).
   const [focus, setFocus] = useState<MapFocus | null>(null)
   // A buyer's own lot is zoomed in on from the start, once the plan's picture is there to measure.
-  const mineBox = details && mine && aspect !== 1 ? bounds(mine.quad).join(",") : null
+  const mineBox = details && first && aspect !== 1 ? bounds(first.quad).join(",") : null
   const [focusedMine, setFocusedMine] = useState<string | null>(null)
   if (mineBox && focusedMine !== mineBox) {
     setFocusedMine(mineBox)
@@ -640,7 +646,7 @@ export function SiteMapViewer({
             focus={focus}
             layers={all.map(({ lot, quad }) => {
               const pickable = details || (onPick && (!canPick || canPick(lot)))
-              return <LotShape key={lot.id} quad={quad} lot={lot} selected={lot.id === selectedId || lot.id === map.highlight || lot.id === open} dim={!details && !!onPick && !!canPick && !canPick(lot)} onClick={pickable ? () => click(lot, quad) : undefined} onHover={(on) => setHover(on ? lot.id : null)} />
+              return <LotShape key={lot.id} quad={quad} lot={lot} selected={lot.id === selectedId || lot.id === map.highlight || lot.id === open || !!marked?.has(lot.id)} dim={!details && !!onPick && !!canPick && !canPick(lot)} onClick={pickable ? () => click(lot, quad) : undefined} onHover={(on) => setHover(on ? lot.id : null)} />
             })}
             labels={
               <>

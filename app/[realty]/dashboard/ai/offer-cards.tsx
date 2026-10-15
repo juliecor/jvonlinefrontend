@@ -39,6 +39,7 @@ export function OfferCards({ slug, cards, onAsk }: { slug: string; cards: OfferC
                 {o.status === "void" && <Tag>Void</Tag>}
                 {o.unit_status === "sold" && <span className="bg-[#17150f] px-1.5 py-0.5 text-[10px] font-bold uppercase tracking-[0.14em] text-white">Sold</span>}
                 {o.unit_status === "reserved" && <Tag tone="warn">Reserved</Tag>}
+                {(o.reservation_status === "pending" || o.reservation_status === "paid") && <Tag tone="accent">Reservation to confirm</Tag>}
                 {o.status === "active" && o.approval_status === "pending" && <Tag tone="warn">Waiting for approval</Tag>}
                 {o.status === "active" && o.approval_status === "rejected" && <Tag tone="bad">Sent back</Tag>}
                 {o.answer ? <LeadTag kind={o.answer.kind} label={o.answer.label} /> : <Tag>No answer yet</Tag>}

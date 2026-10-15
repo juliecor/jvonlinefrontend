@@ -5,6 +5,7 @@ import { requireRealtyUser } from "@/lib/realty-auth"
 import type { LeadKind } from "@/components/leads"
 import type { RequirementSummary } from "@/lib/requirements-types"
 import type { MilestoneInput } from "@/lib/schedule"
+import type { SiteMapData } from "@/components/site-map/geometry"
 
 /** A unit the AI showed under its answer, from the live units (so its price and status are current). */
 export type UnitCard = {
@@ -42,6 +43,8 @@ export type OfferCard = {
   requirements: RequirementSummary
   approval_status: "pending" | "approved" | "rejected" | null
   unit_status: "reserved" | "sold" | null
+  /** Where the buyer's reservation stands; null when no fee was set. */
+  reservation_status?: "none" | "pending" | "paid" | "confirmed" | "declined" | null
   /** The buyer's link, once they can open it. */
   url: string | null
 }
@@ -76,7 +79,17 @@ export type PaymentCard = {
   can_offer: boolean
 }
 
-export type Card = UnitCard | OfferCard | ProjectCard | PaymentCard
+/** A project's site map with some lots marked: the same map as the dashboard's, with its statuses. */
+export type MapCard = {
+  type: "map"
+  id: number
+  project: { id: number; name: string; location: string | null }
+  map: SiteMapData
+  lots: number[]
+  model_photos: Record<string, string[]>
+}
+
+export type Card = UnitCard | OfferCard | ProjectCard | PaymentCard | MapCard
 
 export type ChatMessage = { id: number; role: "user" | "assistant"; content: string; created_at: string; cards?: Card[] }
 export type ChatSummary = { id: number; title: string; updated_at: string }
