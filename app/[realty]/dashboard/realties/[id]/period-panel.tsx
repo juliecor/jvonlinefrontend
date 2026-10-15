@@ -88,9 +88,9 @@ export function PeriodPanel({
 
   return (
     <>
-      <Panel title="Accreditation period" aside={<Tag tone={PERIOD_TAG[p.state].tone}>{PERIOD_TAG[p.state].label}</Tag>}>
-        <div className="pt-5">
-          <p className={`text-2xl font-bold tracking-tight ${p.state === "expired" || p.state === "ended" ? "text-red-800" : p.state === "ending" ? "text-amber-800" : "text-[#17150f]"}`}>{headline}</p>
+      <Panel title="Accreditation period" aside={<Tag tone={PERIOD_TAG[p.state].tone}>{PERIOD_TAG[p.state].label}</Tag>} className="!mt-0">
+        <div className="pt-1">
+          <p className={`font-[family-name:var(--font-outfit),var(--font-geist-sans)] text-2xl font-bold tracking-tight ${p.state === "expired" || p.state === "ended" ? "text-red-800" : p.state === "ending" ? "text-amber-800" : "text-[#17150f]"}`}>{headline}</p>
           <p className="mt-1 text-[15px] text-[#5a554d]">
             {p.from ? `Started ${longDate(p.from)}` : "Accepted before accreditations had an end date."}
             {p.state === "open" && " Set an end date to start the reminders."}
@@ -113,8 +113,8 @@ export function PeriodPanel({
         </div>
       </Panel>
 
-      <Panel title="Signed agreement" aside="Printed, signed on every page, notarized and uploaded by the realty">
-        <div className="space-y-4 pt-5">
+      <Panel title="Signed agreement" aside="Printed, signed on every page, notarized and uploaded by the realty" className="!mt-0 lg:col-span-2">
+        <div className="space-y-4 pt-1">
           <p className="text-[15px] text-[#3d3a34]">
             {agreed ? (
               <>

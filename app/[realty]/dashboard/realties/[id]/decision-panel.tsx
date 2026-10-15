@@ -87,22 +87,27 @@ export function DecisionPanel(p: Props) {
 
   if (p.status === "approved") {
     return (
-      <section className="rounded-xl mt-8 border-2 border-emerald-200 bg-emerald-50 p-5 sm:p-6">
+      <section className="rounded-2xl border border-emerald-200 bg-emerald-50 p-5 shadow-[0_2px_12px_-2px_rgba(23,21,15,0.06)]">
         <div className="flex items-start gap-3">
-          <BadgeCheck className="mt-0.5 h-6 w-6 shrink-0 text-emerald-700" />
+          <span className="flex h-10 w-10 shrink-0 items-center justify-center rounded-full bg-emerald-600 text-white">
+            <BadgeCheck className="h-5 w-5" />
+          </span>
           <div className="min-w-0 flex-1">
-            <p className="text-xl font-bold tracking-tight text-emerald-950">Accepted{p.reviewedBy ? ` by ${p.reviewedBy}` : ""}</p>
-            <p className="mt-1 text-sm text-emerald-900">
-              {p.reviewedAt ? `${shortDate(p.reviewedAt)} · ` : ""}
-              {p.realty ? (
-                <>
-                  {p.realty.name} signs in at <span className="font-semibold">{p.realty.login_url.replace(/^https?:\/\//, "")}</span> with <span className="font-semibold">{p.loginEmail}</span>.
-                </>
-              ) : (
-                "The realty was set up."
-              )}
-            </p>
-            <p className="mt-1 text-sm text-emerald-900">{p.loginPending ? "They haven't signed in yet. They will be asked to choose their own password." : "They have signed in and chosen their own password."}</p>
+            <p className="font-[family-name:var(--font-outfit),var(--font-geist-sans)] text-[19px] font-bold tracking-tight text-emerald-950">Accepted{p.reviewedBy ? ` by ${p.reviewedBy}` : ""}</p>
+            <p className="mt-0.5 text-sm text-emerald-900">{p.reviewedAt ? shortDate(p.reviewedAt) : ""}{p.realty ? "" : " · The realty was set up."}</p>
+            {p.realty && (
+              <dl className="mt-3 space-y-1 text-sm text-emerald-950">
+                <div className="flex gap-3">
+                  <dt className="w-24 shrink-0 text-emerald-800/80">Sign-in page</dt>
+                  <dd className="min-w-0 font-semibold [overflow-wrap:anywhere]">{p.realty.login_url.replace(/^https?:\/\//, "")}</dd>
+                </div>
+                <div className="flex gap-3">
+                  <dt className="w-24 shrink-0 text-emerald-800/80">Username</dt>
+                  <dd className="min-w-0 font-semibold [overflow-wrap:anywhere]">{p.loginEmail}</dd>
+                </div>
+              </dl>
+            )}
+            <p className="mt-2 text-sm text-emerald-900">{p.loginPending ? "They haven't signed in yet. They will be asked to choose their own password." : "They have signed in and chosen their own password."}</p>
             {p.loginPending && (
               <button type="button" onClick={resend} disabled={pending} className="rounded-xl mt-3 inline-flex items-center gap-1.5 border border-emerald-700/40 bg-white px-3 py-2 text-xs font-bold text-emerald-900 hover:border-emerald-800 disabled:opacity-60">
                 {pending ? <LoaderCircle className="h-3.5 w-3.5 animate-spin" /> : <RotateCw className="h-3.5 w-3.5" />} Resend login details
@@ -118,7 +123,7 @@ export function DecisionPanel(p: Props) {
 
   if (p.status === "rejected") {
     return (
-      <section className="rounded-xl mt-8 border-2 border-red-200 bg-red-50 p-5 sm:p-6">
+      <section className="mt-6 rounded-2xl border-2 border-red-200 bg-red-50 p-5 sm:p-6">
         <div className="flex items-start gap-3">
           <AlertCircle className="mt-0.5 h-6 w-6 shrink-0 text-red-700" />
           <div>
@@ -133,10 +138,10 @@ export function DecisionPanel(p: Props) {
   }
 
   return (
-    <section className="rounded-xl mt-8 border-2 border-amber-300 bg-amber-50 p-5 sm:p-6">
+    <section className="mt-6 rounded-2xl border-2 border-amber-300 bg-amber-50 p-5 sm:p-6">
       <p className="text-xl font-bold tracking-tight">Waiting for your decision</p>
       <p className="mt-1 text-sm text-[#3d3a34]">
-        Read the form and open the documents below. Accepting makes <strong>{p.firm}</strong> an accredited realty with its own sign-in, and emails <strong>{p.loginEmail}</strong> a username and a temporary password.
+        Read the form in <a href="#details" className="font-bold text-[var(--accent)] hover:underline">Details</a> and the files in <a href="#documents" className="font-bold text-[var(--accent)] hover:underline">Documents</a>. Accepting makes <strong>{p.firm}</strong> an accredited realty with its own sign-in, and emails <strong>{p.loginEmail}</strong> a username and a temporary password.
       </p>
 
       {mode === "idle" && (
