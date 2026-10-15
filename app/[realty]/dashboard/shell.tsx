@@ -63,7 +63,8 @@ export function DashboardShell({ slug, user, counts, superAdmin, signOutAction, 
     {
       title: "Workspace",
       items: [
-        { href: `/${slug}/dashboard`, label: "Overview", icon: LayoutDashboard, exact: true },
+        // Admins see the realty's statistics; agents the same page about their own sales.
+        { href: `/${slug}/dashboard`, label: staff ? "Admin statistics" : "My statistics", icon: LayoutDashboard, exact: true },
         // The AI assistant: answers from this realty's data (Johndorf's own team only).
         ...(broker || !may("ai") ? [] : [{ href: `/${slug}/dashboard/ai`, label: assistantName(realty.name), icon: Sparkles }]),
         // Everyone has their own tasks; staff with the Tasks section see and give out everyone's.

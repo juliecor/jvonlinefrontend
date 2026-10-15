@@ -10,7 +10,7 @@ import { offersStopped } from "./offers/new/stopped"
 import { can, isDeveloperStaff } from "@/lib/realty-roles"
 import { Funnel, InventoryRing, StackBar, TrendChart, type TrendMonth } from "./overview-charts"
 
-export const metadata = { title: "Overview" }
+export const metadata = { title: "Statistics" }
 
 type Overview = {
   realty: { name: string; slug: string; email: string | null; contact_name: string | null; phone: string | null; address: string | null; about: string | null; registered_at: string | null }
