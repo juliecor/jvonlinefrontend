@@ -89,7 +89,12 @@ export type MapCard = {
   model_photos: Record<string, string[]>
 }
 
-export type Card = UnitCard | OfferCard | ProjectCard | PaymentCard | MapCard
+/** Something the AI set up for one press: confirm a waiting reservation, or open New offer filled in. */
+export type ActionCard =
+  | { type: "action"; kind: "confirm_reservation"; offer: { id: number; code: string; buyer: string; unit: string | null; project: string | null }; fee: number; how: string; reference: string | null; status: "pending" | "paid" | "confirmed" | "declined" | null; can_confirm: boolean }
+  | { type: "action"; kind: "new_offer"; unit: { id: number; name: string; status: string }; project: { id: number; name: string | null }; price: number | null; buyer: string | null; email: string | null; phone: string | null; fee: number | null; can_offer: boolean }
+
+export type Card = UnitCard | OfferCard | ProjectCard | PaymentCard | MapCard | ActionCard
 
 export type ChatMessage = { id: number; role: "user" | "assistant"; content: string; created_at: string; cards?: Card[] }
 export type ChatSummary = { id: number; title: string; updated_at: string }

@@ -26,7 +26,9 @@ function exactRows(rows: TermRow[], price: number): TermRow[] {
  * plans, or the agent's own custom terms, which a realty admin approves
  * before the buyer can open the offer. Shows the computed schedule before sending.
  */
-export function OfferForm({ slug, projects, initialProject, initialUnit, initialPlan, initialTerms, initialDate, today, isStaff, realtyName }: { slug: string; projects: ProjectDetail[]; initialProject?: number; initialUnit?: number; initialPlan?: number; initialTerms?: MilestoneInput[]; initialDate?: string; today: string; isStaff: boolean; realtyName: string }) {
+export type OfferPrefill = { buyer?: string; email?: string; phone?: string; fee?: number }
+
+export function OfferForm({ slug, projects, initialProject, initialUnit, initialPlan, initialTerms, initialDate, prefill, today, isStaff, realtyName }: { slug: string; projects: ProjectDetail[]; initialProject?: number; initialUnit?: number; initialPlan?: number; initialTerms?: MilestoneInput[]; initialDate?: string; /** The buyer and fee typed in already (Johndorf AI's "prepare an offer"). */ prefill?: OfferPrefill; today: string; isStaff: boolean; realtyName: string }) {
   const [state, setState] = useState<OfferState>({})
   const [pending, start] = useTransition()
   const [projectId, setProjectId] = useState<number>(initialProject ?? projects[0]?.id ?? 0)
@@ -51,8 +53,8 @@ export function OfferForm({ slug, projects, initialProject, initialUnit, initial
   const [rows, setRows] = useState<TermRow[]>(() => (initialTerms?.length && price ? exactRows(rowsFrom(initialTerms, price), price) : []))
   const [date, setDate] = useState(initialDate && initialDate >= today ? initialDate : today)
   // The buyer's login: the username follows the first name until the agent edits it; a password is suggested.
-  const [buyerName, setBuyerName] = useState("")
-  const [username, setUsername] = useState("")
+  const [buyerName, setBuyerName] = useState(prefill?.buyer ?? "")
+  const [username, setUsername] = useState(prefill?.buyer ? firstWord(prefill.buyer) : "")
   const [usernameEdited, setUsernameEdited] = useState(false)
   const [password, setPassword] = useState("")
   const typeBuyerName = (v: string) => {
@@ -250,11 +252,11 @@ export function OfferForm({ slug, projects, initialProject, initialUnit, initial
             </label>
             <label className="block">
               <Label>Buyer&apos;s mobile (optional)</Label>
-              <input name="buyer_phone" type="tel" placeholder="09XX XXX XXXX" className={fieldClass} />
+              <input name="buyer_phone" type="tel" defaultValue={prefill?.phone ?? ""} placeholder="09XX XXX XXXX" className={fieldClass} />
             </label>
             <label className="block sm:col-span-2">
               <Label>Buyer&apos;s email (optional)</Label>
-              <input name="buyer_email" type="email" placeholder="buyer@example.com" className={fieldClass} />
+              <input name="buyer_email" type="email" defaultValue={prefill?.email ?? ""} placeholder="buyer@example.com" className={fieldClass} />
               <span className="mt-1 block text-xs text-slate-500">Needed to email the offer and requirement reminders.</span>
             </label>
           </div>
@@ -284,7 +286,7 @@ export function OfferForm({ slug, projects, initialProject, initialUnit, initial
             </label>
             <label className="block">
               <Label>Reservation fee (₱, optional)</Label>
-              <input name="reservation_fee" type="number" min={1} step="1" inputMode="numeric" placeholder="e.g. 10000" className={fieldClass} />
+              <input name="reservation_fee" type="number" min={1} step="1" inputMode="numeric" defaultValue={prefill?.fee ?? ""} placeholder="e.g. 10000" className={fieldClass} />
               <span className="mt-1 block text-xs text-slate-500">The buyer pays this on the offer page to hold the home. Leave it empty for no Reserve step.</span>
             </label>
             <label className="block">

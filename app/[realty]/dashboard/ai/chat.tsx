@@ -171,7 +171,7 @@ export function AssistantChat({ slug, name, firstName, isAgent, chats: initialCh
           )}
         </div>
 
-        <AskBox slug={slug} name={name} pending={pending} error={error} onSend={ask} hint={`${name} reads your dashboard and can't change anything. Check prices before you send them to a buyer.`} />
+        <AskBox slug={slug} name={name} pending={pending} error={error} onSend={ask} hint={`${name} reads your dashboard. It only changes something when you press a button it shows you. Check prices before you send them to a buyer.`} />
       </section>
     </div>
   )
