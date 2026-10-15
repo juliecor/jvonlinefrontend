@@ -84,9 +84,9 @@ export function DashboardShell({ slug, user, counts, superAdmin, signOutAction, 
           {
             title: "Team",
             items: [
-              ...(may("agents") ? [{ href: `/${slug}/dashboard/agents`, label: "Agents", icon: Users, count: counts?.agents, note: counts?.agentsInvited ? `+${counts.agentsInvited} invited` : undefined, alert: counts?.agentsPending ? `${counts.agentsPending} to approve` : undefined }] : []),
               // Realties accredited under this developer: invite, review their form, accept.
-              ...(developerStaff && may("realties") ? [{ href: `/${slug}/dashboard/realties`, label: "Realties", icon: Handshake, alert: counts?.realtiesPending ? `${counts.realtiesPending} to review` : undefined }] : []),
+              ...(developerStaff && may("realties") ? [{ href: `/${slug}/dashboard/realties`, label: "Realty", icon: Handshake, alert: counts?.realtiesPending ? `${counts.realtiesPending} to review` : undefined }] : []),
+              ...(may("agents") ? [{ href: `/${slug}/dashboard/agents`, label: "Agents", icon: Users, count: counts?.agents, note: counts?.agentsInvited ? `+${counts.agentsInvited} invited` : undefined, alert: counts?.agentsPending ? `${counts.agentsPending} to approve` : undefined }] : []),
               // The realty's own staff accounts and what each may use (full admins).
               ...(may("staff") ? [{ href: `/${slug}/dashboard/staff`, label: "Staff", icon: UserCog }] : []),
               // An accredited realty's own accreditation: its period and the signed agreement.
