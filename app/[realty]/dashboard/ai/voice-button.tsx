@@ -181,7 +181,7 @@ export function VoiceButton({ slug, disabled, onText, onRecording }: { slug: str
       onClick={() => (recording ? stopRef.current?.() : start())}
       aria-label={recording ? "Stop recording" : "Ask by voice"}
       title={recording ? "Stop and use what I said" : "Ask by voice"}
-      className={`relative flex h-11 shrink-0 items-center justify-center gap-1.5 overflow-hidden font-bold transition disabled:opacity-40 ${recording ? "bg-red-700 px-3 text-sm text-white" : "w-11 border border-[#d9d4cb] bg-white text-[#3d3a34] hover:border-[#17150f]"}`}
+      className={`relative flex h-11 shrink-0 rounded-xl items-center justify-center gap-1.5 overflow-hidden font-bold transition disabled:opacity-40 ${recording ? "bg-red-700 px-3 text-sm text-white" : "w-11 border border-[#d9d4cb] bg-white text-[#3d3a34] hover:border-[#17150f]"}`}
     >
       {state === "sending" ? (
         <LoaderCircle className="h-5 w-5 animate-spin" />

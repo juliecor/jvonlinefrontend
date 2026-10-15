@@ -6,8 +6,11 @@ import Link from "next/link"
  * a grid of identical cards.
  */
 
-/** Headline type for the dashboard: the site sans, bold — no serif, no italics. */
-export const display = "font-sans font-bold"
+/** Headline type for the dashboard: Outfit, bold (Geist for the rest). No serif, no italics. */
+export const display = "font-[family-name:var(--font-outfit),var(--font-geist-sans)] font-bold"
+
+/** A card's title: Outfit, a size up. */
+export const cardTitle = "font-[family-name:var(--font-outfit),var(--font-geist-sans)] text-[19px] font-bold tracking-tight text-[#17150f]"
 
 export function PageHeader({ eyebrow, title, lede, action }: { eyebrow?: string; title: string; lede?: string; action?: React.ReactNode }) {
   return (
@@ -34,7 +37,7 @@ export function Ledger({ items }: { items: { label: string; value: string | numb
             {it.note && <dd className="mt-0.5 text-[13px] text-[#6b665d] sm:text-sm">{it.note}</dd>}
           </>
         )
-        const cls = "flex flex-col border border-[#e6e2db] bg-white p-4 sm:p-5"
+        const cls = "flex flex-col rounded-2xl border border-[#e8eaed] bg-white shadow-[0_2px_12px_-2px_rgba(23,21,15,0.06)] p-4 transition-shadow hover:shadow-[0_6px_22px_-4px_rgba(23,21,15,0.12)] sm:p-5"
         return it.href ? (
           <Link key={it.label} href={it.href} className={`${cls} outline-none transition hover:border-[#17150f] focus-visible:ring-2 focus-visible:ring-[var(--accent)]`}>
             {body}
@@ -52,9 +55,9 @@ export function Ledger({ items }: { items: { label: string; value: string | numb
 /** A white card with a title bar — lists and forms live inside. */
 export function Panel({ title, aside, children, className = "" }: { title: string; aside?: React.ReactNode; children: React.ReactNode; className?: string }) {
   return (
-    <section className={`mt-8 border border-[#e6e2db] bg-white ${className}`}>
-      <div className="flex flex-wrap items-center justify-between gap-x-4 gap-y-1 border-b border-[#e6e2db] px-5 py-4">
-        <h2 className="text-lg font-bold text-[#17150f]">{title}</h2>
+    <section className={`mt-8 rounded-2xl border border-[#e8eaed] bg-white shadow-[0_2px_12px_-2px_rgba(23,21,15,0.06)] ${className}`}>
+      <div className="flex flex-wrap items-center justify-between gap-x-4 gap-y-1 border-b border-[#f0eeea] px-5 py-4">
+        <h2 className={cardTitle}>{title}</h2>
         {aside && <div className="text-sm text-[#6b665d]">{aside}</div>}
       </div>
       <div className="px-5 py-4">{children}</div>
@@ -83,14 +86,14 @@ export function Tag({ tone = "neutral", children }: { tone?: "neutral" | "good" 
     bad: "border-red-200 bg-red-50 text-red-700",
     accent: "border-[var(--accent)] text-[var(--accent)]",
   }
-  return <span className={`rounded-sm border px-1.5 py-0.5 text-[10px] font-semibold uppercase tracking-[0.14em] ${tones[tone]}`}>{children}</span>
+  return <span className={`rounded-full border px-2.5 py-0.5 text-[10px] font-bold uppercase tracking-[0.14em] ${tones[tone]}`}>{children}</span>
 }
 
 export const btn = {
-  primary: "inline-flex items-center justify-center gap-2 bg-[var(--accent)] px-5 py-3 text-[15px] font-bold text-white transition hover:brightness-110 disabled:opacity-60",
-  ghost: "inline-flex items-center justify-center gap-1.5 rounded-md border border-[#d9d4cb] bg-white px-3 py-2 text-xs font-semibold text-[#17150f] transition hover:border-[#17150f] disabled:opacity-60",
+  primary: "inline-flex items-center justify-center gap-2 rounded-xl bg-[var(--accent)] px-5 py-3 text-[15px] font-bold text-white transition hover:brightness-110 disabled:opacity-60",
+  ghost: "inline-flex items-center justify-center gap-1.5 rounded-lg border border-[#d9d4cb] bg-white px-3 py-2 text-xs font-semibold text-[#17150f] transition hover:border-[#17150f] disabled:opacity-60",
   /** A row's own action: flat, bordered, bold ("View", "Open"). */
-  outline: "inline-flex items-center justify-center gap-1.5 border border-[#d9d4cb] bg-white px-3.5 py-2.5 text-sm font-bold text-[#17150f] transition hover:border-[#17150f] disabled:opacity-60",
+  outline: "inline-flex items-center justify-center gap-1.5 rounded-xl border border-[#d9d4cb] bg-white px-3.5 py-2.5 text-sm font-bold text-[#17150f] transition hover:border-[#17150f] disabled:opacity-60",
 }
 
-export const field = "mt-1.5 block w-full rounded-md border border-[#d9d4cb] bg-white px-3.5 py-2.5 text-[15px] text-[#17150f] outline-none transition focus:border-[var(--accent)] focus:ring-2 focus:ring-[var(--accent)]/15 disabled:bg-[#f6f4f0] disabled:text-[#8a847a]"
+export const field = "mt-1.5 block w-full rounded-xl border border-[#d9d4cb] bg-white px-3.5 py-2.5 text-[15px] text-[#17150f] outline-none transition focus:border-[var(--accent)] focus:ring-2 focus:ring-[var(--accent)]/15 disabled:bg-[#f6f4f0] disabled:text-[#8a847a]"

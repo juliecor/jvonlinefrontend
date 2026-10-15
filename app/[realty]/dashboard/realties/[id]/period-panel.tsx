@@ -96,16 +96,16 @@ export function PeriodPanel({
             {p.state === "open" && " Set an end date to start the reminders."}
           </p>
           {(p.state === "expired" || p.state === "ended") && (
-            <p className="mt-3 border-l-4 border-red-600 bg-red-50 px-4 py-2.5 text-[15px] font-semibold text-red-800">{firm} can&apos;t make new offers. Offers they already made carry on.</p>
+            <p className="rounded-xl mt-3 border-l-4 border-red-600 bg-red-50 px-4 py-2.5 text-[15px] font-semibold text-red-800">{firm} can&apos;t make new offers. Offers they already made carry on.</p>
           )}
           {p.state === "ended" && p.end_note && <p className="mt-2 text-[15px] text-[#3d3a34]">Why: &ldquo;{p.end_note}&rdquo;</p>}
 
           <div className="mt-5 flex flex-wrap gap-2">
-            <button type="button" onClick={() => setDialog("renew")} className="inline-flex items-center gap-1.5 bg-[#17150f] px-4 py-2.5 text-sm font-bold text-white hover:bg-[#3d3a34]">
+            <button type="button" onClick={() => setDialog("renew")} className="inline-flex items-center gap-1.5 rounded-xl bg-[#17150f] px-4 py-2.5 text-sm font-bold text-white hover:bg-[#3d3a34]">
               <RotateCw className="h-4 w-4" /> {p.state === "open" ? "Set an end date" : running ? "Extend or renew" : "Renew"}
             </button>
             {(running || p.state === "open") && (
-              <button type="button" onClick={() => setDialog("end")} className="inline-flex items-center gap-1.5 border border-[#d9d4cb] bg-white px-4 py-2.5 text-sm font-bold text-[#17150f] hover:border-red-400 hover:text-red-700">
+              <button type="button" onClick={() => setDialog("end")} className="inline-flex items-center gap-1.5 rounded-xl border border-[#d9d4cb] bg-white px-4 py-2.5 text-sm font-bold text-[#17150f] hover:border-red-400 hover:text-red-700">
                 <Ban className="h-4 w-4" /> End now
               </button>
             )}
@@ -126,7 +126,7 @@ export function PeriodPanel({
           </p>
 
           {copy.status === "submitted" && (
-            <div className="border-2 border-sky-200 bg-sky-50 p-4">
+            <div className="rounded-xl border-2 border-sky-200 bg-sky-50 p-4">
               <p className="flex items-center gap-2 text-lg font-bold text-sky-950">
                 <FileCheck2 className="h-5 w-5" /> Uploaded {shortDate(copy.uploaded_at)} · check it
               </p>
@@ -137,7 +137,7 @@ export function PeriodPanel({
                   type="button"
                   disabled={pending}
                   onClick={() => run(() => checkSignedCopy(slug, id, "verified"), "Signed agreement accepted")}
-                  className="inline-flex items-center gap-1.5 bg-emerald-700 px-4 py-2.5 text-sm font-bold text-white hover:bg-emerald-800 disabled:opacity-60"
+                  className="rounded-xl inline-flex items-center gap-1.5 bg-emerald-700 px-4 py-2.5 text-sm font-bold text-white hover:bg-emerald-800 disabled:opacity-60"
                 >
                   {pending ? <LoaderCircle className="h-4 w-4 animate-spin" /> : <Check className="h-4 w-4" strokeWidth={3} />} It&apos;s right
                 </button>
@@ -145,7 +145,7 @@ export function PeriodPanel({
                   type="button"
                   disabled={pending}
                   onClick={() => setSendBack((v) => !v)}
-                  className="inline-flex items-center gap-1.5 border border-[#d9d4cb] bg-white px-4 py-2.5 text-sm font-bold text-[#17150f] hover:border-red-400 hover:text-red-700"
+                  className="inline-flex items-center gap-1.5 rounded-xl border border-[#d9d4cb] bg-white px-4 py-2.5 text-sm font-bold text-[#17150f] hover:border-red-400 hover:text-red-700"
                 >
                   <Undo2 className="h-4 w-4" /> Send back
                 </button>
@@ -175,10 +175,10 @@ export function PeriodPanel({
                       value={returnNote}
                       onChange={(e) => setReturnNote(e.target.value)}
                       placeholder="e.g. Page 2 has no signature."
-                      className="mt-1.5 block w-full border border-[#d9d4cb] bg-white px-3.5 py-2.5 text-[15px] outline-none focus:border-[var(--accent)]"
+                      className="mt-1.5 block w-full rounded-xl border border-[#d9d4cb] bg-white px-3.5 py-2.5 text-[15px] outline-none focus:border-[var(--accent)]"
                     />
                   </label>
-                  <button type="submit" disabled={pending} className="inline-flex items-center gap-1.5 bg-red-700 px-4 py-2.5 text-sm font-bold text-white hover:bg-red-800 disabled:opacity-60">
+                  <button type="submit" disabled={pending} className="rounded-xl inline-flex items-center gap-1.5 bg-red-700 px-4 py-2.5 text-sm font-bold text-white hover:bg-red-800 disabled:opacity-60">
                     {pending && <LoaderCircle className="h-4 w-4 animate-spin" />} Send back
                   </button>
                 </form>
@@ -203,7 +203,7 @@ export function PeriodPanel({
             </p>
           )}
           {copy.status === "returned" && (
-            <p className="border-l-4 border-amber-500 bg-amber-50 px-4 py-2.5 text-[15px] text-amber-950">
+            <p className="rounded-xl border-l-4 border-amber-500 bg-amber-50 px-4 py-2.5 text-[15px] text-amber-950">
               <strong>Sent back:</strong> &ldquo;{copy.note}&rdquo; Waiting for a new upload{copy.due ? `, due ${shortDate(copy.due)}` : ""}.
             </p>
           )}
@@ -232,7 +232,7 @@ export function PeriodPanel({
             type="button"
             disabled={pending || !newEnd}
             onClick={() => run(() => renewAccreditation(slug, id, term), `Accredited until ${shortDate(newEnd)}`, close)}
-            className="inline-flex items-center gap-1.5 bg-[#17150f] px-4 py-2.5 text-sm font-bold text-white hover:bg-[#3d3a34] disabled:opacity-60"
+            className="inline-flex items-center gap-1.5 rounded-xl bg-[#17150f] px-4 py-2.5 text-sm font-bold text-white hover:bg-[#3d3a34] disabled:opacity-60"
           >
             {pending ? <LoaderCircle className="h-4 w-4 animate-spin" /> : <CalendarClock className="h-4 w-4" />} {newEnd ? `Accredit until ${shortDate(newEnd)}` : "Pick a date"}
           </button>
@@ -268,12 +268,12 @@ export function PeriodPanel({
               value={note}
               onChange={(e) => setNote(e.target.value)}
               placeholder="e.g. Advertised our projects without approval."
-              className="mt-1.5 block w-full border border-[#d9d4cb] bg-white px-3.5 py-2.5 text-[15px] outline-none focus:border-[var(--accent)]"
+              className="mt-1.5 block w-full rounded-xl border border-[#d9d4cb] bg-white px-3.5 py-2.5 text-[15px] outline-none focus:border-[var(--accent)]"
             />
           </label>
           {error && <p className="text-sm font-semibold text-red-700">{error}</p>}
           <div className="flex flex-wrap gap-2">
-            <button type="submit" disabled={pending} className="inline-flex items-center gap-1.5 bg-red-700 px-4 py-2.5 text-sm font-bold text-white hover:bg-red-800 disabled:opacity-60">
+            <button type="submit" disabled={pending} className="rounded-xl inline-flex items-center gap-1.5 bg-red-700 px-4 py-2.5 text-sm font-bold text-white hover:bg-red-800 disabled:opacity-60">
               {pending ? <LoaderCircle className="h-4 w-4 animate-spin" /> : <Ban className="h-4 w-4" />} End accreditation now
             </button>
             <button type="button" onClick={close} className="px-3 py-2.5 text-sm font-semibold text-[#8a847a] hover:text-[#17150f]">
@@ -288,7 +288,7 @@ export function PeriodPanel({
 
 function FileLink({ href }: { href: string }) {
   return (
-    <a href={href} target="_blank" rel="noreferrer" className="inline-flex items-center gap-1.5 border border-[#17150f] bg-white px-4 py-2.5 text-sm font-bold text-[#17150f] hover:bg-[#f6f4f0]">
+    <a href={href} target="_blank" rel="noreferrer" className="inline-flex items-center gap-1.5 rounded-xl border border-[#17150f] bg-white px-4 py-2.5 text-sm font-bold text-[#17150f] hover:bg-[#f6f4f0]">
       <ExternalLink className="h-4 w-4" /> Open the file
     </a>
   )

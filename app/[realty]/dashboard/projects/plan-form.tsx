@@ -55,7 +55,7 @@ export function PlanForm({ slug, projectId, plan, onDone }: { slug: string; proj
         </div>
         <div className="space-y-3 @2xl:space-y-2">
           {rows.map((r, i) => (
-            <div key={r.id} className={`grid grid-cols-2 items-end gap-3 border border-[#e6e2db] p-3 @2xl:items-center @2xl:border-0 @2xl:p-0 ${cols}`}>
+            <div key={r.id} className={`rounded-xl grid grid-cols-2 items-end gap-3 border border-[#e6e2db] p-3 @2xl:items-center @2xl:border-0 @2xl:p-0 ${cols}`}>
               <label className="col-span-2 block @2xl:col-span-1">
                 <span className={small}>Milestone {i + 1}</span>
                 <input name="label" required value={r.label} onChange={(e) => update(r.id, { label: e.target.value })} placeholder="Within 30 days" className={`${field} mt-0`} />

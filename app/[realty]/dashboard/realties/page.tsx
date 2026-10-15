@@ -49,7 +49,7 @@ export default async function RealtiesPage({ params }: { params: Promise<{ realt
         lede={`Realties accredited under ${user.realty.name} sell your projects and units through their own agents. Invite one by email, read its form, then accept it.`}
         action={
           agreement_ready && (
-            <Link href={`/${slug}/dashboard/realties/agreement`} className="inline-flex items-center gap-2 border border-[#17150f] bg-white px-4 py-2.5 text-sm font-bold text-[#17150f] transition hover:bg-[#f6f4f0]">
+            <Link href={`/${slug}/dashboard/realties/agreement`} className="inline-flex items-center gap-2 rounded-xl border border-[#17150f] bg-white px-4 py-2.5 text-sm font-bold text-[#17150f] transition hover:bg-[#f6f4f0]">
               <FileSignature className="h-4 w-4" /> Accreditation agreement
             </Link>
           )
@@ -57,12 +57,12 @@ export default async function RealtiesPage({ params }: { params: Promise<{ realt
       />
 
       {!agreement_ready && (
-        <div className="mt-8 flex flex-col gap-3 border-2 border-amber-300 bg-amber-50 p-5 sm:flex-row sm:items-center sm:justify-between">
+        <div className="rounded-xl mt-8 flex flex-col gap-3 border-2 border-amber-300 bg-amber-50 p-5 sm:flex-row sm:items-center sm:justify-between">
           <div>
             <p className="text-lg font-bold">Set up the accreditation agreement</p>
             <p className="mt-1 text-sm text-[#3d3a34]">Add who signs for {user.realty.name}, your office address and the commission rates. Until then, realties send the form without agreeing to it.</p>
           </div>
-          <Link href={`/${slug}/dashboard/realties/agreement`} className="inline-flex shrink-0 items-center justify-center gap-2 bg-[#17150f] px-4 py-2.5 text-sm font-bold text-white hover:bg-[#3d3a34]">
+          <Link href={`/${slug}/dashboard/realties/agreement`} className="inline-flex shrink-0 items-center justify-center gap-2 rounded-xl bg-[#17150f] px-4 py-2.5 text-sm font-bold text-white hover:bg-[#3d3a34]">
             <FileSignature className="h-4 w-4" /> Set it up
           </Link>
         </div>
@@ -102,7 +102,7 @@ export default async function RealtiesPage({ params }: { params: Promise<{ realt
                     {a.representative_name} · {a.email} · sent {shortDate(a.submitted_at)} · {a.documents_count} document{a.documents_count === 1 ? "" : "s"}
                   </p>
                 </div>
-                <Link href={`/${slug}/dashboard/realties/${a.id}`} className="inline-flex items-center border border-[#17150f] bg-[#17150f] px-4 py-2.5 text-sm font-bold text-white transition hover:bg-[#3d3a34]">
+                <Link href={`/${slug}/dashboard/realties/${a.id}`} className="inline-flex items-center border border-[#17150f] rounded-xl bg-[#17150f] px-4 py-2.5 text-sm font-bold text-white transition hover:bg-[#3d3a34]">
                   Review
                 </Link>
               </Row>
@@ -133,7 +133,7 @@ export default async function RealtiesPage({ params }: { params: Promise<{ realt
                     title={`Delete the invite to ${i.email}?`}
                     body="Their link stops working. You can invite the same email again later."
                     success="Invite deleted"
-                    className="border border-[#d9d4cb] bg-white px-3 py-2 text-xs font-bold text-[#17150f] hover:border-red-400 hover:text-red-700"
+                    className="rounded-xl border border-[#d9d4cb] bg-white px-3 py-2 text-xs font-bold text-[#17150f] hover:border-red-400 hover:text-red-700"
                   />
                 </div>
               </Row>
@@ -176,7 +176,7 @@ export default async function RealtiesPage({ params }: { params: Promise<{ realt
                   title={`Delete ${b.name}?`}
                   body={`${b.name}'s ${b.agents_count} agent${b.agents_count === 1 ? "" : "s"} and staff lose their sign-in for good, and its accreditation form is removed. A realty that has sold offers can't be deleted. This can't be undone.`}
                   success={`${b.name} deleted`}
-                  className="border border-[#d9d4cb] bg-white px-3 py-2 text-xs font-bold text-[#17150f] hover:border-red-400 hover:text-red-700"
+                  className="rounded-xl border border-[#d9d4cb] bg-white px-3 py-2 text-xs font-bold text-[#17150f] hover:border-red-400 hover:text-red-700"
                 />
               </div>
             </Row>
@@ -214,7 +214,7 @@ export default async function RealtiesPage({ params }: { params: Promise<{ realt
                     title={`Delete ${r.firm_name}'s form?`}
                     body="The form and the files they attached are removed. This can't be undone."
                     success="Form deleted"
-                    className="border border-[#d9d4cb] bg-white px-3 py-2 text-xs font-bold text-[#17150f] hover:border-red-400 hover:text-red-700"
+                    className="rounded-xl border border-[#d9d4cb] bg-white px-3 py-2 text-xs font-bold text-[#17150f] hover:border-red-400 hover:text-red-700"
                   />
                 </div>
               </Row>

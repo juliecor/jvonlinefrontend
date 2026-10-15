@@ -70,7 +70,7 @@ export default async function AgreementSettingsPage({ params }: { params: Promis
         }
       >
         <p className="pt-4 text-sm text-[#6b665d]">Saved changes show here. A realty that already signed keeps the version it signed. Lines are filled in by hand, or with the realty&apos;s details once it sends its form.</p>
-        <div className="mt-4 border border-[#e6e2db] bg-white px-5 py-8 sm:px-10">
+        <div className="mt-4 rounded-2xl border border-[#e8eaed] bg-white shadow-[0_2px_12px_-2px_rgba(23,21,15,0.06)] px-5 py-8 sm:px-10">
           <AgreementDocument doc={preview} />
         </div>
       </Panel>

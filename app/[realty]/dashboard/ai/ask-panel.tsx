@@ -49,7 +49,7 @@ export function AskPanel({ slug, name, isAgent }: { slug: string; name: string; 
             setStarted(true)
             setOpen(true)
           }}
-          className="fixed bottom-4 right-4 z-40 flex h-12 items-center gap-2 bg-[var(--accent)] px-4 text-sm font-bold text-white shadow-[0_12px_32px_-10px_rgba(0,0,0,0.45)] transition hover:brightness-110 sm:bottom-6 sm:right-6"
+          className="rounded-xl fixed bottom-4 right-4 z-40 flex h-12 items-center gap-2 bg-[var(--accent)] px-4 text-sm font-bold text-white shadow-[0_12px_32px_-10px_rgba(0,0,0,0.45)] transition hover:brightness-110 sm:bottom-6 sm:right-6"
         >
           <Sparkles className="h-5 w-5" />
           <span className="sm:hidden">Ask AI</span>
@@ -77,9 +77,9 @@ function Panel({ slug, name, isAgent, page, hidden, onClose, onNew }: { slug: st
   }
 
   return (
-    <section aria-label={`Ask ${name}`} className={`fixed inset-0 z-50 flex-col bg-white sm:left-auto sm:w-[440px] sm:border-l sm:border-[#e0dcd5] sm:shadow-[-24px_0_48px_-24px_rgba(0,0,0,0.3)] ${hidden ? "hidden" : "flex"}`}>
+    <section aria-label={`Ask ${name}`} className={`rounded-2xl fixed inset-0 z-50 flex-col bg-white sm:left-auto sm:w-[440px] sm:border-l sm:border-[#e0dcd5] sm:shadow-[-24px_0_48px_-24px_rgba(0,0,0,0.3)] ${hidden ? "hidden" : "flex"}`}>
       <header className="flex items-center gap-3 border-b border-[#e6e2db] px-4 py-3">
-        <span className="flex h-9 w-9 shrink-0 items-center justify-center bg-[var(--accent)] text-white">
+        <span className="rounded-xl flex h-9 w-9 shrink-0 items-center justify-center bg-[var(--accent)] text-white">
           <Sparkles className="h-5 w-5" />
         </span>
         <div className="min-w-0 flex-1">
@@ -108,7 +108,7 @@ function Panel({ slug, name, isAgent, page, hidden, onClose, onNew }: { slug: st
             <p className="mt-1 text-sm text-[#5a554d]">Type or tap the mic. {name} looks it up as you ask.</p>
             <div className="mt-4 grid gap-2">
               {ideas.map((idea) => (
-                <button key={idea} type="button" onClick={() => ask(idea)} className="border border-[#e0dcd5] bg-[#faf8f5] px-4 py-3 text-left text-sm font-semibold text-[#3d3a34] transition hover:border-[var(--accent)] hover:bg-white hover:text-[#17150f]">
+                <button key={idea} type="button" onClick={() => ask(idea)} className="rounded-xl border border-[#e0dcd5] bg-[#faf8f5] px-4 py-3 text-left text-sm font-semibold text-[#3d3a34] transition hover:border-[var(--accent)] hover:bg-white hover:text-[#17150f]">
                   {idea}
                 </button>
               ))}

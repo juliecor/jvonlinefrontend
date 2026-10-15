@@ -67,7 +67,7 @@ export function AssistantChat({ slug, name, firstName, isAgent, chats: initialCh
   }
 
   const list = (
-    <div className="flex h-full flex-col border border-[#e0dcd5] bg-white">
+    <div className="flex h-full flex-col rounded-2xl border border-[#e8eaed] bg-white shadow-[0_2px_12px_-2px_rgba(23,21,15,0.06)]">
       <div className="flex items-center justify-between gap-2 border-b border-[#e6e2db] p-3">
         <p className="px-1 text-xs font-bold uppercase tracking-[0.14em] text-[#6b665d]">Your chats</p>
         <button type="button" onClick={() => setShowList(false)} aria-label="Close chats" className="p-1 text-[#6b665d] lg:hidden">
@@ -75,7 +75,7 @@ export function AssistantChat({ slug, name, firstName, isAgent, chats: initialCh
         </button>
       </div>
       <div className="p-3">
-        <Link href={base} className="flex items-center justify-center gap-2 bg-[var(--accent)] px-4 py-2.5 text-sm font-bold text-white transition hover:brightness-110">
+        <Link href={base} className="flex items-center justify-center gap-2 rounded-xl bg-[var(--accent)] px-4 py-2.5 text-sm font-bold text-white transition hover:brightness-110">
           <Plus className="h-4 w-4" strokeWidth={2.5} /> New chat
         </Link>
       </div>
@@ -110,20 +110,20 @@ export function AssistantChat({ slug, name, firstName, isAgent, chats: initialCh
         </div>
       )}
 
-      <section className="flex h-[calc(100dvh-10rem)] min-w-0 flex-1 flex-col border border-[#e0dcd5] bg-white lg:h-full">
+      <section className="flex h-[calc(100dvh-10rem)] min-w-0 flex-1 flex-col rounded-2xl border border-[#e8eaed] bg-white shadow-[0_2px_12px_-2px_rgba(23,21,15,0.06)] lg:h-full">
         <header className="flex items-center gap-3 border-b border-[#e6e2db] px-4 py-3 sm:px-5">
-          <span className="flex h-9 w-9 shrink-0 items-center justify-center bg-[var(--accent)] text-white">
+          <span className="rounded-xl flex h-9 w-9 shrink-0 items-center justify-center bg-[var(--accent)] text-white">
             <Sparkles className="h-5 w-5" />
           </span>
           <div className="min-w-0 flex-1">
             <h1 className="text-lg font-bold leading-tight tracking-tight">{name}</h1>
             <p className="truncate text-xs text-[#6b665d]">Answers from your dashboard&apos;s live data</p>
           </div>
-          <button type="button" onClick={() => setShowList(true)} className="inline-flex items-center gap-1.5 border border-[#d9d4cb] px-3 py-2 text-sm font-bold lg:hidden">
+          <button type="button" onClick={() => setShowList(true)} className="rounded-xl inline-flex items-center gap-1.5 border border-[#d9d4cb] px-3 py-2 text-sm font-bold lg:hidden">
             <MessageSquare className="h-4 w-4" /> Chats
           </button>
           {messages.length > 0 && (
-            <Link href={base} className="hidden items-center gap-1.5 border border-[#d9d4cb] px-3 py-2 text-sm font-bold transition hover:border-[#17150f] sm:inline-flex">
+            <Link href={base} className="rounded-xl hidden items-center gap-1.5 border border-[#d9d4cb] px-3 py-2 text-sm font-bold transition hover:border-[#17150f] sm:inline-flex">
               <Plus className="h-4 w-4" /> New chat
             </Link>
           )}
@@ -139,8 +139,8 @@ export function AssistantChat({ slug, name, firstName, isAgent, chats: initialCh
               <p className="mt-2 max-w-md text-[15px] text-[#5a554d]">
                 Ask about projects, units and prices, payment plans, {isAgent ? "your offers and your buyers" : "offers, buyers and agents"}. Type or tap the mic. {name} looks it up in your dashboard as you ask.
               </p>
-              <button type="button" onClick={() => ask(TODAY)} className="group mt-7 flex w-full items-center gap-4 bg-[#17150f] px-4 py-4 text-left text-white transition hover:bg-black sm:px-5">
-                <span className="flex h-11 w-11 shrink-0 items-center justify-center bg-[var(--accent)]">
+              <button type="button" onClick={() => ask(TODAY)} className="group mt-7 flex w-full items-center gap-4 rounded-xl bg-[#17150f] px-4 py-4 text-left text-white transition hover:bg-black sm:px-5">
+                <span className="rounded-xl flex h-11 w-11 shrink-0 items-center justify-center bg-[var(--accent)]">
                   <BellRing className="h-5 w-5" />
                 </span>
                 <span className="min-w-0 flex-1">
@@ -150,7 +150,7 @@ export function AssistantChat({ slug, name, firstName, isAgent, chats: initialCh
                   </span>
                 </span>
                 {!!attention && (
-                  <span className="flex h-8 min-w-8 shrink-0 items-center justify-center bg-[var(--accent)] px-2 text-sm font-bold tabular-nums" aria-label={`${attention} waiting`}>
+                  <span className="rounded-xl flex h-8 min-w-8 shrink-0 items-center justify-center bg-[var(--accent)] px-2 text-sm font-bold tabular-nums" aria-label={`${attention} waiting`}>
                     {attention}
                   </span>
                 )}
@@ -158,7 +158,7 @@ export function AssistantChat({ slug, name, firstName, isAgent, chats: initialCh
               </button>
               <div className="mt-2 grid w-full gap-2 sm:grid-cols-2">
                 {(isAgent ? AGENT_IDEAS : STAFF_IDEAS).map((idea) => (
-                  <button key={idea} type="button" onClick={() => ask(idea)} className="border border-[#e0dcd5] bg-[#faf8f5] px-4 py-3 text-left text-sm font-semibold text-[#3d3a34] transition hover:border-[var(--accent)] hover:bg-white hover:text-[#17150f]">
+                  <button key={idea} type="button" onClick={() => ask(idea)} className="rounded-xl border border-[#e0dcd5] bg-[#faf8f5] px-4 py-3 text-left text-sm font-semibold text-[#3d3a34] transition hover:border-[var(--accent)] hover:bg-white hover:text-[#17150f]">
                     {idea}
                   </button>
                 ))}

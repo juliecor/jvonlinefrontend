@@ -31,7 +31,7 @@ export function UnitStatusPanel({ slug, offerId, unitName, project, initial, can
     })
 
   return (
-    <section className="h-full border border-[#e0dcd5] bg-white p-5">
+    <section className="h-full rounded-2xl border border-[#e8eaed] bg-white shadow-[0_2px_12px_-2px_rgba(23,21,15,0.06)] p-5">
       <div className="flex flex-wrap items-center justify-between gap-3">
         <p className="flex items-center gap-2 text-xs font-bold uppercase tracking-[0.16em] text-[#17150f]">
           <Home className="h-4 w-4 text-[var(--accent)]" /> Unit status
@@ -50,7 +50,7 @@ export function UnitStatusPanel({ slug, offerId, unitName, project, initial, can
           {project && <span className="font-semibold text-[#6b665d]"> · {project}</span>}
         </p>
         {canChange && !heldElsewhere ? (
-          <div role="group" aria-label="Unit status" className="flex border border-[#d9d4cb] sm:ml-auto">
+          <div role="group" aria-label="Unit status" className="flex overflow-hidden rounded-xl border border-[#d9d4cb] sm:ml-auto">
             {OPTIONS.map((o) => {
               const on = hold.status === o.value
               return (
@@ -76,7 +76,7 @@ export function UnitStatusPanel({ slug, offerId, unitName, project, initial, can
       {hold.status === "available" ? (
         <p className="mt-3 text-sm text-[#6b665d]">{canChange ? "When the buyer reserves or buys, mark it here. The project's unit list will show it's theirs." : "The developer's admins mark it reserved or sold when the buyer goes ahead."}</p>
       ) : heldElsewhere ? (
-        <p className="mt-3 border-l-4 border-amber-500 bg-amber-50 px-4 py-2.5 text-sm font-semibold text-amber-900">
+        <p className="rounded-xl mt-3 border-l-4 border-amber-500 bg-amber-50 px-4 py-2.5 text-sm font-semibold text-amber-900">
           This unit is already {hold.status}
           {d?.buyer ? ` to ${d.buyer}` : ""}
           {d?.agent ? ` through ${d.agent}` : ""} on another offer

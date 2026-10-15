@@ -81,12 +81,12 @@ export default async function MyAccreditationPage({ params }: { params: Promise<
           <p className={`text-2xl font-bold tracking-tight ${stopped ? "text-red-800" : a.state === "ending" ? "text-amber-800" : "text-[#17150f]"}`}>{headline}</p>
           {a.from && <p className="mt-1 text-[15px] text-[#5a554d]">Started {longDate(a.from)}.</p>}
           {stopped && (
-            <p className="mt-3 border-l-4 border-red-600 bg-red-50 px-4 py-2.5 text-[15px] font-semibold text-red-800">
+            <p className="rounded-xl mt-3 border-l-4 border-red-600 bg-red-50 px-4 py-2.5 text-[15px] font-semibold text-red-800">
               You can&apos;t make new offers until {a.developer} renews it. Offers you already made carry on.
               {a.state === "ended" && a.end_note && <span className="mt-1 block font-normal">Their note: &ldquo;{a.end_note}&rdquo;</span>}
             </p>
           )}
-          {a.state === "ending" && <p className="mt-3 border-l-4 border-amber-500 bg-amber-50 px-4 py-2.5 text-[15px] text-amber-950">Ask {a.developer} to renew it before it ends, so you can keep making offers.</p>}
+          {a.state === "ending" && <p className="rounded-xl mt-3 border-l-4 border-amber-500 bg-amber-50 px-4 py-2.5 text-[15px] text-amber-950">Ask {a.developer} to renew it before it ends, so you can keep making offers.</p>}
         </div>
       </Panel>
 
@@ -108,7 +108,7 @@ export default async function MyAccreditationPage({ params }: { params: Promise<
               )}
               <p className="mt-3 text-sm text-[#6b665d]">Certificate No. {a.certificate.number}</p>
               <div className="mt-4 flex flex-wrap items-center gap-2">
-                <Link href={`/${slug}/certificate`} target="_blank" className="inline-flex items-center gap-2 bg-[#17150f] px-5 py-3 text-[15px] font-bold text-white hover:bg-[#3d3a34]">
+                <Link href={`/${slug}/certificate`} target="_blank" className="inline-flex items-center gap-2 rounded-xl bg-[#17150f] px-5 py-3 text-[15px] font-bold text-white hover:bg-[#3d3a34]">
                   <Printer className="h-5 w-5" /> View and print
                 </Link>
                 <CopyButton text={a.certificate.verify_url} label="Copy check link" className="bg-white" />
@@ -153,7 +153,7 @@ export default async function MyAccreditationPage({ params }: { params: Promise<
               </ol>
 
               {a.agreement ? (
-                <Link href={`/${slug}/agreement`} target="_blank" className="inline-flex items-center gap-2 bg-[#17150f] px-5 py-3 text-[15px] font-bold text-white hover:bg-[#3d3a34]">
+                <Link href={`/${slug}/agreement`} target="_blank" className="inline-flex items-center gap-2 rounded-xl bg-[#17150f] px-5 py-3 text-[15px] font-bold text-white hover:bg-[#3d3a34]">
                   <Printer className="h-5 w-5" /> Print the agreement
                 </Link>
               ) : (
@@ -161,12 +161,12 @@ export default async function MyAccreditationPage({ params }: { params: Promise<
               )}
 
               {copy.status === "submitted" && (
-                <p className="border-l-4 border-sky-500 bg-sky-50 px-4 py-2.5 text-[15px] text-sky-950">
+                <p className="rounded-xl border-l-4 border-sky-500 bg-sky-50 px-4 py-2.5 text-[15px] text-sky-950">
                   <strong>{copy.name}</strong> was sent {shortDate(copy.uploaded_at)}. {a.developer} is checking it.
                 </p>
               )}
               {copy.status === "returned" && (
-                <p className="border-l-4 border-amber-500 bg-amber-50 px-4 py-2.5 text-[15px] text-amber-950">
+                <p className="rounded-xl border-l-4 border-amber-500 bg-amber-50 px-4 py-2.5 text-[15px] text-amber-950">
                   <strong>{a.developer} sent it back:</strong> &ldquo;
                   {copy.note}&rdquo; Please fix it and upload it again.
                 </p>

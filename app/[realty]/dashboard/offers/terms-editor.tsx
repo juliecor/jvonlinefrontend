@@ -35,7 +35,7 @@ export function toMilestones(rows: TermRow[], price: number): MilestoneInput[] {
 
 export const termsTotal = (rows: TermRow[]) => rows.reduce((s, r) => s + (Number(r.amount) || 0), 0)
 
-const input = "block w-full border border-[#d9d4cb] bg-white px-3 py-2.5 text-[15px] text-[#17150f] outline-none focus:border-[var(--accent)] focus:ring-2 focus:ring-[var(--accent)]/15"
+const input = "block w-full rounded-xl border border-[#d9d4cb] bg-white px-3 py-2.5 text-[15px] text-[#17150f] outline-none focus:border-[var(--accent)] focus:ring-2 focus:ring-[var(--accent)]/15"
 const label = "mb-1 block text-[11px] font-bold uppercase tracking-[0.1em] text-[#6b665d]"
 
 export function TermsEditor({ rows, setRows, price }: { rows: TermRow[]; setRows: (fn: (rs: TermRow[]) => TermRow[]) => void; price: number }) {
@@ -48,7 +48,7 @@ export function TermsEditor({ rows, setRows, price }: { rows: TermRow[]; setRows
       {rows.map((r, i) => {
         const months = Number(r.months)
         return (
-          <div key={r.id} className="grid gap-3 border border-[#e0dcd5] bg-white p-3 sm:grid-cols-[1.5fr_1fr_0.9fr_0.8fr_auto] sm:items-end">
+          <div key={r.id} className="grid gap-3 rounded-2xl border border-[#e8eaed] bg-white shadow-[0_2px_12px_-2px_rgba(23,21,15,0.06)] p-3 sm:grid-cols-[1.5fr_1fr_0.9fr_0.8fr_auto] sm:items-end">
             <label className="block">
               <span className={label}>Payment {i + 1}</span>
               <input value={r.label} onChange={(e) => update(r.id, { label: e.target.value })} required placeholder="e.g. Reservation fee" className={input} />
@@ -83,7 +83,7 @@ export function TermsEditor({ rows, setRows, price }: { rows: TermRow[]; setRows
         )
       })}
       <div className="flex flex-wrap items-center gap-3">
-        <button type="button" onClick={() => setRows((rs) => [...rs, termRow()])} className="inline-flex items-center gap-1.5 border border-[#d9d4cb] bg-white px-3 py-2 text-sm font-bold text-[#17150f] hover:border-[#17150f]">
+        <button type="button" onClick={() => setRows((rs) => [...rs, termRow()])} className="inline-flex items-center gap-1.5 rounded-xl border border-[#d9d4cb] bg-white px-3 py-2 text-sm font-bold text-[#17150f] hover:border-[#17150f]">
           <Plus className="h-4 w-4" /> Add payment
         </button>
         <span className={`text-sm font-bold ${Math.abs(diff) < 0.01 ? "text-emerald-700" : "text-amber-700"}`}>

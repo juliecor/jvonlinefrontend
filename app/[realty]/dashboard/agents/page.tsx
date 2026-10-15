@@ -78,7 +78,7 @@ export default async function RealtyAgentsPage({ params }: { params: Promise<{ r
                     title={`Delete ${i.name}'s invitation?`}
                     body="Their link stops working. You can make a new invite for them later."
                     success="Invitation deleted"
-                    className="border border-[#d9d4cb] bg-white px-3 py-2 text-xs font-bold text-[#17150f] hover:border-red-400 hover:text-red-700"
+                    className="rounded-xl border border-[#d9d4cb] bg-white px-3 py-2 text-xs font-bold text-[#17150f] hover:border-red-400 hover:text-red-700"
                   />
                 </div>
               </Row>

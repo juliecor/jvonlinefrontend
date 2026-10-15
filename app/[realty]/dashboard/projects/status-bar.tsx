@@ -39,7 +39,7 @@ export function StatusBar({ slug, projectId, value: initial, pageSlug, staff }: 
   const stages = value.stage && !STAGES.includes(value.stage) ? [...STAGES, value.stage] : STAGES
 
   return (
-    <section id="status" className="mt-6 scroll-mt-6 border border-[#e6e2db] bg-white">
+    <section id="status" className="mt-6 scroll-mt-6 rounded-2xl border border-[#e8eaed] bg-white shadow-[0_2px_12px_-2px_rgba(23,21,15,0.06)]">
       <div className="flex items-center justify-between gap-3 border-b border-[#e6e2db] px-5 py-4">
         <h2 className="text-lg font-bold text-[#17150f]">Status</h2>
         <span role="status" className="text-sm font-semibold">
@@ -71,7 +71,7 @@ export function StatusBar({ slug, projectId, value: initial, pageSlug, staff }: 
             value={value.stage ?? ""}
             onChange={(e) => save({ stage: e.target.value || null })}
             aria-label="Stage"
-            className="mt-2 block w-full border border-[#d9d4cb] bg-white px-3 py-2.5 text-sm font-bold text-[#17150f] outline-none focus:border-[var(--accent)]"
+            className="mt-2 block w-full rounded-xl border border-[#d9d4cb] bg-white px-3 py-2.5 text-sm font-bold text-[#17150f] outline-none focus:border-[var(--accent)]"
           >
             <option value="">Not set</option>
             {stages.map((s) => (

@@ -31,7 +31,7 @@ export function PaymentCard({ slug, card: p }: { slug: string; card: Payment }) 
   const total = p.payments.reduce((s, r) => s + r.amount, 0)
 
   return (
-    <div className="mt-4 border border-[#e0dcd5] bg-white">
+    <div className="mt-4 rounded-2xl border border-[#e8eaed] bg-white shadow-[0_2px_12px_-2px_rgba(23,21,15,0.06)]">
       <div className="border-b border-[#efebe5] px-4 py-3">
         <p className="text-xs font-bold uppercase tracking-[0.12em] text-[var(--accent)]">Payments · {p.terms}</p>
         <p className="mt-0.5 text-base font-bold text-[#17150f]">
@@ -89,13 +89,13 @@ export function PaymentCard({ slug, card: p }: { slug: string; card: Payment }) 
       </ul>
 
       {p.price_now !== null && (
-        <p className="mx-4 mb-3 border-l-4 border-amber-500 bg-amber-50 px-3 py-2 text-xs font-semibold text-amber-900">
+        <p className="rounded-xl mx-4 mb-3 border-l-4 border-amber-500 bg-amber-50 px-3 py-2 text-xs font-semibold text-amber-900">
           The price is now {php(p.price_now)}. A new offer uses today&apos;s price.
         </p>
       )}
       {p.can_offer && p.unit && p.project && (
         <div className="border-t border-[#efebe5] p-2.5 sm:px-4">
-          <Link href={offerLink(slug, p)} className="inline-flex w-full items-center justify-center gap-1.5 bg-[var(--accent)] px-4 py-2.5 text-sm font-bold text-white transition hover:brightness-110 sm:w-auto">
+          <Link href={offerLink(slug, p)} className="inline-flex w-full items-center justify-center gap-1.5 rounded-xl bg-[var(--accent)] px-4 py-2.5 text-sm font-bold text-white transition hover:brightness-110 sm:w-auto">
             <FilePlus2 className="h-4 w-4" /> Make offer with these terms
           </Link>
         </div>

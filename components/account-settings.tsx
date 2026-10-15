@@ -9,7 +9,7 @@ export type Account = { name: string; email: string; photo_url?: string | null; 
 export type AccountState = { error?: string; errors?: Record<string, string>; ok?: number }
 type Action = (prev: AccountState, form: FormData) => Promise<AccountState>
 
-const box = "block w-full border border-[#d9d4cb] bg-white px-3.5 py-3 text-[15px] text-[#17150f] outline-none transition focus:border-[var(--accent)] focus:ring-2 focus:ring-[var(--accent)]/15"
+const box = "block w-full rounded-xl border border-[#d9d4cb] bg-white px-3.5 py-3 text-[15px] text-[#17150f] outline-none transition focus:border-[var(--accent)] focus:ring-2 focus:ring-[var(--accent)]/15"
 const input = `mt-1.5 ${box}`
 const label = "text-xs font-bold uppercase tracking-[0.12em] text-[#6b665d]"
 
@@ -31,7 +31,7 @@ export const roleLabel = (a: Account) => (a.is_superadmin ? "Super admin" : a.ro
 export function AccountSettings({ account, buyersSee, save, changePassword }: { account: Account; buyersSee?: string; save: Action; changePassword: Action }) {
   return (
     <div className="max-w-3xl">
-      <div className="flex items-center gap-4 border border-[#e6e2db] bg-white p-5">
+      <div className="flex items-center gap-4 rounded-2xl border border-[#e8eaed] bg-white shadow-[0_2px_12px_-2px_rgba(23,21,15,0.06)] p-5">
         {account.photo_url ? (
           // eslint-disable-next-line @next/next/no-img-element
           <img src={account.photo_url} alt="" className="h-16 w-16 shrink-0 rounded-full object-cover ring-2 ring-[var(--accent)]/25" />
@@ -67,13 +67,13 @@ function Details({ account, buyersSee, save }: { account: Account; buyersSee?: s
   }, [state.ok])
 
   return (
-    <section className="mt-6 border border-[#e6e2db] bg-white">
+    <section className="mt-6 rounded-2xl border border-[#e8eaed] bg-white shadow-[0_2px_12px_-2px_rgba(23,21,15,0.06)]">
       <header className="flex items-center gap-2.5 border-b border-[#e6e2db] px-5 py-4">
         <UserRound className="h-5 w-5 text-[var(--accent)]" />
         <h2 className="text-lg font-bold text-[#17150f]">Your details</h2>
       </header>
       <form action={action} className="space-y-5 p-5">
-        {buyersSee && <p className="border-l-4 border-[var(--accent)] bg-[#faf8f5] px-3.5 py-2.5 text-sm text-[#3d3a34]">{buyersSee}</p>}
+        {buyersSee && <p className="rounded-xl border-l-4 border-[var(--accent)] bg-[#faf8f5] px-3.5 py-2.5 text-sm text-[#3d3a34]">{buyersSee}</p>}
         <div className="grid gap-5 sm:grid-cols-2">
           <label className="block sm:col-span-2">
             <span className={label}>Full name</span>
@@ -99,7 +99,7 @@ function Details({ account, buyersSee, save }: { account: Account; buyersSee?: s
           )}
         </div>
         {state.error && <p role="alert" className="text-sm font-bold text-red-700">{state.error}</p>}
-        <button type="submit" disabled={pending} className="inline-flex items-center gap-2 bg-[var(--accent)] px-5 py-3 text-[15px] font-bold text-white transition hover:brightness-110 disabled:opacity-60">
+        <button type="submit" disabled={pending} className="inline-flex items-center gap-2 rounded-xl bg-[var(--accent)] px-5 py-3 text-[15px] font-bold text-white transition hover:brightness-110 disabled:opacity-60">
           {pending && <LoaderCircle className="h-4 w-4 animate-spin" />} Save details
         </button>
       </form>
@@ -115,7 +115,7 @@ function Password({ changePassword }: { changePassword: Action }) {
   }, [state.ok])
 
   return (
-    <section className="mt-6 border border-[#e6e2db] bg-white">
+    <section className="mt-6 rounded-2xl border border-[#e8eaed] bg-white shadow-[0_2px_12px_-2px_rgba(23,21,15,0.06)]">
       <header className="flex items-center gap-2.5 border-b border-[#e6e2db] px-5 py-4">
         <KeyRound className="h-5 w-5 text-[var(--accent)]" />
         <h2 className="text-lg font-bold text-[#17150f]">Password</h2>
@@ -139,7 +139,7 @@ function Password({ changePassword }: { changePassword: Action }) {
           </label>
         </div>
         {state.error && <p role="alert" className="text-sm font-bold text-red-700">{state.error}</p>}
-        <button type="submit" disabled={pending} className="inline-flex items-center gap-2 bg-[#17150f] px-5 py-3 text-[15px] font-bold text-white transition hover:bg-black disabled:opacity-60">
+        <button type="submit" disabled={pending} className="inline-flex items-center gap-2 rounded-xl bg-[#17150f] px-5 py-3 text-[15px] font-bold text-white transition hover:bg-black disabled:opacity-60">
           {pending && <LoaderCircle className="h-4 w-4 animate-spin" />} Change password
         </button>
       </form>

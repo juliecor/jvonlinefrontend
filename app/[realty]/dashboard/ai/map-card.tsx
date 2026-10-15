@@ -11,7 +11,7 @@ import type { MapCard as MapCardData } from "./actions"
 export function MapCard({ slug, card }: { slug: string; card: MapCardData }) {
   const marked = card.lots.map((id) => card.map.lots.find((l) => l.id === id)).filter((l) => !!l)
   return (
-    <div className="mt-4 border border-[#e0dcd5] bg-white">
+    <div className="mt-4 rounded-2xl border border-[#e8eaed] bg-white shadow-[0_2px_12px_-2px_rgba(23,21,15,0.06)]">
       <div className="flex flex-wrap items-center justify-between gap-2 border-b border-[#efebe5] px-4 py-3">
         <p className="flex items-center gap-2 text-sm font-bold text-[#17150f]">
           <MapPin className="h-4 w-4 text-[var(--accent)]" />

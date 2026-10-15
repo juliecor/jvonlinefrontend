@@ -48,7 +48,7 @@ export function ReservationPanel({ slug, offerId, initial, canSettle, buyerFirst
   const waiting = r.status === "pending" || r.status === "paid"
 
   return (
-    <section className="h-full border border-[#e6e2db] bg-white p-5">
+    <section className="h-full rounded-2xl border border-[#e8eaed] bg-white shadow-[0_2px_12px_-2px_rgba(23,21,15,0.06)] p-5">
       <div className="flex flex-wrap items-center justify-between gap-3">
         <p className="flex items-center gap-2 text-xs font-bold uppercase tracking-[0.16em] text-[#17150f]">
           <Wallet className="h-4 w-4 text-[var(--accent)]" /> Reservation
@@ -113,10 +113,10 @@ export function ReservationPanel({ slug, offerId, initial, canSettle, buyerFirst
 
       {canSettle && waiting && !declining && (
         <div className="mt-4 flex flex-wrap gap-2">
-          <button type="button" onClick={confirm} disabled={pending} className="inline-flex items-center gap-2 bg-emerald-700 px-4 py-2.5 text-sm font-bold text-white hover:brightness-110 disabled:opacity-60">
+          <button type="button" onClick={confirm} disabled={pending} className="rounded-xl inline-flex items-center gap-2 bg-emerald-700 px-4 py-2.5 text-sm font-bold text-white hover:brightness-110 disabled:opacity-60">
             <ShieldCheck className="h-4 w-4" /> Confirm reservation
           </button>
-          <button type="button" onClick={() => setDeclining(true)} disabled={pending} className="inline-flex items-center border border-[#d9d4cb] bg-white px-4 py-2.5 text-sm font-bold text-[#17150f] hover:border-red-400 hover:text-red-700 disabled:opacity-60">
+          <button type="button" onClick={() => setDeclining(true)} disabled={pending} className="inline-flex items-center rounded-xl border border-[#d9d4cb] bg-white px-4 py-2.5 text-sm font-bold text-[#17150f] hover:border-red-400 hover:text-red-700 disabled:opacity-60">
             Send back
           </button>
         </div>
@@ -131,10 +131,10 @@ export function ReservationPanel({ slug, offerId, initial, canSettle, buyerFirst
         >
           <label className="block">
             <span className="text-xs font-bold uppercase tracking-[0.12em] text-[#6b665d]">Tell the buyer why</span>
-            <input value={note} onChange={(e) => setNote(e.target.value)} required maxLength={500} placeholder="e.g. The receipt is blurry, please send a clearer photo." className="mt-1.5 block w-full border border-[#d9d4cb] px-3.5 py-2.5 text-[15px] outline-none focus:border-[var(--accent)]" />
+            <input value={note} onChange={(e) => setNote(e.target.value)} required maxLength={500} placeholder="e.g. The receipt is blurry, please send a clearer photo." className="rounded-xl mt-1.5 block w-full border border-[#d9d4cb] px-3.5 py-2.5 text-[15px] outline-none focus:border-[var(--accent)]" />
           </label>
           <div className="flex gap-2">
-            <button type="submit" disabled={pending || !note.trim()} className="bg-red-700 px-4 py-2.5 text-sm font-bold text-white hover:brightness-110 disabled:opacity-60">
+            <button type="submit" disabled={pending || !note.trim()} className="rounded-xl bg-red-700 px-4 py-2.5 text-sm font-bold text-white hover:brightness-110 disabled:opacity-60">
               Send back to the buyer
             </button>
             <button type="button" onClick={() => setDeclining(false)} className="px-3 py-2.5 text-sm font-semibold text-[#8a847a] hover:text-[#17150f]">

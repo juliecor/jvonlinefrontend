@@ -29,7 +29,7 @@ export function ProfilePhoto({ slug, name, photo }: { slug: string; name: string
   }
 
   return (
-    <section className="flex flex-col gap-5 border border-[#e6e2db] bg-white p-5 sm:flex-row sm:items-center">
+    <section className="flex flex-col gap-5 rounded-2xl border border-[#e8eaed] bg-white shadow-[0_2px_12px_-2px_rgba(23,21,15,0.06)] p-5 sm:flex-row sm:items-center">
       {url ? (
         // eslint-disable-next-line @next/next/no-img-element
         <img src={url} alt={name} className="h-24 w-24 shrink-0 rounded-full object-cover ring-1 ring-[#e6e2db]" />
@@ -42,7 +42,7 @@ export function ProfilePhoto({ slug, name, photo }: { slug: string; name: string
         <p className="text-lg font-bold">Profile photo</p>
         <p className="mt-0.5 text-[15px] text-[#5a554d]">Shown at the top of your menu. A clear photo of your face works best. JPG or PNG, up to 5 MB.</p>
         <div className="mt-3 flex flex-wrap gap-2">
-          <button type="button" disabled={pending} onClick={() => input.current?.click()} className="inline-flex items-center gap-2 bg-[var(--accent)] px-4 py-2.5 text-sm font-bold text-white hover:brightness-110 disabled:opacity-50">
+          <button type="button" disabled={pending} onClick={() => input.current?.click()} className="inline-flex items-center gap-2 rounded-xl bg-[var(--accent)] px-4 py-2.5 text-sm font-bold text-white hover:brightness-110 disabled:opacity-50">
             {pending ? <LoaderCircle className="h-4 w-4 animate-spin" /> : <Camera className="h-4 w-4" />} {url ? "Change photo" : "Upload photo"}
           </button>
           {url && (
@@ -53,7 +53,7 @@ export function ProfilePhoto({ slug, name, photo }: { slug: string; name: string
                 if (!(await confirmAction({ title: "Remove your photo?", body: "Your initials show instead.", confirm: "Remove", danger: true }))) return
                 start(async () => done(await removePhoto(slug), "Photo removed"))
               }}
-              className="inline-flex items-center gap-2 border border-[#d9d4cb] bg-white px-4 py-2.5 text-sm font-bold text-[#3d3a34] hover:border-red-400 hover:text-red-700 disabled:opacity-50"
+              className="inline-flex items-center gap-2 rounded-xl border border-[#d9d4cb] bg-white px-4 py-2.5 text-sm font-bold text-[#3d3a34] hover:border-red-400 hover:text-red-700 disabled:opacity-50"
             >
               <Trash2 className="h-4 w-4" /> Remove
             </button>

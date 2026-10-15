@@ -28,7 +28,7 @@ export function LeadTag({ kind, label }: { kind: LeadKind; label: string }) {
 }
 
 export function NewTag() {
-  return <span className="bg-[var(--accent)] px-1.5 py-0.5 text-[10px] font-bold uppercase tracking-[0.14em] text-white">New</span>
+  return <span className="rounded-xl bg-[var(--accent)] px-1.5 py-0.5 text-[10px] font-bold uppercase tracking-[0.14em] text-white">New</span>
 }
 
 export const VIA_LABEL = { call: "a call", viber: "Viber", whatsapp: "WhatsApp", sms: "a text", email: "email" } as const
@@ -42,7 +42,7 @@ function intl(phone: string) {
   return d
 }
 
-const link = "inline-flex items-center gap-2 border px-3.5 py-2.5 text-sm font-bold transition"
+const link = "rounded-xl inline-flex items-center gap-2 border px-3.5 py-2.5 text-sm font-bold transition"
 
 /** Call / Viber / WhatsApp / Text / Email — the buyer's preferred way first and filled in. */
 export function ContactButtons({ phone, email, via, limit }: { phone: string | null; email: string | null; via: Lead["contact_via"]; limit?: number }) {

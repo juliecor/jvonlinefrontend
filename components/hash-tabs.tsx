@@ -55,7 +55,7 @@ export function HashTabs({ tabs }: { tabs: HashTab[] }) {
                 <span className="sm:hidden">{t.short ?? t.label}</span>
                 <span className="hidden sm:inline">{t.label}</span>
               </span>
-              {t.badge !== undefined && t.badge !== null && t.badge !== "" && <span className={`shrink-0 px-1.5 py-0.5 text-[11px] font-bold tabular-nums ${BADGE[t.tone ?? "neutral"]}`}>{t.badge}</span>}
+              {t.badge !== undefined && t.badge !== null && t.badge !== "" && <span className={`rounded-md shrink-0 px-1.5 py-0.5 text-[11px] font-bold tabular-nums ${BADGE[t.tone ?? "neutral"]}`}>{t.badge}</span>}
               <span aria-hidden className={`absolute inset-x-0 -bottom-[2px] h-[3px] bg-[var(--accent)] transition-opacity ${on ? "opacity-100" : "opacity-0"}`} />
             </a>
           )

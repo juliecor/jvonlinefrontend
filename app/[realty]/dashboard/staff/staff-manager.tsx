@@ -25,7 +25,7 @@ export type StaffMember = {
 
 type Info = Record<string, { label: string; text: string }>
 
-const box = "block w-full border border-[#d9d4cb] bg-white px-3.5 py-3 text-[15px] text-[#17150f] outline-none transition focus:border-[var(--accent)] focus:ring-2 focus:ring-[var(--accent)]/15"
+const box = "block w-full rounded-xl border border-[#d9d4cb] bg-white px-3.5 py-3 text-[15px] text-[#17150f] outline-none transition focus:border-[var(--accent)] focus:ring-2 focus:ring-[var(--accent)]/15"
 const input = `mt-1.5 ${box}`
 const label = "text-xs font-bold uppercase tracking-[0.12em] text-[#6b665d]"
 const initials = (name: string) =>
@@ -74,7 +74,7 @@ export function StaffManager({ slug, realty, loginUrl, sections, info, staff }: 
     <div>
       <div className="flex flex-wrap items-center justify-between gap-3 border-b border-[#17150f] pb-2">
         <h2 className="text-xs font-bold uppercase tracking-[0.16em] text-[#17150f]">Staff accounts · {staff.length}</h2>
-        <button type="button" onClick={() => setAdding(true)} className="inline-flex items-center gap-1.5 bg-[var(--accent)] px-4 py-2.5 text-sm font-bold text-white transition hover:brightness-110">
+        <button type="button" onClick={() => setAdding(true)} className="inline-flex items-center gap-1.5 rounded-xl bg-[var(--accent)] px-4 py-2.5 text-sm font-bold text-white transition hover:brightness-110">
           <UserPlus className="h-4 w-4" /> Add staff
         </button>
       </div>
@@ -94,12 +94,12 @@ export function StaffManager({ slug, realty, loginUrl, sections, info, staff }: 
                 <p className="truncate text-sm text-[#6b665d]">{[m.email, m.phone].filter(Boolean).join(" · ")}</p>
                 <div className="mt-2 flex flex-wrap gap-1.5">
                   {m.full_admin ? (
-                    <span className="inline-flex items-center gap-1 bg-[color-mix(in_srgb,var(--accent)_10%,white)] px-2 py-0.5 text-xs font-bold text-[var(--accent)]">
+                    <span className="rounded-full inline-flex items-center gap-1 bg-[color-mix(in_srgb,var(--accent)_10%,white)] px-2 py-0.5 text-xs font-bold text-[var(--accent)]">
                       <ShieldCheck className="h-3.5 w-3.5" /> Full admin: everything, including staff accounts
                     </span>
                   ) : (
                     m.sections.map((s) => (
-                      <span key={s} className="border border-[#d9d4cb] bg-white px-2 py-0.5 text-xs font-semibold text-[#3d3a34]">
+                      <span key={s} className="rounded-xl border border-[#d9d4cb] bg-white px-2 py-0.5 text-xs font-semibold text-[#3d3a34]">
                         {info[s]?.label ?? s}
                       </span>
                     ))
@@ -115,13 +115,13 @@ export function StaffManager({ slug, realty, loginUrl, sections, info, staff }: 
               <p className="text-sm text-[#8a847a] lg:text-right">Change your own details on My account.</p>
             ) : (
               <div className="flex flex-wrap gap-2 lg:justify-end">
-                <button type="button" onClick={() => setEditing(m)} disabled={busy} className="inline-flex items-center gap-1.5 border border-[#d9d4cb] bg-white px-3 py-2 text-sm font-bold text-[#17150f] transition hover:border-[#17150f] disabled:opacity-50">
+                <button type="button" onClick={() => setEditing(m)} disabled={busy} className="inline-flex items-center gap-1.5 rounded-xl border border-[#d9d4cb] bg-white px-3 py-2 text-sm font-bold text-[#17150f] transition hover:border-[#17150f] disabled:opacity-50">
                   <SlidersHorizontal className="h-4 w-4" /> Access
                 </button>
-                <button type="button" onClick={() => setResetting(m)} disabled={busy} className="inline-flex items-center gap-1.5 border border-[#d9d4cb] bg-white px-3 py-2 text-sm font-bold text-[#17150f] transition hover:border-[#17150f] disabled:opacity-50">
+                <button type="button" onClick={() => setResetting(m)} disabled={busy} className="inline-flex items-center gap-1.5 rounded-xl border border-[#d9d4cb] bg-white px-3 py-2 text-sm font-bold text-[#17150f] transition hover:border-[#17150f] disabled:opacity-50">
                   <KeyRound className="h-4 w-4" /> Reset password
                 </button>
-                <button type="button" onClick={() => toggle(m)} disabled={busy} className="inline-flex items-center gap-1.5 border border-[#d9d4cb] bg-white px-3 py-2 text-sm font-bold text-[#17150f] transition hover:border-[#17150f] disabled:opacity-50">
+                <button type="button" onClick={() => toggle(m)} disabled={busy} className="inline-flex items-center gap-1.5 rounded-xl border border-[#d9d4cb] bg-white px-3 py-2 text-sm font-bold text-[#17150f] transition hover:border-[#17150f] disabled:opacity-50">
                   <Power className="h-4 w-4" /> {m.status === "active" ? "Turn off" : "Turn on"}
                 </button>
                 <button type="button" onClick={() => remove(m)} disabled={busy} aria-label={`Delete ${m.name}'s account`} className="inline-flex items-center px-2.5 py-2 text-[#a39d92] transition hover:bg-red-50 hover:text-red-700 disabled:opacity-50">
@@ -154,7 +154,7 @@ function AccessPicker({ value, onChange, sections, info }: { value: Access; onCh
     if (!on && s === "offers") next = next.filter((x) => x !== "approvals")
     onChange({ access: "sections", sections: sections.filter((x) => next.includes(x)) })
   }
-  const option = (on: boolean) => `flex cursor-pointer items-start gap-3 border-2 p-4 transition ${on ? "border-[var(--accent)] bg-white" : "border-[#e0dcd5] bg-white hover:border-[#17150f]"}`
+  const option = (on: boolean) => `rounded-xl flex cursor-pointer items-start gap-3 border-2 p-4 transition ${on ? "border-[var(--accent)] bg-white" : "border-[#e0dcd5] bg-white hover:border-[#17150f]"}`
 
   return (
     <fieldset className="space-y-3">
@@ -176,7 +176,7 @@ function AccessPicker({ value, onChange, sections, info }: { value: Access; onCh
       {value.access === "sections" && (
         <div className="grid gap-2 pl-1 sm:grid-cols-2">
           {sections.map((s) => (
-            <label key={s} className="flex cursor-pointer items-start gap-2.5 border border-[#e6e2db] bg-[#faf8f5] p-3 text-sm">
+            <label key={s} className="rounded-xl flex cursor-pointer items-start gap-2.5 border border-[#e6e2db] bg-[#faf8f5] p-3 text-sm">
               <input type="checkbox" checked={value.sections.includes(s)} onChange={(e) => tick(s, e.target.checked)} className="mt-0.5 h-4 w-4 accent-[var(--accent)]" />
               <span>
                 <span className="block font-bold text-[#17150f]">{info[s]?.label ?? s}</span>
@@ -203,7 +203,7 @@ function PasswordField({ value, onChange, error }: { value: string; onChange: (v
             {shown ? <EyeOff className="h-4 w-4" /> : <Eye className="h-4 w-4" />}
           </button>
         </span>
-        <button type="button" onClick={() => onChange(suggestPassword(10))} title="Suggest a new one" className="inline-flex items-center gap-1.5 border border-[#d9d4cb] bg-white px-3 text-sm font-bold text-[#17150f] hover:border-[#17150f]">
+        <button type="button" onClick={() => onChange(suggestPassword(10))} title="Suggest a new one" className="rounded-xl inline-flex items-center gap-1.5 border border-[#d9d4cb] bg-white px-3 text-sm font-bold text-[#17150f] hover:border-[#17150f]">
           <RefreshCw className="h-4 w-4" /> New
         </button>
       </span>
@@ -227,12 +227,12 @@ function Credentials({ realty, loginUrl, name, email, password, mustChange, onDo
   return (
     <div>
       <p className="text-[15px] text-[#3d3a34]">Send {name.split(" ")[0]} these sign-in details by Viber, text or email. The password isn&apos;t shown again.</p>
-      <pre className="mt-4 whitespace-pre-wrap border border-[#e0dcd5] bg-[#faf8f5] p-4 font-mono text-sm text-[#17150f]">{text}</pre>
+      <pre className="rounded-xl mt-4 whitespace-pre-wrap border border-[#e0dcd5] bg-[#faf8f5] p-4 font-mono text-sm text-[#17150f]">{text}</pre>
       <div className="mt-5 flex flex-wrap gap-2">
-        <button type="button" onClick={copy} className="inline-flex items-center gap-1.5 bg-[var(--accent)] px-4 py-2.5 text-sm font-bold text-white transition hover:brightness-110">
+        <button type="button" onClick={copy} className="inline-flex items-center gap-1.5 rounded-xl bg-[var(--accent)] px-4 py-2.5 text-sm font-bold text-white transition hover:brightness-110">
           {copied ? <Check className="h-4 w-4" /> : <Copy className="h-4 w-4" />} {copied ? "Copied" : "Copy sign-in details"}
         </button>
-        <button type="button" onClick={onDone} className="border border-[#d9d4cb] bg-white px-4 py-2.5 text-sm font-bold text-[#17150f] hover:border-[#17150f]">
+        <button type="button" onClick={onDone} className="rounded-xl border border-[#d9d4cb] bg-white px-4 py-2.5 text-sm font-bold text-[#17150f] hover:border-[#17150f]">
           Done
         </button>
       </div>
@@ -295,7 +295,7 @@ function AddForm({ slug, realty, loginUrl, sections, info, onDone }: { slug: str
       <AccessPicker value={access} onChange={setAccessValue} sections={sections} info={info} />
       {(result?.errors?.sections || result?.errors?.access) && <p className="text-sm font-semibold text-red-700">{result.errors.sections ?? result.errors.access}</p>}
       {result?.error && <p role="alert" className="text-sm font-bold text-red-700">{result.error}</p>}
-      <button type="submit" disabled={pending} className="inline-flex items-center gap-2 bg-[var(--accent)] px-5 py-3 text-[15px] font-bold text-white transition hover:brightness-110 disabled:opacity-60">
+      <button type="submit" disabled={pending} className="inline-flex items-center gap-2 rounded-xl bg-[var(--accent)] px-5 py-3 text-[15px] font-bold text-white transition hover:brightness-110 disabled:opacity-60">
         {pending ? <LoaderCircle className="h-4 w-4 animate-spin" /> : <UserPlus className="h-4 w-4" />} Create account
       </button>
     </form>
@@ -324,7 +324,7 @@ function AccessForm({ slug, member, sections, info, onDone }: { slug: string; me
       <AccessPicker value={access} onChange={setAccessValue} sections={sections} info={info} />
       <p className="text-sm text-[#5a554d]">The change applies on their next click; they don&apos;t need to sign in again.</p>
       {error && <p role="alert" className="text-sm font-bold text-red-700">{error}</p>}
-      <button type="submit" disabled={pending} className="inline-flex items-center gap-2 bg-[var(--accent)] px-5 py-3 text-[15px] font-bold text-white transition hover:brightness-110 disabled:opacity-60">
+      <button type="submit" disabled={pending} className="inline-flex items-center gap-2 rounded-xl bg-[var(--accent)] px-5 py-3 text-[15px] font-bold text-white transition hover:brightness-110 disabled:opacity-60">
         {pending && <LoaderCircle className="h-4 w-4 animate-spin" />} Save access
       </button>
     </form>
@@ -361,7 +361,7 @@ function ResetForm({ slug, realty, loginUrl, member, onDone }: { slug: string; r
         Ask them to choose their own password when they sign in
       </label>
       {error && <p role="alert" className="text-sm font-bold text-red-700">{error}</p>}
-      <button type="submit" disabled={pending} className="inline-flex items-center gap-2 bg-[var(--accent)] px-5 py-3 text-[15px] font-bold text-white transition hover:brightness-110 disabled:opacity-60">
+      <button type="submit" disabled={pending} className="inline-flex items-center gap-2 rounded-xl bg-[var(--accent)] px-5 py-3 text-[15px] font-bold text-white transition hover:brightness-110 disabled:opacity-60">
         {pending ? <LoaderCircle className="h-4 w-4 animate-spin" /> : <KeyRound className="h-4 w-4" />} Set new password
       </button>
     </form>

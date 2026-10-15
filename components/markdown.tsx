@@ -133,7 +133,7 @@ function Inline({ text }: { text: string }) {
     <>
       {parts.map((p, i) => {
         if (p.startsWith("**") && p.endsWith("**") && p.length > 4) return <strong key={i} className="font-bold text-[#17150f]">{p.slice(2, -2)}</strong>
-        if (p.startsWith("`") && p.endsWith("`") && p.length > 2) return <code key={i} className="bg-[#f1eee9] px-1 py-0.5 font-mono text-[0.9em]">{p.slice(1, -1)}</code>
+        if (p.startsWith("`") && p.endsWith("`") && p.length > 2) return <code key={i} className="rounded-xl bg-[#f1eee9] px-1 py-0.5 font-mono text-[0.9em]">{p.slice(1, -1)}</code>
         const link = p.match(/^\[([^\]]+)\]\(([^)\s]+)\)$/)
         if (link) {
           const [, label, href] = link

@@ -1,4 +1,5 @@
 import type { Metadata } from "next"
+import { Outfit } from "next/font/google"
 import type { ViewRealty } from "@/components/role-switch"
 import { api } from "@/lib/api"
 import { realtyBySlug, requireRealtyUser } from "@/lib/realty-auth"
@@ -7,6 +8,9 @@ import { signOutRealty } from "../login/actions"
 import { DashboardShell, type ShellCounts, type SuperAdminNav } from "./shell"
 
 type Props = { children: React.ReactNode; modal: React.ReactNode; params: Promise<{ realty: string }> }
+
+/** Headings and big numbers in the dashboard (the body stays Geist). */
+const outfit = Outfit({ subsets: ["latin"], weight: ["500", "600", "700", "800"], display: "swap", variable: "--font-outfit" })
 type Stats = { projects: number; offers: number; agents: number; agents_invited: number; agents_pending: number; public_projects: number; new_responses: number; docs_to_review: number; to_approve: number; sent_back: number; realties_pending?: number; my_tasks?: number; my_tasks_overdue?: number }
 
 export async function generateMetadata({ params }: Props): Promise<Metadata> {
@@ -35,7 +39,7 @@ export default async function RealtyDashboardLayout({ children, modal, params }:
     : null
 
   return (
-    <div style={{ ["--accent" as string]: accent }}>
+    <div className={outfit.variable} style={{ ["--accent" as string]: accent }}>
       <DashboardShell slug={slug} user={user} counts={counts} superAdmin={superAdmin} signOutAction={signOutRealty.bind(null, slug)}>
         {children}
         {/* New offer and Add project open here, as a dialog over the current page (see @modal). */}

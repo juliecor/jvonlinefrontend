@@ -43,7 +43,7 @@ export function ProjectList({ slug, projects, staff, initial }: { slug: string; 
       <div className="mt-8 grid grid-cols-2 gap-3 lg:grid-cols-[minmax(0,1.5fr)_repeat(4,minmax(0,1fr))]">
         <label className="relative col-span-2 block lg:col-span-1">
           <Search className="pointer-events-none absolute left-3.5 top-1/2 h-4 w-4 -translate-y-1/2 text-[#8a847a]" />
-          <input type="search" value={f.q} onChange={(e) => set({ q: e.target.value })} placeholder="Search name or place" aria-label="Search projects" className="block w-full border border-[#d9d4cb] bg-white py-2.5 pl-10 pr-3 text-[15px] text-[#17150f] outline-none focus:border-[var(--accent)]" />
+          <input type="search" value={f.q} onChange={(e) => set({ q: e.target.value })} placeholder="Search name or place" aria-label="Search projects" className="block w-full rounded-xl border border-[#d9d4cb] bg-white py-2.5 pl-10 pr-3 text-[15px] text-[#17150f] outline-none focus:border-[var(--accent)]" />
         </label>
         <Filter label="Status" value={f.status} onChange={(status) => set({ status })} options={[["", "All statuses"], ["active", `Open for offers (${count((p) => p.status === "active")})`], ["archived", `Archived (${count((p) => p.status === "archived")})`]]} />
         <Filter label="Stage" value={f.stage} onChange={(stage) => set({ stage })} options={[["", "All stages"], ...stages.map((s): [string, string] => [s, `${s} (${count((p) => p.stage === s)})`]), ["none", `Stage not set (${count((p) => !p.stage)})`]]} />
@@ -64,7 +64,7 @@ export function ProjectList({ slug, projects, staff, initial }: { slug: string; 
           // The name's link stretches over the whole card, so the buttons can sit inside it; an open Edit menu lifts the card over the next row.
           <li
             key={p.id}
-            className={`group relative flex flex-col border border-[#e6e2db] bg-white transition hover:border-[var(--accent)] has-[[aria-expanded=true]]:z-20 ${p.status === "archived" ? "opacity-75 hover:opacity-100 has-[[aria-expanded=true]]:opacity-100" : ""}`}
+            className={`group relative flex flex-col rounded-2xl border border-[#e8eaed] bg-white shadow-[0_2px_12px_-2px_rgba(23,21,15,0.06)] transition hover:border-[var(--accent)] has-[[aria-expanded=true]]:z-20 ${p.status === "archived" ? "opacity-75 hover:opacity-100 has-[[aria-expanded=true]]:opacity-100" : ""}`}
           >
             <div className="relative overflow-hidden">
               {p.cover_url ? (
@@ -72,7 +72,7 @@ export function ProjectList({ slug, projects, staff, initial }: { slug: string; 
               ) : (
                 <div className="aspect-[16/9] w-full bg-[#efece6]" />
               )}
-              {p.stage && <span className="absolute left-0 top-0 bg-white px-3 py-1.5 text-[11px] font-bold uppercase tracking-[0.14em] text-[#17150f]">{p.stage}</span>}
+              {p.stage && <span className="rounded-br-xl absolute left-0 top-0 bg-white px-3 py-1.5 text-[11px] font-bold uppercase tracking-[0.14em] text-[#17150f]">{p.stage}</span>}
             </div>
             <div className="flex flex-1 flex-col p-5">
               <div className="flex items-start justify-between gap-3">
@@ -108,13 +108,13 @@ export function ProjectList({ slug, projects, staff, initial }: { slug: string; 
                 title={`Delete ${p.name}?`}
                 body={`${p.name}, its ${p.units_count} unit${p.units_count === 1 ? "" : "s"}, payment plans and public page pictures are deleted for good. A project that has offers can't be deleted: archive it instead. This can't be undone.`}
                 success={`${p.name} deleted`}
-                className="absolute right-2 top-2 z-10 border border-[#d9d4cb] bg-white/95 px-2.5 py-1.5 text-xs font-bold text-[#17150f] shadow-sm hover:border-red-400 hover:text-red-700"
+                className="rounded-xl absolute right-2 top-2 z-10 border border-[#d9d4cb] bg-white/95 px-2.5 py-1.5 text-xs font-bold text-[#17150f] shadow-sm hover:border-red-400 hover:text-red-700"
               />
             )}
           </li>
         ))}
         {shown.length === 0 && (
-          <li className="border border-dashed border-[#d9d4cb] p-10 text-center text-sm text-[#8a847a] sm:col-span-2 lg:col-span-3">
+          <li className="rounded-xl border border-dashed border-[#d9d4cb] p-10 text-center text-sm text-[#8a847a] sm:col-span-2 lg:col-span-3">
             {filtered ? (
               <>
                 No projects match these filters.{" "}
@@ -166,19 +166,19 @@ function EditMenu({ href, name, counts }: { href: string; name: string; counts: 
         aria-expanded={open}
         aria-haspopup="menu"
         aria-label={`Edit ${name}`}
-        className={`inline-flex items-center gap-1.5 border bg-white px-3 py-1.5 text-sm font-bold text-[#17150f] transition hover:border-[#17150f] ${open ? "border-[#17150f]" : "border-[#d9d4cb]"}`}
+        className={`rounded-xl inline-flex items-center gap-1.5 border bg-white px-3 py-1.5 text-sm font-bold text-[#17150f] transition hover:border-[#17150f] ${open ? "border-[#17150f]" : "border-[#d9d4cb]"}`}
       >
         <Pencil className="h-3.5 w-3.5" /> Edit <ChevronDown className={`h-3.5 w-3.5 text-[#8a847a] transition ${open ? "rotate-180" : ""}`} />
       </button>
       {open && (
-        <div role="menu" aria-label={`Edit ${name}`} className="absolute right-0 top-full mt-1 w-56 border border-[#e6e2db] bg-white py-1 shadow-lg">
+        <div role="menu" aria-label={`Edit ${name}`} className="absolute right-0 top-full mt-1 w-56 rounded-2xl border border-[#e8eaed] bg-white shadow-[0_2px_12px_-2px_rgba(23,21,15,0.06)] py-1 shadow-lg">
           {EDIT_TABS.map((t) => {
             const count = "count" in t ? counts[t.count] : undefined
             return (
               <Link key={t.id} href={`${href}#${t.id}`} role="menuitem" onClick={() => setOpen(false)} className="flex items-center gap-3 px-4 py-2.5 text-sm font-semibold text-[#2b2823] outline-none hover:bg-[#f7f6f3] focus-visible:bg-[#f7f6f3]">
                 <t.icon className="h-4 w-4 shrink-0 text-[#6b665d]" />
                 <span className="flex-1">{t.label}</span>
-                {count !== undefined && <span className="bg-[#f1eee9] px-1.5 py-0.5 text-[11px] font-bold tabular-nums text-[#3d3a34]">{count}</span>}
+                {count !== undefined && <span className="rounded-full bg-[#f1eee9] px-1.5 py-0.5 text-[11px] font-bold tabular-nums text-[#3d3a34]">{count}</span>}
               </Link>
             )
           })}
@@ -194,7 +194,7 @@ function Filter({ label, value, options, onChange }: { label: string; value: str
       value={value}
       onChange={(e) => onChange(e.target.value)}
       aria-label={label}
-      className={`block w-full min-w-0 border bg-white px-3 py-2.5 text-sm outline-none focus:border-[var(--accent)] ${value ? "border-[#17150f] font-bold text-[#17150f]" : "border-[#d9d4cb] font-semibold text-[#5a554d]"}`}
+      className={`rounded-xl block w-full min-w-0 border bg-white px-3 py-2.5 text-sm outline-none focus:border-[var(--accent)] ${value ? "border-[#17150f] font-bold text-[#17150f]" : "border-[#d9d4cb] font-semibold text-[#5a554d]"}`}
     >
       {options.map(([v, l]) => (
         <option key={v} value={v}>

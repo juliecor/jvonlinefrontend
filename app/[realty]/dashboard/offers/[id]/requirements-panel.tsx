@@ -18,7 +18,7 @@ const DOT = { missing: "bg-red-600", review: "bg-amber-500", approved: "bg-emera
 
 function StatusPill({ state }: { state: Requirement["state"] }) {
   return (
-    <span className={`inline-flex h-7 shrink-0 items-center gap-2 border px-2.5 text-xs font-bold ${STATE_STYLE[state]}`}>
+    <span className={`rounded-xl inline-flex h-7 shrink-0 items-center gap-2 border px-2.5 text-xs font-bold ${STATE_STYLE[state]}`}>
       <span className={`h-1.5 w-1.5 ${DOT[state]}`} />
       {state === "rejected" ? "Needs re-upload" : STATE_LABEL[state]}
     </span>
@@ -31,7 +31,7 @@ const stillNeeded = (r: Requirement) => r.needed === "required" && (r.state === 
 /** An ID-type requirement gets the card icon; everything else a document. */
 const isIdDoc = (name: string) => /\bid\b|passport|license|umid|sss/i.test(name)
 
-const CARD = "border bg-white px-5 py-5 transition-colors"
+const CARD = "rounded-xl border bg-white px-5 py-5 transition-colors"
 /** Picked from the "Still missing" chips: that card's border turns red. */
 const picking = (on: boolean) => (on ? "border-red-500 ring-4 ring-red-200 shadow-[0_0_0_10px_rgba(239,68,68,0.12)]" : "border-[#e0dcd5]")
 
@@ -50,8 +50,8 @@ export function RequirementsPanel({ slug, offerId, requirements, detailsSentAt, 
   return (
     <div className="space-y-4 pt-5">
       {needed.length > 0 ? (
-        <div className="flex gap-4 border border-red-200 border-l-4 border-l-red-500 bg-red-50 px-5 py-4">
-          <span className="mt-0.5 flex h-7 w-7 shrink-0 items-center justify-center bg-red-600 text-white">
+        <div className="rounded-xl flex gap-4 border border-red-200 border-l-4 border-l-red-500 bg-red-50 px-5 py-4">
+          <span className="rounded-xl mt-0.5 flex h-7 w-7 shrink-0 items-center justify-center bg-red-600 text-white">
             <AlertCircle className="h-4 w-4" />
           </span>
           <div className="min-w-0">
@@ -60,7 +60,7 @@ export function RequirementsPanel({ slug, offerId, requirements, detailsSentAt, 
             <ul className="mt-3 flex flex-wrap gap-2">
               {needed.map((n) => (
                 <li key={n.key}>
-                  <button type="button" onClick={() => jump(n.key)} className={`border bg-white px-3.5 py-1.5 text-sm font-bold text-red-700 transition hover:border-red-500 ${picked === n.key ? "border-red-500" : "border-red-200"}`}>
+                  <button type="button" onClick={() => jump(n.key)} className={`rounded-xl border bg-white px-3.5 py-1.5 text-sm font-bold text-red-700 transition hover:border-red-500 ${picked === n.key ? "border-red-500" : "border-red-200"}`}>
                     {n.name}
                   </button>
                 </li>
@@ -69,8 +69,8 @@ export function RequirementsPanel({ slug, offerId, requirements, detailsSentAt, 
           </div>
         </div>
       ) : (
-        <div className="flex items-center gap-4 border border-emerald-200 border-l-4 border-l-emerald-600 bg-emerald-50 px-5 py-4">
-          <span className="flex h-7 w-7 shrink-0 items-center justify-center bg-emerald-600 text-white">
+        <div className="rounded-xl flex items-center gap-4 border border-emerald-200 border-l-4 border-l-emerald-600 bg-emerald-50 px-5 py-4">
+          <span className="rounded-xl flex h-7 w-7 shrink-0 items-center justify-center bg-emerald-600 text-white">
             <CheckCircle2 className="h-4 w-4" />
           </span>
           <p className="text-lg font-bold text-emerald-800">Nothing missing. {toReview ? `${toReview} to review.` : "Every required item is in."}</p>
@@ -116,7 +116,7 @@ function RequirementRow({ id, slug, offerId, req, canReview, picked }: { id: str
   }, [])
   const tag = (
     <div className="flex flex-wrap items-center gap-2">
-      <span className={`inline-flex h-7 items-center border px-2.5 text-xs font-bold ${required ? "border-[var(--accent)] text-[var(--accent)]" : "border-[#e6e2db] text-[#6b665d]"}`}>
+      <span className={`rounded-xl inline-flex h-7 items-center border px-2.5 text-xs font-bold ${required ? "border-[var(--accent)] text-[var(--accent)]" : "border-[#e6e2db] text-[#6b665d]"}`}>
         {required ? "Required" : req.needed === "optional" ? "If Applicable" : "Not Needed for This Buyer"}
       </span>
       <StatusPill state={req.state} />
@@ -137,7 +137,7 @@ function RequirementRow({ id, slug, offerId, req, canReview, picked }: { id: str
       </div>
       {twoLines && <div className="mt-3">{tag}</div>}
       {req.state === "rejected" && req.note && (
-        <p className="mt-3 border-l-4 border-red-500 bg-red-50 px-3 py-2 text-sm font-semibold text-red-800">
+        <p className="rounded-xl mt-3 border-l-4 border-red-500 bg-red-50 px-3 py-2 text-sm font-semibold text-red-800">
           <span className="text-xs font-bold uppercase tracking-[0.12em] text-red-700">Asked to fix · </span>
           {req.note}
         </p>
@@ -151,7 +151,7 @@ function RequirementRow({ id, slug, offerId, req, canReview, picked }: { id: str
         </ul>
       )}
       {req.files.length === 0 && (
-        <p className="mt-3 inline-flex h-7 items-center gap-2 whitespace-nowrap border border-dashed border-[#d9d4cb] bg-[#f6f4f0] px-2.5 text-xs font-bold text-[#8a847a]">
+        <p className="rounded-xl mt-3 inline-flex h-7 items-center gap-2 whitespace-nowrap border border-dashed border-[#d9d4cb] bg-[#f6f4f0] px-2.5 text-xs font-bold text-[#8a847a]">
           <Paperclip className="h-3.5 w-3.5" /> Nothing uploaded yet.
         </p>
       )}
@@ -180,7 +180,7 @@ function FileCard({ slug, offerId, file, canReview }: { slug: string; offerId: n
           // eslint-disable-next-line @next/next/no-img-element
           <img src={url} alt="" className="h-16 w-20 shrink-0 border border-[#e6e2db] bg-[#f6f4f0] object-cover" />
         ) : (
-          <span className="flex h-16 w-20 shrink-0 items-center justify-center border border-[#e6e2db] bg-[#f6f4f0] text-[#8a847a]">
+          <span className="flex h-16 w-20 shrink-0 items-center justify-center rounded-lg border border-[#e6e2db] bg-[#f6f4f0] text-[#8a847a]">
             <FileText className="h-6 w-6" />
           </span>
         )}
@@ -198,16 +198,16 @@ function FileCard({ slug, offerId, file, canReview }: { slug: string; offerId: n
           )}
         </span>
       </a>
-      {file.status === "rejected" && file.note && <p className="mx-3 mb-3 bg-red-50 px-3 py-2 text-xs font-semibold text-red-800">Reason: {file.note}</p>}
+      {file.status === "rejected" && file.note && <p className="rounded-xl mx-3 mb-3 bg-red-50 px-3 py-2 text-xs font-semibold text-red-800">Reason: {file.note}</p>}
 
       {canReview && (
       <div className="mt-auto flex flex-wrap items-center gap-2 border-t border-[#ebe7e1] px-3 py-2.5">
         {file.status === "pending" && !rejecting && (
           <>
-            <button type="button" disabled={pending} onClick={() => act("approved")} className="inline-flex items-center gap-1.5 bg-emerald-700 px-3 py-2 text-xs font-bold text-white hover:bg-emerald-800 disabled:opacity-60">
+            <button type="button" disabled={pending} onClick={() => act("approved")} className="rounded-xl inline-flex items-center gap-1.5 bg-emerald-700 px-3 py-2 text-xs font-bold text-white hover:bg-emerald-800 disabled:opacity-60">
               {pending && <LoaderCircle className="h-3.5 w-3.5 animate-spin" />} Approve
             </button>
-            <button type="button" disabled={pending} onClick={() => setRejecting(true)} className="inline-flex items-center gap-1.5 border border-[#d9d4cb] px-3 py-2 text-xs font-bold text-[#17150f] hover:border-red-400 hover:text-red-700">
+            <button type="button" disabled={pending} onClick={() => setRejecting(true)} className="rounded-xl inline-flex items-center gap-1.5 border border-[#d9d4cb] px-3 py-2 text-xs font-bold text-[#17150f] hover:border-red-400 hover:text-red-700">
               Request re-upload
             </button>
           </>
@@ -225,9 +225,9 @@ function FileCard({ slug, offerId, file, canReview }: { slug: string; offerId: n
               act("rejected", note)
             }}
           >
-            <input autoFocus value={note} onChange={(e) => setNote(e.target.value)} required maxLength={300} placeholder="What should they fix? e.g. The photo is blurry" className="w-full border border-[#d9d4cb] px-3 py-2 text-sm outline-none focus:border-[var(--accent)]" />
+            <input autoFocus value={note} onChange={(e) => setNote(e.target.value)} required maxLength={300} placeholder="What should they fix? e.g. The photo is blurry" className="rounded-xl w-full border border-[#d9d4cb] px-3 py-2 text-sm outline-none focus:border-[var(--accent)]" />
             <div className="flex gap-2">
-              <button type="submit" disabled={pending} className="inline-flex items-center gap-1.5 bg-red-700 px-3 py-2 text-xs font-bold text-white hover:bg-red-800 disabled:opacity-60">
+              <button type="submit" disabled={pending} className="rounded-xl inline-flex items-center gap-1.5 bg-red-700 px-3 py-2 text-xs font-bold text-white hover:bg-red-800 disabled:opacity-60">
                 {pending && <LoaderCircle className="h-3.5 w-3.5 animate-spin" />} Request re-upload
               </button>
               <button type="button" onClick={() => setRejecting(false)} className="inline-flex items-center gap-1 px-2 py-2 text-xs font-semibold text-[#8a847a] hover:text-[#17150f]">
@@ -277,7 +277,7 @@ export function FollowUp({
   const btn = "inline-flex items-center gap-2 px-4 py-2.5 text-sm font-bold transition disabled:opacity-50"
 
   return (
-    <div className="border border-[#e0dcd5] bg-white p-5">
+    <div className="rounded-2xl border border-[#e8eaed] bg-white shadow-[0_2px_12px_-2px_rgba(23,21,15,0.06)] p-5">
       <p className="text-xs font-bold uppercase tracking-[0.16em] text-[#6b665d]">Follow up</p>
       <p className="mt-1 text-sm text-[#5a554d]">{email ? <>Emails go to <strong className="text-[#17150f]">{email}</strong>.</> : "No email for this buyer yet. Copy the reminder and send it by Viber or text."}</p>
       <div className="mt-4 flex flex-wrap gap-2">
@@ -287,7 +287,7 @@ export function FollowUp({
         <button type="button" disabled={!active || !email || pending} onClick={() => run("offer")} className={`${btn} border border-[#d9d4cb] text-[#17150f] hover:border-[#17150f]`}>
           {pending && which === "offer" ? <LoaderCircle className="h-4 w-4 animate-spin" /> : <Mail className="h-4 w-4" />} {emailedAt ? "Email the offer again" : "Email the offer"}
         </button>
-        {!nothingMissing && <CopyButton text={viberText} label="Copy reminder for Viber" className="!rounded-none !px-4 !py-2.5 !text-sm" />}
+        {!nothingMissing && <CopyButton text={viberText} label="Copy reminder for Viber" className="!rounded-xl !px-4 !py-2.5 !text-sm" />}
       </div>
       {msg.ok && <p className="mt-3 text-sm font-semibold text-emerald-700">{msg.ok}</p>}
       {msg.error && <p className="mt-3 text-sm font-semibold text-red-700">{msg.error}</p>}

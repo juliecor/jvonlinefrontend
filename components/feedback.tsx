@@ -140,7 +140,7 @@ function ConfirmBox({ q }: { q: Question | null }) {
         answer(false)
       }}
       onClick={(e) => e.target === e.currentTarget && answer(false)}
-      className={`fixed inset-0 m-auto h-fit w-[calc(100%-2rem)] max-w-md border-t-4 bg-white p-0 text-[#17150f] shadow-2xl backdrop:bg-[#17150f]/55 ${q?.danger ? "border-red-600" : "border-[var(--accent,#17150f)]"}`}
+      className={`rounded-2xl fixed inset-0 m-auto h-fit w-[calc(100%-2rem)] max-w-md border-t-4 bg-white p-0 text-[#17150f] shadow-2xl backdrop:bg-[#17150f]/55 ${q?.danger ? "border-red-600" : "border-[var(--accent,#17150f)]"}`}
     >
       {q && (
         <div className="p-6">
@@ -155,12 +155,12 @@ function ConfirmBox({ q }: { q: Question | null }) {
               value={q.copy}
               onFocus={(e) => e.currentTarget.select()}
               aria-label="Text to copy"
-              className="mt-4 block w-full resize-none break-all border border-[#d9d4cb] bg-[#faf8f5] px-3 py-2.5 font-mono text-sm outline-none focus:border-[var(--accent,#17150f)]"
+              className="rounded-xl mt-4 block w-full resize-none break-all border border-[#d9d4cb] bg-[#faf8f5] px-3 py-2.5 font-mono text-sm outline-none focus:border-[var(--accent,#17150f)]"
             />
           )}
           <div className="mt-6 flex flex-wrap justify-end gap-2">
             {q.copy === undefined && (
-              <button type="button" onClick={() => answer(false)} className="border border-[#d9d4cb] bg-white px-5 py-2.5 text-sm font-bold text-[#17150f] transition hover:border-[#17150f]">
+              <button type="button" onClick={() => answer(false)} className="rounded-xl border border-[#d9d4cb] bg-white px-5 py-2.5 text-sm font-bold text-[#17150f] transition hover:border-[#17150f]">
                 {q.cancel ?? "Cancel"}
               </button>
             )}

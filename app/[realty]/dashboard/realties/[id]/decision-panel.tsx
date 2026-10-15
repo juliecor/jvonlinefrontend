@@ -57,7 +57,7 @@ export function DecisionPanel(p: Props) {
 
   // What happened to the login email just now; kept on screen because a password that couldn't be mailed is shown only here.
   const result = login && (
-    <div className={`mt-5 border-l-4 p-4 ${login.emailed ? "border-emerald-600 bg-white" : "border-amber-500 bg-amber-50"}`}>
+    <div className={`rounded-xl mt-5 border-l-4 p-4 ${login.emailed ? "border-emerald-600 bg-white" : "border-amber-500 bg-amber-50"}`}>
       <p className={`flex items-center gap-2 text-sm font-bold ${login.emailed ? "text-emerald-900" : "text-amber-900"}`}>
         {login.emailed ? <CircleCheck className="h-5 w-5 text-emerald-700" /> : <MailWarning className="h-5 w-5 text-amber-700" />}
         {login.emailed ? `Login details emailed to ${login.username}.` : `We couldn't email ${login.username}. Give them these yourself:`}
@@ -87,7 +87,7 @@ export function DecisionPanel(p: Props) {
 
   if (p.status === "approved") {
     return (
-      <section className="mt-8 border-2 border-emerald-200 bg-emerald-50 p-5 sm:p-6">
+      <section className="rounded-xl mt-8 border-2 border-emerald-200 bg-emerald-50 p-5 sm:p-6">
         <div className="flex items-start gap-3">
           <BadgeCheck className="mt-0.5 h-6 w-6 shrink-0 text-emerald-700" />
           <div className="min-w-0 flex-1">
@@ -104,7 +104,7 @@ export function DecisionPanel(p: Props) {
             </p>
             <p className="mt-1 text-sm text-emerald-900">{p.loginPending ? "They haven't signed in yet. They will be asked to choose their own password." : "They have signed in and chosen their own password."}</p>
             {p.loginPending && (
-              <button type="button" onClick={resend} disabled={pending} className="mt-3 inline-flex items-center gap-1.5 border border-emerald-700/40 bg-white px-3 py-2 text-xs font-bold text-emerald-900 hover:border-emerald-800 disabled:opacity-60">
+              <button type="button" onClick={resend} disabled={pending} className="rounded-xl mt-3 inline-flex items-center gap-1.5 border border-emerald-700/40 bg-white px-3 py-2 text-xs font-bold text-emerald-900 hover:border-emerald-800 disabled:opacity-60">
                 {pending ? <LoaderCircle className="h-3.5 w-3.5 animate-spin" /> : <RotateCw className="h-3.5 w-3.5" />} Resend login details
               </button>
             )}
@@ -118,13 +118,13 @@ export function DecisionPanel(p: Props) {
 
   if (p.status === "rejected") {
     return (
-      <section className="mt-8 border-2 border-red-200 bg-red-50 p-5 sm:p-6">
+      <section className="rounded-xl mt-8 border-2 border-red-200 bg-red-50 p-5 sm:p-6">
         <div className="flex items-start gap-3">
           <AlertCircle className="mt-0.5 h-6 w-6 shrink-0 text-red-700" />
           <div>
             <p className="text-xl font-bold tracking-tight text-red-950">Not accepted{p.reviewedBy ? ` · ${p.reviewedBy}` : ""}</p>
             <p className="mt-1 text-sm text-red-900">{p.reviewedAt ? shortDate(p.reviewedAt) : ""}</p>
-            {p.reviewNote && <p className="mt-3 border-l-4 border-red-500 bg-white px-4 py-2.5 text-[15px] font-semibold text-red-800">{p.reviewNote}</p>}
+            {p.reviewNote && <p className="rounded-xl mt-3 border-l-4 border-red-500 bg-white px-4 py-2.5 text-[15px] font-semibold text-red-800">{p.reviewNote}</p>}
             <p className="mt-3 text-sm text-red-900">To give them another go, invite the same email again from the Realties page.</p>
           </div>
         </div>
@@ -133,7 +133,7 @@ export function DecisionPanel(p: Props) {
   }
 
   return (
-    <section className="mt-8 border-2 border-amber-300 bg-amber-50 p-5 sm:p-6">
+    <section className="rounded-xl mt-8 border-2 border-amber-300 bg-amber-50 p-5 sm:p-6">
       <p className="text-xl font-bold tracking-tight">Waiting for your decision</p>
       <p className="mt-1 text-sm text-[#3d3a34]">
         Read the form and open the documents below. Accepting makes <strong>{p.firm}</strong> an accredited realty with its own sign-in, and emails <strong>{p.loginEmail}</strong> a username and a temporary password.
@@ -141,24 +141,24 @@ export function DecisionPanel(p: Props) {
 
       {mode === "idle" && (
         <div className="mt-4 flex flex-wrap gap-2">
-          <button type="button" onClick={() => setMode("accept")} className="inline-flex items-center gap-1.5 bg-emerald-700 px-4 py-2.5 text-sm font-bold text-white hover:bg-emerald-800">
+          <button type="button" onClick={() => setMode("accept")} className="rounded-xl inline-flex items-center gap-1.5 bg-emerald-700 px-4 py-2.5 text-sm font-bold text-white hover:bg-emerald-800">
             <Check className="h-4 w-4" strokeWidth={3} /> Accept
           </button>
-          <button type="button" onClick={() => setMode("reject")} className="inline-flex items-center gap-1.5 border border-[#d9d4cb] bg-white px-4 py-2.5 text-sm font-bold text-[#17150f] hover:border-red-400 hover:text-red-700">
+          <button type="button" onClick={() => setMode("reject")} className="inline-flex items-center gap-1.5 rounded-xl border border-[#d9d4cb] bg-white px-4 py-2.5 text-sm font-bold text-[#17150f] hover:border-red-400 hover:text-red-700">
             <X className="h-4 w-4" /> Turn down
           </button>
         </div>
       )}
 
       {mode === "accept" && (
-        <div className="mt-4 border border-emerald-300 bg-emerald-50/40 p-4">
+        <div className="rounded-xl mt-4 border border-emerald-300 bg-emerald-50/40 p-4">
           <p className="text-xs font-bold uppercase tracking-[0.12em] text-[#5a554d]">How long is {p.firm} accredited?</p>
           <p className="mt-1 text-sm text-[#6b665d]">From today. You can renew, extend or end it later. When it ends they can&apos;t make new offers.</p>
           <div className="mt-3">
             <TermChoice value={term} onChange={setTerm} from={p.today} today={p.today} />
           </div>
           <div className="mt-4 flex flex-wrap items-center gap-2">
-            <button type="button" onClick={accept} disabled={pending || !until} className="inline-flex items-center gap-1.5 bg-emerald-700 px-4 py-2.5 text-sm font-bold text-white hover:bg-emerald-800 disabled:opacity-60">
+            <button type="button" onClick={accept} disabled={pending || !until} className="rounded-xl inline-flex items-center gap-1.5 bg-emerald-700 px-4 py-2.5 text-sm font-bold text-white hover:bg-emerald-800 disabled:opacity-60">
               {pending ? <LoaderCircle className="h-4 w-4 animate-spin" /> : <Check className="h-4 w-4" strokeWidth={3} />} {until ? `Accept until ${shortDate(until)} and email the login` : "Accept"}
             </button>
             <button type="button" disabled={pending} onClick={() => setMode("idle")} className="px-2 py-2.5 text-sm font-semibold text-[#8a847a] hover:text-[#17150f]">
@@ -178,10 +178,10 @@ export function DecisionPanel(p: Props) {
         >
           <label className="block">
             <span className="text-xs font-bold uppercase tracking-[0.12em] text-[#5a554d]">Why not? (kept on record, not emailed)</span>
-            <textarea autoFocus required rows={3} maxLength={500} value={note} onChange={(e) => setNote(e.target.value)} placeholder="e.g. The PRC registration is unreadable." className="mt-1.5 block w-full border border-[#d9d4cb] bg-white px-3.5 py-2.5 text-[15px] outline-none focus:border-[var(--accent)] focus:ring-2 focus:ring-[var(--accent)]/15" />
+            <textarea autoFocus required rows={3} maxLength={500} value={note} onChange={(e) => setNote(e.target.value)} placeholder="e.g. The PRC registration is unreadable." className="mt-1.5 block w-full rounded-xl border border-[#d9d4cb] bg-white px-3.5 py-2.5 text-[15px] outline-none focus:border-[var(--accent)] focus:ring-2 focus:ring-[var(--accent)]/15" />
           </label>
           <div className="flex gap-2">
-            <button type="submit" disabled={pending} className="inline-flex items-center gap-1.5 bg-red-700 px-4 py-2.5 text-sm font-bold text-white hover:bg-red-800 disabled:opacity-60">
+            <button type="submit" disabled={pending} className="rounded-xl inline-flex items-center gap-1.5 bg-red-700 px-4 py-2.5 text-sm font-bold text-white hover:bg-red-800 disabled:opacity-60">
               {pending && <LoaderCircle className="h-4 w-4 animate-spin" />} Turn down
             </button>
             <button type="button" disabled={pending} onClick={() => setMode("idle")} className="px-2 py-2.5 text-sm font-semibold text-[#8a847a] hover:text-[#17150f]">

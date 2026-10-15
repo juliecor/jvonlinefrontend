@@ -141,7 +141,7 @@ export default async function OfferDetailPage({ params }: { params: Promise<{ re
         <ArrowLeft className="h-4 w-4" /> All offers
       </Link>
       {/* The offer at a glance: the house, the buyer, the price, and how far along it is. */}
-      <section className="overflow-hidden border border-[#e0dcd5] bg-white">
+      <section className="overflow-hidden rounded-2xl border border-[#e8eaed] bg-white shadow-[0_2px_12px_-2px_rgba(23,21,15,0.06)]">
         <div className="flex flex-col sm:flex-row">
           {o.photo ? (
             <Photo src={o.photo} alt={o.unit ?? o.project ?? ""} sizes="(min-width: 1024px) 320px, (min-width: 640px) 256px, 100vw" loading="eager" className="aspect-[2/1] w-full object-cover sm:aspect-auto sm:w-64 sm:shrink-0 lg:w-80" />
@@ -156,7 +156,7 @@ export default async function OfferDetailPage({ params }: { params: Promise<{ re
                 <p className="text-xs font-bold uppercase tracking-[0.18em] text-[var(--accent)]">Sales offer · {o.code}</p>
                 {o.status === "void" && <Tag tone="bad">Void</Tag>}
                 {o.status === "active" && o.expired && <Tag tone="bad">Expired</Tag>}
-                {o.unit_hold?.this_offer && o.unit_hold.status === "sold" && <span className="bg-[#17150f] px-1.5 py-0.5 text-[10px] font-bold uppercase tracking-[0.14em] text-white">Sold</span>}
+                {o.unit_hold?.this_offer && o.unit_hold.status === "sold" && <span className="rounded-xl bg-[#17150f] px-1.5 py-0.5 text-[10px] font-bold uppercase tracking-[0.14em] text-white">Sold</span>}
                 {o.unit_hold?.this_offer && o.unit_hold.status === "reserved" && <Tag tone="warn">Reserved</Tag>}
                 {o.reservation && (o.reservation.status === "pending" || o.reservation.status === "paid") && <Tag tone="accent">Reservation to confirm</Tag>}
                 {o.approval_status === "approved" && <Tag>Custom terms</Tag>}
@@ -178,10 +178,10 @@ export default async function OfferDetailPage({ params }: { params: Promise<{ re
                 </a>
               ) : o.status === "active" ? (
                 <>
-                  <a href={o.url} target="_blank" rel="noreferrer" className="inline-flex items-center gap-2 bg-[var(--accent)] px-4 py-2.5 text-sm font-bold text-white transition hover:brightness-110">
+                  <a href={o.url} target="_blank" rel="noreferrer" className="inline-flex items-center gap-2 rounded-xl bg-[var(--accent)] px-4 py-2.5 text-sm font-bold text-white transition hover:brightness-110">
                     Open buyer&apos;s page <ExternalLink className="h-4 w-4" />
                   </a>
-                  <CopyButton text={o.url} className="!rounded-none !px-4 !py-2.5 !text-sm" />
+                  <CopyButton text={o.url} className="!rounded-xl !px-4 !py-2.5 !text-sm" />
                 </>
               ) : null}
               {/* A task about this buyer, e.g. "Collect the payslip", for someone on the team. */}
@@ -357,7 +357,7 @@ export default async function OfferDetailPage({ params }: { params: Promise<{ re
                           {[r.phone, r.email].filter(Boolean).join(" · ") || "No contact details left"}
                           {r.contact_via && r.kind !== "not_interested" && <span className="text-[#8a847a]"> · prefers {VIA_LABEL[r.contact_via]}</span>}
                         </p>
-                        {r.message && <blockquote className="mt-4 border-l-4 border-[var(--accent)] bg-[#f6f4f0] px-4 py-3 text-[15px] leading-relaxed text-[#17150f]">{r.message}</blockquote>}
+                        {r.message && <blockquote className="rounded-xl mt-4 border-l-4 border-[var(--accent)] bg-[#f6f4f0] px-4 py-3 text-[15px] leading-relaxed text-[#17150f]">{r.message}</blockquote>}
                         <div className="mt-4">
                           <ContactButtons phone={r.phone} email={r.email} via={r.contact_via} />
                         </div>

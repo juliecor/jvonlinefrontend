@@ -118,7 +118,7 @@ export function InventoryRing({ available, reserved, sold }: { available: number
             })}
         </svg>
         <div className="pointer-events-none absolute inset-0 flex flex-col items-center justify-center">
-          <span className="text-2xl font-bold tabular-nums text-[#17150f]">{total ? share(focus.n, total) : "—"}</span>
+          <span className="font-[family-name:var(--font-outfit),var(--font-geist-sans)] text-[26px] font-bold tabular-nums text-[#17150f]">{total ? share(focus.n, total) : "—"}</span>
           <span className="text-xs text-[#6b665d]">{focus.label.toLowerCase()}</span>
         </div>
       </div>
@@ -155,8 +155,8 @@ export function Funnel({ steps }: { steps: { step: string; n: number }[] }) {
                 {i > 0 && <span className="ml-1.5 text-xs">{share}%</span>}
               </span>
             </div>
-            <div className="mt-1.5 h-2.5 bg-[#f1eee9]">
-              <div className="h-full transition-[width]" style={{ width: `${s.n ? Math.max((s.n / first) * 100, 1.5) : 0}%`, background: last ? STATUS.available : i === 0 ? INK : "var(--accent)" }} />
+            <div className="mt-1.5 h-2.5 overflow-hidden rounded-full bg-[#f1eee9]">
+              <div className="h-full rounded-full transition-[width]" style={{ width: `${s.n ? Math.max((s.n / first) * 100, 1.5) : 0}%`, background: last ? STATUS.available : i === 0 ? INK : "var(--accent)" }} />
             </div>
           </li>
         )
@@ -169,7 +169,7 @@ export function Funnel({ steps }: { steps: { step: string; n: number }[] }) {
 export function StackBar({ available, reserved, sold }: { available: number; reserved: number; sold: number }) {
   const total = Math.max(1, available + reserved + sold)
   return (
-    <div className="flex h-2.5 w-full gap-px overflow-hidden bg-[#f1eee9]" title={`${available} available · ${reserved} reserved · ${sold} sold`}>
+    <div className="flex h-2.5 w-full gap-px overflow-hidden rounded-full bg-[#f1eee9]" title={`${available} available · ${reserved} reserved · ${sold} sold`}>
       {[
         [available, STATUS.available],
         [reserved, STATUS.reserved],
@@ -182,7 +182,7 @@ export function StackBar({ available, reserved, sold }: { available: number; res
 function Key({ color, label }: { color: string; label: string }) {
   return (
     <span className="inline-flex items-center gap-2">
-      <span className="h-2.5 w-2.5" style={{ background: color }} />
+      <span className="h-2.5 w-2.5 rounded-full" style={{ background: color }} />
       {label}
     </span>
   )

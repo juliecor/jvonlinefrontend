@@ -113,7 +113,7 @@ export function DashboardShell({ slug, user, counts, superAdmin, signOutAction, 
     <Link
       href={isSite ? "/" : `/${slug}/login`}
       title={isSite ? (counts ? `${counts.publicProjects} project pages live` : "Johndorf's website") : staff ? "Share it with your agents" : "Where you sign in"}
-      className="inline-flex shrink-0 items-center gap-1 border border-[#e6e2db] px-2.5 py-1 text-xs font-semibold text-[#2b2823] outline-none transition hover:border-[#17150f] focus-visible:ring-2 focus-visible:ring-[var(--accent)]"
+      className="inline-flex shrink-0 items-center gap-1 rounded-full border border-[#e6e2db] px-2.5 py-1 text-xs font-semibold text-[#2b2823] outline-none transition hover:border-[#17150f] focus-visible:ring-2 focus-visible:ring-[var(--accent)]"
     >
       {isSite ? "Public site" : "Sign-in page"} <ArrowUpRight className="h-3.5 w-3.5" />
     </Link>
@@ -150,7 +150,7 @@ export function DashboardShell({ slug, user, counts, superAdmin, signOutAction, 
           <Link
             href={`/${slug}/dashboard/offers/new`}
             onClick={() => setOpen(false)}
-            className="flex items-center justify-center gap-2 bg-[var(--accent)] px-3 py-3 text-[15px] font-semibold text-white outline-none transition hover:brightness-110 focus-visible:ring-2 focus-visible:ring-[var(--accent)] focus-visible:ring-offset-2"
+            className="flex items-center justify-center gap-2 rounded-xl bg-[var(--accent)] px-3 py-3 text-[15px] font-semibold text-white outline-none transition hover:brightness-110 focus-visible:ring-2 focus-visible:ring-[var(--accent)] focus-visible:ring-offset-2"
           >
             <Plus className="h-[18px] w-[18px]" strokeWidth={2.25} /> New offer
           </Link>
@@ -169,15 +169,15 @@ export function DashboardShell({ slug, user, counts, superAdmin, signOutAction, 
                     href={href}
                     onClick={() => setOpen(false)}
                     aria-current={active ? "page" : undefined}
-                    className={`group flex items-center gap-3 px-2 py-1 text-base outline-none transition focus-visible:ring-2 focus-visible:ring-[var(--accent)]/40 ${active ? "bg-[#f2f0ec] font-semibold text-[#17150f] shadow-[inset_3px_0_0_var(--accent)]" : "font-medium text-[#2b2823] hover:bg-[#f7f6f3] hover:text-[#17150f]"}`}
+                    className={`group flex items-center gap-3 rounded-xl px-2 py-1 text-base outline-none transition focus-visible:ring-2 focus-visible:ring-[var(--accent)]/40 ${active ? "bg-[#f2f0ec] font-semibold text-[#17150f]" : "font-medium text-[#2b2823] hover:bg-[#f7f6f3] hover:text-[#17150f]"}`}
                   >
-                    <span className={`flex h-8 w-8 shrink-0 items-center justify-center transition ${active ? "bg-[var(--accent)] text-white" : "bg-[#f3f1ed] text-[#6b665d] group-hover:bg-[#ebe8e2] group-hover:text-[#2b2823]"}`}>
+                    <span className={`flex h-8 w-8 shrink-0 items-center justify-center rounded-lg transition ${active ? "bg-[var(--accent)] text-white shadow-[0_4px_10px_-3px_var(--accent)]" : "bg-[#f3f1ed] text-[#6b665d] group-hover:bg-[#ebe8e2] group-hover:text-[#2b2823]"}`}>
                       <Icon className="h-[18px] w-[18px]" strokeWidth={1.9} />
                     </span>
                     <span className="min-w-0 flex-1 truncate">{label}</span>
                     {/* Something waiting gets a small red badge; otherwise a quiet count. */}
                     {alert ? (
-                      <span className="shrink-0 bg-[var(--accent)] px-1.5 py-0.5 text-xs font-semibold text-white">{alert}</span>
+                      <span className="shrink-0 rounded-full bg-[var(--accent)] px-2 py-0.5 text-xs font-semibold text-white">{alert}</span>
                     ) : (
                       count !== undefined && <span className="shrink-0 pr-1 text-[13px] font-medium tabular-nums text-[#6b665d]">{count}</span>
                     )}
@@ -211,13 +211,13 @@ export function DashboardShell({ slug, user, counts, superAdmin, signOutAction, 
           </Link>
           <div className="flex items-center gap-2">
             {newOffer && (
-              <Link href={`/${slug}/dashboard/offers/new`} className="flex items-center gap-1.5 bg-[var(--accent)] px-3 py-2 text-sm font-bold text-white">
+              <Link href={`/${slug}/dashboard/offers/new`} className="flex items-center gap-1.5 rounded-xl bg-[var(--accent)] px-3 py-2 text-sm font-bold text-white">
                 <Plus className="h-4 w-4" strokeWidth={2.5} /> Offer
               </Link>
             )}
             <button type="button" onClick={() => setOpen(true)} aria-label={waiting ? `Open menu, ${waiting} things need you` : "Open menu"} className="relative p-2 text-[#17150f]">
               <Menu className="h-6 w-6" />
-              {!!waiting && <span aria-hidden className="absolute right-1 top-1 h-2.5 w-2.5 border-2 border-white bg-[var(--accent)]" />}
+              {!!waiting && <span aria-hidden className="absolute right-1 top-1 h-2.5 w-2.5 rounded-full border-2 border-white bg-[var(--accent)]" />}
             </button>
           </div>
         </div>
@@ -237,7 +237,7 @@ export function DashboardShell({ slug, user, counts, superAdmin, signOutAction, 
       <main className="min-w-0 px-5 py-8 sm:px-10 sm:py-12">
         <div className="mx-auto max-w-5xl">
           {stopped && (
-            <div role="status" className="mb-8 flex flex-col gap-2 border-l-4 border-red-600 bg-red-50 px-4 py-3 sm:flex-row sm:items-center sm:justify-between">
+            <div role="status" className="rounded-xl mb-8 flex flex-col gap-2 border-l-4 border-red-600 bg-red-50 px-4 py-3 sm:flex-row sm:items-center sm:justify-between">
               <p className="flex items-start gap-2.5 text-[15px] font-semibold text-red-900">
                 <Ban className="mt-0.5 h-5 w-5 shrink-0" />
                 <span>
@@ -287,7 +287,7 @@ function ProfileCard({ name, photo, role, sub, account, accountActive, signOutAc
         onClick={() => setOpen((o) => !o)}
         aria-expanded={open}
         aria-haspopup="menu"
-        className={`flex w-full items-center gap-3 border p-3 text-left outline-none transition focus-visible:ring-2 focus-visible:ring-[var(--accent)] ${open || accountActive ? "border-[#d9d4cb] bg-[#f7f6f3]" : "border-[#e8e5df] bg-[#fbfaf8] hover:border-[#d9d4cb]"}`}
+        className={`flex w-full items-center gap-3 rounded-2xl border p-3 text-left outline-none transition focus-visible:ring-2 focus-visible:ring-[var(--accent)] ${open || accountActive ? "border-[#d9d4cb] bg-[#f7f6f3]" : "border-[#e8e5df] bg-[#fbfaf8] hover:border-[#d9d4cb]"}`}
       >
         {photo ? (
           // eslint-disable-next-line @next/next/no-img-element
@@ -300,7 +300,7 @@ function ProfileCard({ name, photo, role, sub, account, accountActive, signOutAc
         <span className="min-w-0 flex-1">
           <span className="line-clamp-2 break-words text-[15px] font-bold leading-snug text-[#17150f]">{name}</span>
           <span className="mt-1 flex min-w-0 items-center gap-1.5">
-            <span className="shrink-0 px-2 py-0.5 text-[11px] font-bold uppercase tracking-[0.1em] text-[var(--accent)]" style={{ backgroundColor: "color-mix(in srgb, var(--accent) 10%, white)" }}>
+            <span className="rounded-md shrink-0 px-2 py-0.5 text-[11px] font-bold uppercase tracking-[0.1em] text-[var(--accent)]" style={{ backgroundColor: "color-mix(in srgb, var(--accent) 10%, white)" }}>
               {role}
             </span>
             {sub && <span className="truncate text-xs text-[#6b665d]">{sub}</span>}
@@ -309,7 +309,7 @@ function ProfileCard({ name, photo, role, sub, account, accountActive, signOutAc
         <ChevronDown className={`h-4 w-4 shrink-0 text-[#8a847a] transition ${open ? "rotate-180" : ""}`} />
       </button>
       {open && (
-        <div role="menu" className="absolute inset-x-0 top-full z-30 mt-1 border border-[#e8e5df] bg-white py-1 shadow-lg">
+        <div role="menu" className="absolute inset-x-0 top-full z-30 mt-1 overflow-hidden rounded-xl border border-[#e8e5df] bg-white py-1 shadow-lg">
           <Link
             href={account}
             role="menuitem"

@@ -67,7 +67,7 @@ export function AskBox({ slug, name, pending, error, hint, onSend }: { slug: str
       className="border-t border-[#e6e2db] p-3 sm:p-4"
     >
       {error && <p className="mb-2 text-sm font-bold text-red-700">{error}</p>}
-      <div className="flex items-end gap-2 border border-[#d9d4cb] bg-white p-1.5 focus-within:border-[var(--accent)]">
+      <div className="rounded-xl flex items-end gap-2 border border-[#d9d4cb] bg-white p-1.5 focus-within:border-[var(--accent)]">
         <textarea
           ref={box}
           value={text}
@@ -97,7 +97,7 @@ export function AskBox({ slug, name, pending, error, hint, onSend }: { slug: str
             if (final) box.current?.focus()
           }}
         />
-        <button type="submit" disabled={pending || recording || !text.trim()} aria-label="Send" className="flex h-11 w-11 shrink-0 items-center justify-center bg-[var(--accent)] text-white transition hover:brightness-110 disabled:opacity-40">
+        <button type="submit" disabled={pending || recording || !text.trim()} aria-label="Send" className="rounded-xl flex h-11 w-11 shrink-0 items-center justify-center bg-[var(--accent)] text-white transition hover:brightness-110 disabled:opacity-40">
           <ArrowUp className="h-5 w-5" strokeWidth={2.5} />
         </button>
       </div>
@@ -108,14 +108,14 @@ export function AskBox({ slug, name, pending, error, hint, onSend }: { slug: str
 
 export function Avatar() {
   return (
-    <span className="flex h-8 w-8 shrink-0 items-center justify-center bg-[var(--accent)] text-white">
+    <span className="rounded-xl flex h-8 w-8 shrink-0 items-center justify-center bg-[var(--accent)] text-white">
       <Sparkles className="h-4 w-4" />
     </span>
   )
 }
 
 function Question({ text }: { text: string }) {
-  return <p className="ml-auto w-fit max-w-[85%] whitespace-pre-wrap bg-[#17150f] px-4 py-2.5 text-[15px] text-white">{text}</p>
+  return <p className="ml-auto w-fit max-w-[85%] whitespace-pre-wrap rounded-xl bg-[#17150f] px-4 py-2.5 text-[15px] text-white">{text}</p>
 }
 
 /** What the assistant is doing while there's no text yet, e.g. "Searching the units". */
@@ -159,7 +159,7 @@ function Answer({ slug, text, cards = [], streaming = false, status = "", onAsk,
         {onAsk && followUps.length > 0 && (
           <div className="mt-3 flex flex-col items-start gap-1.5">
             {followUps.map((q) => (
-              <button key={q} type="button" onClick={() => onAsk(q)} className="inline-flex max-w-full items-start gap-2 border border-[#e0dcd5] bg-white px-3 py-2 text-left text-sm font-semibold text-[#3d3a34] transition hover:border-[var(--accent)] hover:text-[#17150f]">
+              <button key={q} type="button" onClick={() => onAsk(q)} className="inline-flex max-w-full items-start gap-2 rounded-2xl border border-[#e8eaed] bg-white shadow-[0_2px_12px_-2px_rgba(23,21,15,0.06)] px-3 py-2 text-left text-sm font-semibold text-[#3d3a34] transition hover:border-[var(--accent)] hover:text-[#17150f]">
                 <CornerDownRight className="mt-0.5 h-4 w-4 shrink-0 text-[var(--accent)]" />
                 {q}
               </button>

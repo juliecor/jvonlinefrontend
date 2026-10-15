@@ -31,7 +31,7 @@ export function RouteModal({ eyebrow, title, wide = false, children }: { eyebrow
         e.preventDefault()
         router.back()
       }}
-      className={`fixed inset-0 m-auto h-fit max-h-[calc(100dvh-2rem)] w-[calc(100%-2rem)] overflow-y-auto border-t-4 border-[var(--accent)] bg-[#f6f4f0] p-0 text-[#17150f] shadow-2xl backdrop:bg-[#17150f]/55 ${wide ? "max-w-5xl" : "max-w-3xl"}`}
+      className={`rounded-2xl fixed inset-0 m-auto h-fit max-h-[calc(100dvh-2rem)] w-[calc(100%-2rem)] overflow-y-auto border-t-4 border-[var(--accent)] bg-[#f6f4f0] p-0 text-[#17150f] shadow-2xl backdrop:bg-[#17150f]/55 ${wide ? "max-w-5xl" : "max-w-3xl"}`}
     >
       <div className="sticky top-0 z-10 flex items-start justify-between gap-4 border-b border-[#e6e2db] bg-white px-5 py-4 sm:px-7 sm:py-5">
         <div>

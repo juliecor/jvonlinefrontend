@@ -7,7 +7,7 @@ import { toast } from "@/components/feedback"
 import { type AgreementSettings, saveAgreementSettings } from "../actions"
 
 const field = (error?: string) =>
-  `block w-full border bg-white px-3.5 py-2.5 text-[15px] outline-none transition focus:border-[var(--accent)] focus:ring-2 focus:ring-[var(--accent)]/15 ${error ? "border-red-500 bg-red-50/40" : "border-[#d9d4cb]"}`
+  `rounded-xl block w-full border bg-white px-3.5 py-2.5 text-[15px] outline-none transition focus:border-[var(--accent)] focus:ring-2 focus:ring-[var(--accent)]/15 ${error ? "border-red-500 bg-red-50/40" : "border-[#d9d4cb]"}`
 
 /** Who signs for the developer, its office address, the commission rates and the days to send the signed copy. */
 export function AgreementSettingsForm({ slug, initial }: { slug: string; initial: AgreementSettings }) {
@@ -108,7 +108,7 @@ export function AgreementSettingsForm({ slug, initial }: { slug: string; initial
         </Label>
       </div>
 
-      <button type="submit" disabled={pending} className="inline-flex items-center gap-2 bg-[var(--accent)] px-5 py-3 text-[15px] font-bold text-white transition hover:brightness-110 disabled:opacity-60">
+      <button type="submit" disabled={pending} className="inline-flex items-center gap-2 rounded-xl bg-[var(--accent)] px-5 py-3 text-[15px] font-bold text-white transition hover:brightness-110 disabled:opacity-60">
         {pending ? <LoaderCircle className="h-5 w-5 animate-spin" /> : <Save className="h-5 w-5" />} Save details
       </button>
     </form>

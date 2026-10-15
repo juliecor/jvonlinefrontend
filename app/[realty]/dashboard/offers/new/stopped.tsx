@@ -10,7 +10,7 @@ export function OffersStopped({ user }: { user: RealtyUser }) {
   const a = user.realty.accreditation
   const developer = user.realty.developer?.name ?? "the developer"
   return (
-    <div className="border-l-4 border-red-600 bg-red-50 px-5 py-5">
+    <div className="rounded-xl border-l-4 border-red-600 bg-red-50 px-5 py-5">
       <p className="flex items-center gap-2 text-lg font-bold text-red-900">
         <Ban className="h-5 w-5" /> New offers are paused
       </p>

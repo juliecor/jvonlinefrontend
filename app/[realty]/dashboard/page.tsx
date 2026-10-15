@@ -39,9 +39,30 @@ const initials = (name: string) =>
 /** ₱3.3M, ₱850K: big peso amounts on a card. */
 const pesoShort = (n: number) => (n >= 1_000_000 ? `₱${(Math.round(n / 100_000) / 10).toLocaleString("en-PH")}M` : n >= 1000 ? `₱${Math.round(n / 1000).toLocaleString("en-PH")}K` : php(n))
 
-const card = "min-w-0 border border-[#e6e2db] bg-white"
-const cardHead = "flex flex-wrap items-center justify-between gap-x-4 gap-y-1 border-b border-[#e6e2db] px-5 py-4"
-const cardTitle = "flex items-center gap-2.5 text-lg font-bold text-[#17150f]"
+const card = "min-w-0 overflow-hidden rounded-2xl border border-[#e8eaed] bg-white shadow-[0_2px_12px_-2px_rgba(23,21,15,0.06)]"
+const cardHead = "flex flex-wrap items-center justify-between gap-x-4 gap-y-2 border-b border-[#f0eeea] px-5 py-4"
+const cardTitle = "flex items-center gap-3"
+const outfit = "font-[family-name:var(--font-outfit),var(--font-geist-sans)]"
+
+/** A card's title: a dark tile with its icon, the title in Outfit and a line under it. */
+function Title({ icon: Icon, title, sub }: { icon: typeof Activity; title: string; sub?: string }) {
+  return (
+    <>
+      <span className="flex h-11 w-11 shrink-0 items-center justify-center rounded-xl bg-[#17150f] text-white">
+        <Icon className="h-5 w-5" strokeWidth={2} />
+      </span>
+      <span>
+        <span className={`${outfit} block text-[19px] font-bold leading-tight tracking-tight text-[#17150f]`}>{title}</span>
+        {sub && <span className="block text-[13px] text-[#6b665d]">{sub}</span>}
+      </span>
+    </>
+  )
+}
+
+/** A section's heading, with the accent bar on its left. */
+function SectionLabel({ children }: { children: React.ReactNode }) {
+  return <h2 className={`${outfit} flex items-center gap-3 pt-2 text-[21px] font-bold tracking-tight text-[#17150f] before:h-6 before:w-1 before:rounded-full before:bg-[var(--accent)]`}>{children}</h2>
+}
 
 const RECENT_ICON = { offer: Send, answer: MessageSquare, interested: CheckCircle2, reservation: Wallet, reserved: Home, sold: BadgeCheck } as const
 const RECENT_TONE = { offer: "bg-[#f3f1ed] text-[#5a554d]", answer: "bg-[#f3f1ed] text-[#5a554d]", interested: "bg-emerald-50 text-emerald-700", reservation: "bg-amber-50 text-amber-700", reserved: "bg-amber-50 text-amber-700", sold: "bg-red-50 text-red-700" } as const
@@ -106,7 +127,7 @@ export default async function RealtyOverviewPage({ params }: { params: Promise<{
           </p>
         </div>
         {canOffer && (
-          <Link href={`${base}/offers/new`} className="inline-flex items-center gap-2 bg-[var(--accent)] px-5 py-3 text-[15px] font-bold text-white transition hover:brightness-110">
+          <Link href={`${base}/offers/new`} className="inline-flex items-center gap-2 rounded-xl bg-[var(--accent)] px-5 py-3 text-[15px] font-bold text-white transition hover:brightness-110">
             <Plus className="h-4 w-4" strokeWidth={2.5} /> New offer
           </Link>
         )}
@@ -114,34 +135,36 @@ export default async function RealtyOverviewPage({ params }: { params: Promise<{
 
       {/* What needs doing */}
       {todo.length > 0 ? (
-        <section className="flex flex-wrap items-center gap-2 border-l-4 border-[var(--accent)] bg-white px-4 py-3">
+        <section className="flex flex-wrap items-center gap-2 rounded-2xl border border-[#e8eaed] border-l-4 border-l-[var(--accent)] bg-white px-4 py-3 shadow-[0_2px_12px_-2px_rgba(23,21,15,0.06)]">
           <p className="mr-2 text-sm font-bold text-[#17150f]">Needs you now</p>
           {todo.map(({ n, label, href, icon: Icon }) => (
-            <Link key={label} href={href} className="inline-flex items-center gap-2 border border-[#e6e2db] bg-[#faf9f7] px-3 py-1.5 text-sm font-semibold text-[#17150f] transition hover:border-[var(--accent)]">
+            <Link key={label} href={href} className="inline-flex items-center gap-2 rounded-full border border-[#e6e2db] bg-[#faf9f7] px-3 py-1.5 text-sm font-semibold text-[#17150f] transition hover:border-[var(--accent)]">
               <Icon className="h-4 w-4 text-[var(--accent)]" />
               <span className="tabular-nums">{n}</span> {label}
             </Link>
           ))}
         </section>
       ) : (
-        <section className="flex items-center gap-2 border-l-4 border-emerald-500 bg-white px-4 py-3 text-sm font-semibold text-emerald-800">
+        <section className="flex items-center gap-2 rounded-2xl border border-[#e8eaed] border-l-4 border-l-emerald-500 bg-white px-4 py-3 text-sm font-semibold text-emerald-800 shadow-[0_2px_12px_-2px_rgba(23,21,15,0.06)]">
           <CheckCircle2 className="h-4 w-4" /> All caught up: nothing is waiting for you.
         </section>
       )}
 
+      <SectionLabel>Key performance indicators</SectionLabel>
+
       {/* The headline numbers */}
       <div className="grid grid-cols-2 gap-3 sm:gap-4 xl:grid-cols-4">
         {kpis.map(({ label, value, note, href, icon: Icon, tone }) => (
-          <Link key={label} href={href} className={`${card} group relative flex flex-col p-4 outline-none transition hover:border-[#17150f] focus-visible:ring-2 focus-visible:ring-[var(--accent)] sm:p-5`} style={{ boxShadow: `inset 0 3px 0 ${tone}` }}>
-            <div className="flex items-start justify-between">
-              <span className="flex h-9 w-9 items-center justify-center bg-[#f3f1ed] sm:h-10 sm:w-10" style={{ color: tone }}>
-                <Icon className="h-5 w-5" strokeWidth={1.9} />
+          <Link key={label} href={href} className={`${card} group flex flex-col p-5 outline-none transition hover:-translate-y-0.5 hover:shadow-[0_8px_24px_-6px_rgba(23,21,15,0.14)] focus-visible:ring-2 focus-visible:ring-[var(--accent)]`}>
+            <div className="flex items-center gap-3">
+              <span className="flex h-11 w-11 shrink-0 items-center justify-center rounded-full bg-[#17150f]" style={{ color: tone === "#17150f" ? "#ffffff" : tone }}>
+                <Icon className="h-5 w-5" strokeWidth={2} />
               </span>
-              <ArrowUpRight className="h-4 w-4 text-[#c9c4bb] transition group-hover:text-[var(--accent)]" />
+              <p className="min-w-0 flex-1 text-[11px] font-bold uppercase leading-tight tracking-[0.1em] text-[#6b665d]">{label}</p>
+              <ArrowUpRight className="hidden h-4 w-4 shrink-0 text-[#c9c4bb] transition group-hover:text-[var(--accent)] sm:block" />
             </div>
-            <p className={`${display} mt-4 text-3xl tabular-nums tracking-tight text-[#17150f] sm:text-4xl`}>{value}</p>
-            <p className="mt-1 text-sm font-semibold text-[#17150f] sm:text-[15px]">{label}</p>
-            <p className="mt-0.5 text-[13px] text-[#6b665d] sm:text-sm">{note}</p>
+            <p className={`${display} mt-4 text-[34px] leading-none tabular-nums tracking-tight text-[#17150f] sm:text-[40px]`}>{value}</p>
+            <p className="mt-3 border-t border-[#f0eeea] pt-3 text-[13px] font-medium text-[#6b665d]">{note}</p>
           </Link>
         ))}
       </div>
@@ -151,9 +174,8 @@ export default async function RealtyOverviewPage({ params }: { params: Promise<{
         <section className={card}>
           <div className={cardHead}>
             <h2 className={cardTitle}>
-              <Activity className="h-5 w-5 text-[var(--accent)]" /> Offers and sales
+              <Title icon={Activity} title="Offers and sales" sub="Offers sent and homes reserved or sold · last 6 months" />
             </h2>
-            <span className="text-sm text-[#6b665d]">last 6 months</span>
           </div>
           <div className="p-5">
             <TrendChart months={a.trend} />
@@ -162,7 +184,7 @@ export default async function RealtyOverviewPage({ params }: { params: Promise<{
         <section className={card}>
           <div className={cardHead}>
             <h2 className={cardTitle}>
-              <Building2 className="h-5 w-5 text-[var(--accent)]" /> Inventory
+              <Title icon={Building2} title="Inventory" sub="Every unit and lot by status" />
             </h2>
             <Link href={`${base}/projects`} className="text-sm font-semibold text-[var(--accent)] hover:underline">
               Projects
@@ -179,9 +201,8 @@ export default async function RealtyOverviewPage({ params }: { params: Promise<{
         <section className={card}>
           <div className={cardHead}>
             <h2 className={cardTitle}>
-              <Send className="h-5 w-5 text-[var(--accent)]" /> From offer to reservation
+              <Title icon={Send} title="From offer to reservation" sub="How far buyers get" />
             </h2>
-            <span className="text-sm text-[#6b665d]">{staff ? "every offer" : "your offers"}</span>
           </div>
           <div className="p-5">
             {a.funnel[0]?.n ? <Funnel steps={a.funnel} /> : <p className="py-6 text-center text-[15px] text-[#8a847a]">No offers yet. The steps fill in as buyers open, answer and reserve.</p>}
@@ -190,7 +211,7 @@ export default async function RealtyOverviewPage({ params }: { params: Promise<{
         <section className={card}>
           <div className={cardHead}>
             <h2 className={cardTitle}>
-              <Wallet className="h-5 w-5 text-[var(--accent)]" /> Reservations
+              <Title icon={Wallet} title="Reservations" sub="Fees and homes held" />
             </h2>
             <Link href={`${base}/offers`} className="text-sm font-semibold text-[var(--accent)] hover:underline">
               Offers
@@ -203,7 +224,7 @@ export default async function RealtyOverviewPage({ params }: { params: Promise<{
               { label: "Fees confirmed", value: pesoShort(a.reservations.fees_confirmed), note: "reservation fees received" },
               { label: "Value held", value: pesoShort(a.reservations.value_held), note: "price of the homes reserved or sold" },
             ].map((r) => (
-              <div key={r.label} className="bg-white p-5">
+              <div key={r.label} className="rounded-xl bg-white p-5">
                 <dt className="text-xs font-bold uppercase tracking-[0.1em] text-[#8a847a]">{r.label}</dt>
                 <dd className={`${display} mt-1.5 text-2xl tabular-nums sm:text-3xl ${r.hot ? "text-[var(--accent)]" : "text-[#17150f]"}`}>{r.value}</dd>
                 <dd className="mt-0.5 text-[13px] text-[#6b665d]">{r.note}</dd>
@@ -213,14 +234,15 @@ export default async function RealtyOverviewPage({ params }: { params: Promise<{
         </section>
       </div>
 
+      <SectionLabel>Projects and team</SectionLabel>
+
       {/* Projects */}
       {a.projects.length > 0 && (
         <section className={card}>
           <div className={cardHead}>
             <h2 className={cardTitle}>
-              <MapPin className="h-5 w-5 text-[var(--accent)]" /> Projects
+              <Title icon={MapPin} title="Projects" sub="Busiest first" />
             </h2>
-            <span className="text-sm text-[#6b665d]">busiest first</span>
           </div>
           <ul className="divide-y divide-[#efece7]">
             {a.projects.map((p) => {
@@ -255,8 +277,8 @@ export default async function RealtyOverviewPage({ params }: { params: Promise<{
           <section className={card}>
             <div className={cardHead}>
               <h2 className={cardTitle}>
-                <Trophy className="h-5 w-5 text-[var(--accent)]" /> Top sellers
-              </h2>
+              <Title icon={Trophy} title="Top sellers" sub="Offers, interested buyers and deals" />
+            </h2>
               <Link href={`${base}/agents`} className="text-sm font-semibold text-[var(--accent)] hover:underline">
                 Team
               </Link>
@@ -294,7 +316,7 @@ export default async function RealtyOverviewPage({ params }: { params: Promise<{
         <section className={card}>
           <div className={cardHead}>
             <h2 className={cardTitle}>
-              <Activity className="h-5 w-5 text-[var(--accent)]" /> Latest activity
+              <Title icon={Activity} title="Latest activity" sub="What happened lately" />
             </h2>
           </div>
           {a.recent.length ? (
@@ -303,7 +325,7 @@ export default async function RealtyOverviewPage({ params }: { params: Promise<{
                 const Icon = RECENT_ICON[e.kind]
                 const body = (
                   <>
-                    <span className={`flex h-8 w-8 shrink-0 items-center justify-center ${RECENT_TONE[e.kind]}`}>
+                    <span className={`flex h-9 w-9 shrink-0 items-center justify-center rounded-full ${RECENT_TONE[e.kind]}`}>
                       <Icon className="h-4 w-4" />
                     </span>
                     <span className="min-w-0 flex-1">
@@ -337,7 +359,7 @@ export default async function RealtyOverviewPage({ params }: { params: Promise<{
         <section className={card}>
           <div className={cardHead}>
             <h2 className={cardTitle}>
-              <Inbox className="h-5 w-5 text-[var(--accent)]" /> Latest buyer responses
+              <Title icon={Inbox} title="Latest buyer responses" sub="Answers from buyers" />
             </h2>
             <Link href={`${base}/offers`} className="inline-flex items-center gap-1 text-sm font-semibold text-[var(--accent)] hover:underline">
               All offers <ArrowRight className="h-4 w-4" />
@@ -366,7 +388,7 @@ export default async function RealtyOverviewPage({ params }: { params: Promise<{
                 </div>
                 <div className="flex shrink-0 flex-wrap items-center gap-2 sm:pl-4">
                   {l.kind !== "not_interested" && <ContactButtons phone={l.phone} email={l.email} via={l.contact_via} limit={1} />}
-                  <Link href={`${base}/offers/${l.offer_id}`} className="inline-flex items-center border border-[#d9d4cb] bg-white px-3.5 py-2.5 text-sm font-bold text-[#17150f] transition hover:border-[#17150f]">
+                  <Link href={`${base}/offers/${l.offer_id}`} className="inline-flex items-center rounded-xl border border-[#d9d4cb] bg-white px-3.5 py-2.5 text-sm font-bold text-[#17150f] transition hover:border-[#17150f]">
                     View
                   </Link>
                 </div>
@@ -379,14 +401,14 @@ export default async function RealtyOverviewPage({ params }: { params: Promise<{
       <div className="grid grid-cols-1 gap-4 lg:grid-cols-[1.2fr_1fr]">
         {/* The main thing to do here */}
         {can(user, "offers") ? (
-          <section className="relative overflow-hidden bg-[var(--accent)] p-7 text-white sm:p-8">
+          <section className="relative overflow-hidden rounded-2xl bg-[var(--accent)] p-7 text-white shadow-[0_10px_30px_-12px_var(--accent)] sm:p-8">
             <Send aria-hidden className="absolute -right-6 -top-6 h-40 w-40 text-white/10" strokeWidth={1} />
             <p className="text-xs font-bold uppercase tracking-[0.2em] text-white/70">Sales offer</p>
             <h2 className={`${display} mt-2 text-3xl tracking-tight`}>Send a buyer an offer</h2>
             <p className="mt-3 max-w-md text-[15px] leading-relaxed text-white/85">Pick the lot on the site map or from the list, choose a payment plan, type the buyer&apos;s name, and you get a link with the price, the schedule and your contact details.</p>
             {/* Paused while a broker's accreditation has ended (the banner above says why). */}
             {!offersStopped(user) && (
-              <Link href={`${base}/offers/new`} className="mt-6 inline-flex items-center gap-2 bg-white px-5 py-3 text-[15px] font-bold text-[var(--accent)] transition hover:bg-[#fff4f3]">
+              <Link href={`${base}/offers/new`} className="mt-6 inline-flex items-center gap-2 rounded-xl bg-white px-5 py-3 text-[15px] font-bold text-[var(--accent)] transition hover:bg-[#fff4f3]">
                 New offer <ArrowRight className="h-4 w-4" />
               </Link>
             )}
@@ -398,7 +420,11 @@ export default async function RealtyOverviewPage({ params }: { params: Promise<{
 
         {/* Company */}
         <section className={card}>
-          <h2 className="border-b border-[#e6e2db] px-5 py-4 text-lg font-bold text-[#17150f]">Company</h2>
+          <h2 className={cardHead}>
+            <span className={cardTitle}>
+              <Title icon={Building2} title="Company" sub="Shown on offers and the website" />
+            </span>
+          </h2>
           <dl className="divide-y divide-[#efece7] text-[15px]">
             {[
               slug === SITE_REALTY

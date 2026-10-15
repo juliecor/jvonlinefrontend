@@ -61,7 +61,7 @@ export function ApprovalPanel(p: Props) {
 
   if (p.status === "approved" && mode !== "edit") {
     return (
-      <div className={`mt-8 flex flex-wrap items-center gap-x-3 gap-y-1 border px-4 py-3 text-sm ${tone}`}>
+      <div className={`rounded-xl mt-8 flex flex-wrap items-center gap-x-3 gap-y-1 border px-4 py-3 text-sm ${tone}`}>
         <BadgeCheck className="h-4 w-4 text-emerald-700" />
         <span className="font-bold text-emerald-800">Custom terms, approved</span>
         <span className="text-[#5a554d]">{[p.approvedBy && `by ${p.approvedBy}`, p.approvedAt && date(p.approvedAt)].filter(Boolean).join(" · ")}</span>
@@ -71,7 +71,7 @@ export function ApprovalPanel(p: Props) {
   }
 
   return (
-    <section className={`mt-8 border-2 p-5 sm:p-6 ${tone}`}>
+    <section className={`rounded-xl mt-8 border-2 p-5 sm:p-6 ${tone}`}>
       <div className="flex flex-wrap items-start justify-between gap-3">
         <div className="flex items-start gap-3">
           <Icon className={`mt-1 h-5 w-5 shrink-0 ${p.status === "pending" ? "text-amber-700" : "text-red-700"}`} />
@@ -93,13 +93,13 @@ export function ApprovalPanel(p: Props) {
       </div>
 
       {p.reason && (
-        <p className="mt-4 border-l-4 border-[#17150f]/30 bg-white/70 px-4 py-2.5 text-[15px]">
+        <p className="rounded-xl mt-4 border-l-4 border-[#17150f]/30 bg-white/70 px-4 py-2.5 text-[15px]">
           <span className="text-xs font-bold uppercase tracking-[0.12em] text-[#6b665d]">{p.agent ?? "Agent"}&apos;s note · </span>
           {p.reason}
         </p>
       )}
       {p.status === "rejected" && p.note && (
-        <p className="mt-3 border-l-4 border-red-500 bg-white px-4 py-2.5 text-[15px] font-semibold text-red-800">
+        <p className="rounded-xl mt-3 border-l-4 border-red-500 bg-white px-4 py-2.5 text-[15px] font-semibold text-red-800">
           <span className="text-xs font-bold uppercase tracking-[0.12em] text-red-700">{p.approvedBy ?? "Admin"} · </span>
           {p.note}
         </p>
@@ -110,10 +110,10 @@ export function ApprovalPanel(p: Props) {
           <TermsEditor rows={rows} setRows={setRows} price={p.price} />
           <label className="block">
             <span className="mb-1 block text-[11px] font-bold uppercase tracking-[0.1em] text-[#6b665d]">Note for the approver</span>
-            <textarea value={reason} onChange={(e) => setReason(e.target.value)} rows={2} maxLength={500} className="block w-full border border-[#d9d4cb] bg-white px-3 py-2.5 text-[15px] outline-none focus:border-[var(--accent)]" />
+            <textarea value={reason} onChange={(e) => setReason(e.target.value)} rows={2} maxLength={500} className="block w-full rounded-xl border border-[#d9d4cb] bg-white px-3 py-2.5 text-[15px] outline-none focus:border-[var(--accent)]" />
           </label>
           <div className="flex flex-wrap gap-2">
-            <button type="button" disabled={pending || !termsOk} onClick={resubmit} className="inline-flex items-center gap-2 bg-[var(--accent)] px-5 py-3 text-sm font-bold text-white hover:brightness-110 disabled:opacity-50">
+            <button type="button" disabled={pending || !termsOk} onClick={resubmit} className="inline-flex items-center gap-2 rounded-xl bg-[var(--accent)] px-5 py-3 text-sm font-bold text-white hover:brightness-110 disabled:opacity-50">
               {pending && <LoaderCircle className="h-4 w-4 animate-spin" />} {p.isStaff ? "Save terms" : "Send for approval again"}
             </button>
             {p.status !== "rejected" && (
@@ -130,7 +130,7 @@ export function ApprovalPanel(p: Props) {
             <div>
               <ScheduleBox title={`Official plan · ${official.name}`} rows={official.schedule} />
               {p.officialPlans.length > 1 && (
-                <select value={compare} onChange={(e) => setCompare(Number(e.target.value))} aria-label="Compare with" className="mt-2 w-full border border-[#d9d4cb] bg-white px-3 py-2 text-sm">
+                <select value={compare} onChange={(e) => setCompare(Number(e.target.value))} aria-label="Compare with" className="mt-2 w-full rounded-xl border border-[#d9d4cb] bg-white px-3 py-2 text-sm">
                   {p.officialPlans.map((o, i) => (
                     <option key={o.name} value={i}>
                       Compare with: {o.name}
@@ -148,9 +148,9 @@ export function ApprovalPanel(p: Props) {
         <div className="mt-5 border-t border-amber-300 pt-5">
           {mode === "reject" ? (
             <div className="space-y-3">
-              <input autoFocus value={note} onChange={(e) => setNote(e.target.value)} maxLength={500} placeholder="What should the agent change? e.g. Equity can be 24 months at most" className="block w-full border border-[#d9d4cb] bg-white px-3.5 py-3 text-[15px] outline-none focus:border-red-400" />
+              <input autoFocus value={note} onChange={(e) => setNote(e.target.value)} maxLength={500} placeholder="What should the agent change? e.g. Equity can be 24 months at most" className="block w-full rounded-xl border border-[#d9d4cb] bg-white px-3.5 py-3 text-[15px] outline-none focus:border-red-400" />
               <div className="flex flex-wrap gap-2">
-                <button type="button" disabled={pending || !note.trim()} onClick={() => decide("reject")} className="inline-flex items-center gap-2 bg-red-700 px-5 py-3 text-sm font-bold text-white hover:bg-red-800 disabled:opacity-50">
+                <button type="button" disabled={pending || !note.trim()} onClick={() => decide("reject")} className="rounded-xl inline-flex items-center gap-2 bg-red-700 px-5 py-3 text-sm font-bold text-white hover:bg-red-800 disabled:opacity-50">
                   {pending ? <LoaderCircle className="h-4 w-4 animate-spin" /> : <RotateCcw className="h-4 w-4" />} Send back to {p.agent?.split(" ")[0] ?? "the agent"}
                 </button>
                 <button type="button" onClick={() => setMode("idle")} className="inline-flex items-center gap-1 px-3 py-3 text-sm font-semibold text-[#6b665d] hover:text-[#17150f]">
@@ -165,13 +165,13 @@ export function ApprovalPanel(p: Props) {
                 Also save these terms as an official plan for {p.projectName ?? "this project"}
               </label>
               {savePlan && (
-                <input value={planName} onChange={(e) => setPlanName(e.target.value)} maxLength={120} placeholder="Plan name, e.g. 12-month equity, balance via Pag-IBIG" className="block w-full max-w-md border border-[#d9d4cb] bg-white px-3.5 py-2.5 text-[15px] outline-none focus:border-[var(--accent)]" />
+                <input value={planName} onChange={(e) => setPlanName(e.target.value)} maxLength={120} placeholder="Plan name, e.g. 12-month equity, balance via Pag-IBIG" className="block w-full max-w-md rounded-xl border border-[#d9d4cb] bg-white px-3.5 py-2.5 text-[15px] outline-none focus:border-[var(--accent)]" />
               )}
               <div className="flex flex-wrap gap-2">
-                <button type="button" disabled={pending || (savePlan && !planName.trim())} onClick={() => decide("approve")} className="inline-flex items-center gap-2 bg-emerald-700 px-5 py-3 text-sm font-bold text-white hover:bg-emerald-800 disabled:opacity-50">
+                <button type="button" disabled={pending || (savePlan && !planName.trim())} onClick={() => decide("approve")} className="rounded-xl inline-flex items-center gap-2 bg-emerald-700 px-5 py-3 text-sm font-bold text-white hover:bg-emerald-800 disabled:opacity-50">
                   {pending ? <LoaderCircle className="h-4 w-4 animate-spin" /> : <Check className="h-4 w-4" strokeWidth={3} />} Approve
                 </button>
-                <button type="button" disabled={pending} onClick={() => setMode("reject")} className="inline-flex items-center gap-2 border border-[#d9d4cb] bg-white px-5 py-3 text-sm font-bold text-[#17150f] hover:border-red-400 hover:text-red-700">
+                <button type="button" disabled={pending} onClick={() => setMode("reject")} className="inline-flex items-center gap-2 rounded-xl border border-[#d9d4cb] bg-white px-5 py-3 text-sm font-bold text-[#17150f] hover:border-red-400 hover:text-red-700">
                   <RotateCcw className="h-4 w-4" /> Send back
                 </button>
               </div>
@@ -182,7 +182,7 @@ export function ApprovalPanel(p: Props) {
 
       {/* Agent (or admin) changing the terms */}
       {p.canEdit && mode === "idle" && (p.status === "pending" || (p.status === "rejected" && p.isStaff)) && (
-        <button type="button" onClick={() => setMode("edit")} className="mt-4 inline-flex items-center gap-2 border border-[#d9d4cb] bg-white px-4 py-2.5 text-sm font-bold text-[#17150f] hover:border-[#17150f]">
+        <button type="button" onClick={() => setMode("edit")} className="mt-4 inline-flex items-center gap-2 rounded-xl border border-[#d9d4cb] bg-white px-4 py-2.5 text-sm font-bold text-[#17150f] hover:border-[#17150f]">
           <Pencil className="h-4 w-4" /> Edit terms
         </button>
       )}

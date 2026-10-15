@@ -26,7 +26,7 @@ export function loginMessage({ buyer, realty, url, username, password }: { buyer
   return `Hi ${firstWord(buyer) || "there"}! Here's your sales offer from ${realty}:\n${url}\n\nIt's private. Open it with:\nUsername: ${username}\nPassword: ${password}`
 }
 
-const field = "mt-1.5 block w-full border border-[#d9d4cb] bg-white px-3.5 py-2.5 text-[15px] text-[#17150f] outline-none transition focus:border-[var(--accent)] focus:ring-2 focus:ring-[var(--accent)]/15"
+const field = "mt-1.5 block w-full rounded-xl border border-[#d9d4cb] bg-white px-3.5 py-2.5 text-[15px] text-[#17150f] outline-none transition focus:border-[var(--accent)] focus:ring-2 focus:ring-[var(--accent)]/15"
 const label = "text-xs font-bold uppercase tracking-[0.12em] text-[#5a554d]"
 
 /** Username and password inputs (named for the form), with show and "make a new one". */
@@ -71,7 +71,7 @@ export function LoginCard({ buyer, realty, url, username, password, children }: 
         </div>
       </dl>
       <div className="flex flex-wrap gap-2 sm:ml-auto">
-        <CopyButton text={loginMessage({ buyer, realty, url, username, password })} label="Copy link & login" className="!rounded-none !border-[#17150f] !px-4 !py-2.5 !text-sm !font-bold" />
+        <CopyButton text={loginMessage({ buyer, realty, url, username, password })} label="Copy link & login" className="!rounded-xl !border-[#17150f] !px-4 !py-2.5 !text-sm !font-bold" />
         {children}
       </div>
     </div>
@@ -98,7 +98,7 @@ export function LoginPanel({ slug, offerId, buyer, realty, url, username, passwo
     })
 
   return (
-    <section className={`h-full border p-5 ${locked ? "border-[#e0dcd5] bg-white" : "border-amber-300 bg-amber-50"}`}>
+    <section className={`rounded-xl h-full border p-5 ${locked ? "border-[#e0dcd5] bg-white" : "border-amber-300 bg-amber-50"}`}>
       <div className="flex flex-wrap items-start justify-between gap-3">
         <p className="flex items-center gap-2 text-xs font-bold uppercase tracking-[0.16em] text-[#17150f]">
           {locked ? <KeyRound className="h-4 w-4 text-[var(--accent)]" /> : <LockOpen className="h-4 w-4 text-amber-700" />}
@@ -114,7 +114,7 @@ export function LoginPanel({ slug, offerId, buyer, realty, url, username, passwo
             {locked && <p className="text-sm text-[#5a554d]">The buyer will need the new login; the old one stops working.</p>}
             {error && <p className="text-sm font-bold text-red-700">{error}</p>}
             <div className="flex flex-wrap gap-2">
-              <button type="button" disabled={pending || u.trim().length < 2 || p.length < 6} onClick={save} className="inline-flex items-center gap-2 bg-[var(--accent)] px-5 py-2.5 text-sm font-bold text-white hover:brightness-110 disabled:opacity-50">
+              <button type="button" disabled={pending || u.trim().length < 2 || p.length < 6} onClick={save} className="inline-flex items-center gap-2 rounded-xl bg-[var(--accent)] px-5 py-2.5 text-sm font-bold text-white hover:brightness-110 disabled:opacity-50">
                 {pending && <LoaderCircle className="h-4 w-4 animate-spin" />} Save login
               </button>
               <button type="button" onClick={() => setEditing(false)} className="px-3 py-2.5 text-sm font-semibold text-[#6b665d] hover:text-[#17150f]">
@@ -129,7 +129,7 @@ export function LoginPanel({ slug, offerId, buyer, realty, url, username, passwo
               if (!p) setP(suggestPassword())
               setEditing(true)
             }}
-            className="mt-4 inline-flex items-center gap-2 bg-[#17150f] px-5 py-2.5 text-sm font-bold text-white hover:bg-[#3d3a34]"
+            className="mt-4 inline-flex items-center gap-2 rounded-xl bg-[#17150f] px-5 py-2.5 text-sm font-bold text-white hover:bg-[#3d3a34]"
           >
             <KeyRound className="h-4 w-4" /> Set a username and password
           </button>
@@ -137,7 +137,7 @@ export function LoginPanel({ slug, offerId, buyer, realty, url, username, passwo
       ) : (
         <div className="mt-4">
           <LoginCard buyer={buyer} realty={realty} url={url} username={username!} password={password!}>
-            <button type="button" onClick={() => setEditing(true)} className="inline-flex items-center gap-1.5 border border-[#d9d4cb] bg-white px-4 py-2.5 text-sm font-bold text-[#17150f] hover:border-[#17150f]">
+            <button type="button" onClick={() => setEditing(true)} className="inline-flex items-center gap-1.5 rounded-xl border border-[#d9d4cb] bg-white px-4 py-2.5 text-sm font-bold text-[#17150f] hover:border-[#17150f]">
               <Pencil className="h-4 w-4" /> Change
             </button>
           </LoginCard>

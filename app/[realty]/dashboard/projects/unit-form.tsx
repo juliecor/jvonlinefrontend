@@ -85,7 +85,7 @@ export function UnitForm({ slug, projectId, unit, onDone }: { slug: string; proj
           {unit ? "Save unit" : "Add unit"}
         </button>
         {!unit && onDone && (
-          <button type="submit" disabled={pending} onClick={() => (another.current = true)} className="inline-flex items-center justify-center gap-2 border border-[#d9d4cb] bg-white px-5 py-3 text-[15px] font-bold text-[#17150f] transition hover:border-[#17150f] disabled:opacity-60">
+          <button type="submit" disabled={pending} onClick={() => (another.current = true)} className="inline-flex items-center justify-center gap-2 rounded-xl border border-[#d9d4cb] bg-white px-5 py-3 text-[15px] font-bold text-[#17150f] transition hover:border-[#17150f] disabled:opacity-60">
             Save and add another
           </button>
         )}

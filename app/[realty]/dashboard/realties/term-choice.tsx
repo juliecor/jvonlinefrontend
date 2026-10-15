@@ -37,7 +37,7 @@ export function TermChoice({ value, onChange, from, today }: { value: Term; onCh
       {options.map((o) => (
         <label
           key={o.term}
-          className={`flex cursor-pointer flex-wrap items-center gap-x-3 gap-y-2 border px-4 py-3 transition ${value.term === o.term ? "border-[var(--accent)] bg-white" : "border-[#d9d4cb] bg-white/60 hover:border-[#a39d92]"}`}
+          className={`rounded-xl flex cursor-pointer flex-wrap items-center gap-x-3 gap-y-2 border px-4 py-3 transition ${value.term === o.term ? "border-[var(--accent)] bg-white" : "border-[#d9d4cb] bg-white/60 hover:border-[#a39d92]"}`}
         >
           <input type="radio" name="term" checked={value.term === o.term} onChange={() => onChange({ ...value, term: o.term })} className="h-4 w-4 accent-[var(--accent)]" />
           <span className="text-[15px] font-bold">{o.label}</span>
@@ -50,7 +50,7 @@ export function TermChoice({ value, onChange, from, today }: { value: Term; onCh
               value={value.until}
               onChange={(e) => onChange({ term: "custom", until: e.target.value })}
               aria-label="Last day of the accreditation"
-              className="w-full border border-[#d9d4cb] bg-white px-3 py-2 text-[15px] outline-none focus:border-[var(--accent)] sm:ml-auto sm:w-auto"
+              className="w-full rounded-xl border border-[#d9d4cb] bg-white px-3 py-2 text-[15px] outline-none focus:border-[var(--accent)] sm:ml-auto sm:w-auto"
             />
           )}
         </label>

@@ -46,7 +46,7 @@ export function UnitList({ slug, projectId, units, staff, initialQuery = "" }: {
             <input type="search" value={q} onChange={(e) => reset(() => setQ(e.target.value))} placeholder="Search a unit: Block 24, Unit 101…" aria-label="Search units" className="block w-full border border-[#d9d4cb] bg-white py-2.5 pl-10 pr-3 text-[15px] outline-none focus:border-[var(--accent)]" />
           </label>
           <div className="flex flex-wrap gap-2">
-            <div role="group" aria-label="Status" className="flex border border-[#d9d4cb] bg-white">
+            <div role="group" aria-label="Status" className="flex overflow-hidden rounded-xl border border-[#d9d4cb] bg-white">
               {STATUSES.map((st) => (
                 <button
                   key={st.value}
@@ -60,7 +60,7 @@ export function UnitList({ slug, projectId, units, staff, initialQuery = "" }: {
               ))}
             </div>
             {types.length > 1 && (
-              <select value={type} onChange={(e) => reset(() => setType(e.target.value))} aria-label="Unit type" className={`border bg-white px-3 py-2 text-sm outline-none focus:border-[var(--accent)] ${type ? "border-[#17150f] font-bold" : "border-[#d9d4cb] font-semibold text-[#5a554d]"}`}>
+              <select value={type} onChange={(e) => reset(() => setType(e.target.value))} aria-label="Unit type" className={`rounded-xl border bg-white px-3 py-2 text-sm outline-none focus:border-[var(--accent)] ${type ? "border-[#17150f] font-bold" : "border-[#d9d4cb] font-semibold text-[#5a554d]"}`}>
                 <option value="">All types</option>
                 {types.map((t) => (
                   <option key={t} value={t}>
@@ -106,7 +106,7 @@ export function UnitList({ slug, projectId, units, staff, initialQuery = "" }: {
 
       {matches.length > shown && (
         <div className="mt-4 flex flex-wrap items-center gap-3 border-t border-[#e6e2db] pt-4">
-          <button type="button" onClick={() => setShown((n) => n + PAGE)} className="border border-[#d9d4cb] bg-white px-5 py-2.5 text-sm font-bold text-[#17150f] transition hover:border-[#17150f]">
+          <button type="button" onClick={() => setShown((n) => n + PAGE)} className="rounded-xl border border-[#d9d4cb] bg-white px-5 py-2.5 text-sm font-bold text-[#17150f] transition hover:border-[#17150f]">
             Show {Math.min(PAGE, matches.length - shown)} more
           </button>
           <button type="button" onClick={() => setShown(matches.length)} className="px-2 py-2.5 text-sm font-semibold text-[#6b665d] hover:text-[#17150f]">

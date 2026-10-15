@@ -37,11 +37,11 @@ export function MessageDraft({ text, to = "", writing = false }: { text: string;
       <p className="whitespace-pre-wrap px-4 py-3 text-[15px] leading-relaxed text-[#17150f] [overflow-wrap:anywhere]">{message}</p>
       {!writing && (
         <div className="flex flex-wrap gap-2 border-t border-[#e6e2db] px-4 py-3">
-          <button type="button" onClick={copy} className="inline-flex items-center gap-1.5 bg-[var(--accent)] px-3.5 py-2 text-sm font-bold text-white transition hover:brightness-110">
+          <button type="button" onClick={copy} className="inline-flex items-center gap-1.5 rounded-xl bg-[var(--accent)] px-3.5 py-2 text-sm font-bold text-white transition hover:brightness-110">
             {copied ? <Check className="h-4 w-4" /> : <Copy className="h-4 w-4" />} {copied ? "Copied" : "Copy message"}
           </button>
           {share && (
-            <button type="button" onClick={() => navigator.share({ text: message }).catch(() => {})} className="inline-flex items-center gap-1.5 border border-[#d9d4cb] bg-white px-3.5 py-2 text-sm font-bold text-[#17150f] transition hover:border-[#17150f]">
+            <button type="button" onClick={() => navigator.share({ text: message }).catch(() => {})} className="inline-flex items-center gap-1.5 rounded-xl border border-[#d9d4cb] bg-white px-3.5 py-2 text-sm font-bold text-[#17150f] transition hover:border-[#17150f]">
               <Share2 className="h-4 w-4" /> Share
             </button>
           )}

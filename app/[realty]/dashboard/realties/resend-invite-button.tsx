@@ -6,7 +6,7 @@ import { CopyButton } from "@/components/copy-button"
 import { toast } from "@/components/feedback"
 import { resendInvite } from "./actions"
 
-const button = "inline-flex items-center gap-1.5 border border-[#d9d4cb] bg-white px-3 py-2 text-xs font-bold text-[#17150f] hover:border-[#17150f] disabled:opacity-60"
+const button = "inline-flex items-center gap-1.5 rounded-xl border border-[#d9d4cb] bg-white px-3 py-2 text-xs font-bold text-[#17150f] hover:border-[#17150f] disabled:opacity-60"
 
 /**
  * An invite that was never filled in: email it again, or just get the link to send on Messenger or Viber.

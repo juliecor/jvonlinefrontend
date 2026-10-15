@@ -85,7 +85,7 @@ export function OfferForm({ slug, projects, initialProject, initialUnit, initial
 
   if (state.id && state.approval === "pending") {
     return (
-      <div className="border border-amber-300 bg-amber-50 p-6">
+      <div className="rounded-xl border border-amber-300 bg-amber-50 p-6">
         <p className="flex items-center gap-2 text-sm font-bold uppercase tracking-[0.14em] text-amber-800">
           <Clock className="h-4 w-4" /> Sent for approval
         </p>
@@ -97,10 +97,10 @@ export function OfferForm({ slug, projects, initialProject, initialUnit, initial
           </p>
         )}
         <div className="mt-4 flex flex-wrap gap-2">
-          <Link href={`/${slug}/dashboard/offers/${state.id}`} className="inline-flex items-center bg-[#17150f] px-4 py-2.5 text-sm font-bold text-white hover:bg-[#3d3a34]">
+          <Link href={`/${slug}/dashboard/offers/${state.id}`} className="inline-flex items-center rounded-xl bg-[#17150f] px-4 py-2.5 text-sm font-bold text-white hover:bg-[#3d3a34]">
             Track this offer
           </Link>
-          <Link href={`/${slug}/dashboard/offers`} className="inline-flex items-center border border-[#d9d4cb] bg-white px-4 py-2.5 text-sm font-bold text-[#17150f] hover:border-[#17150f]">
+          <Link href={`/${slug}/dashboard/offers`} className="inline-flex items-center rounded-xl border border-[#d9d4cb] bg-white px-4 py-2.5 text-sm font-bold text-[#17150f] hover:border-[#17150f]">
             All offers
           </Link>
         </div>
@@ -110,13 +110,13 @@ export function OfferForm({ slug, projects, initialProject, initialUnit, initial
 
   if (state.url) {
     return (
-      <div className="border border-emerald-300 bg-emerald-50 p-6">
+      <div className="rounded-xl border border-emerald-300 bg-emerald-50 p-6">
         <p className="text-sm font-bold uppercase tracking-[0.14em] text-emerald-700">Offer ready</p>
         <p className="mt-2 text-lg font-bold text-[#17150f]">{state.emailed ? `Emailed to ${state.emailed}` : "Send this link to the buyer"}</p>
         {state.emailed && <p className="mt-1 text-sm text-slate-600">You can also copy the link below and send it by Viber or text.</p>}
-        <p className="mt-3 break-all border border-emerald-200 bg-white px-3.5 py-2.5 font-mono text-sm text-[#17150f]">{state.url}</p>
+        <p className="rounded-xl mt-3 break-all border border-emerald-200 bg-white px-3.5 py-2.5 font-mono text-sm text-[#17150f]">{state.url}</p>
         {state.username && state.password && (
-          <div className="mt-4 border border-emerald-200 bg-white p-4">
+          <div className="rounded-xl mt-4 border border-emerald-200 bg-white p-4">
             <p className="mb-3 flex items-center gap-2 text-xs font-bold uppercase tracking-[0.14em] text-[#17150f]">
               <KeyRound className="h-4 w-4 text-[var(--accent)]" /> The buyer opens it with
             </p>
@@ -126,10 +126,10 @@ export function OfferForm({ slug, projects, initialProject, initialUnit, initial
         )}
         <div className="mt-4 flex flex-wrap gap-2">
           <CopyButton text={state.url} className="bg-white" />
-          <a href={state.url} target="_blank" rel="noreferrer" className="inline-flex items-center gap-1.5 border border-[#d9d4cb] bg-white px-3.5 py-2.5 text-sm font-bold text-[#17150f] hover:border-[#17150f]">
+          <a href={state.url} target="_blank" rel="noreferrer" className="inline-flex items-center gap-1.5 rounded-xl border border-[#d9d4cb] bg-white px-3.5 py-2.5 text-sm font-bold text-[#17150f] hover:border-[#17150f]">
             Open <ExternalLink className="h-3.5 w-3.5" />
           </a>
-          <Link href={state.id ? `/${slug}/dashboard/offers/${state.id}` : `/${slug}/dashboard/offers`} className="inline-flex items-center bg-[var(--accent)] px-4 py-2.5 text-sm font-bold text-white hover:brightness-110">
+          <Link href={state.id ? `/${slug}/dashboard/offers/${state.id}` : `/${slug}/dashboard/offers`} className="inline-flex items-center rounded-xl bg-[var(--accent)] px-4 py-2.5 text-sm font-bold text-white hover:brightness-110">
             Track this offer
           </Link>
         </div>
@@ -142,13 +142,13 @@ export function OfferForm({ slug, projects, initialProject, initialUnit, initial
   }
 
   const mapBlock = showMap && lotsOnMap && project?.site_map && (
-    <div className="border border-[#e6e2db] bg-white p-3">
+    <div className="rounded-2xl border border-[#e8eaed] bg-white shadow-[0_2px_12px_-2px_rgba(23,21,15,0.06)] p-3">
       {pickable > 0 ? (
         <p className="mb-2 text-sm text-[#5a554d]">
           <b className="text-[#17150f]">Tap or click the lot the buyer wants.</b> {pickable} {pickable === 1 ? "lot can" : "lots can"} be offered. Faded lots are reserved or sold.
         </p>
       ) : (
-        <p className="mb-2 border-l-4 border-amber-400 bg-amber-50 px-3 py-2 text-sm text-amber-900">
+        <p className="rounded-xl mb-2 border-l-4 border-amber-400 bg-amber-50 px-3 py-2 text-sm text-amber-900">
           No lot on this map can be offered yet: none has a price, and the project&apos;s house model has none either. Johndorf&apos;s admin adds prices in the project&apos;s Site map tab.
         </p>
       )}
@@ -227,7 +227,7 @@ export function OfferForm({ slug, projects, initialProject, initialUnit, initial
           </label>
 
           {custom && (
-            <div className="space-y-4 border-l-4 border-[var(--accent)] bg-[#fbfaf8] p-4">
+            <div className="rounded-xl space-y-4 border-l-4 border-[var(--accent)] bg-[#fbfaf8] p-4">
               <div className="flex items-start gap-2.5 text-sm text-[#3d3a34]">
                 {isStaff ? <BadgeCheck className="mt-0.5 h-4 w-4 shrink-0 text-emerald-700" /> : <Clock className="mt-0.5 h-4 w-4 shrink-0 text-amber-700" />}
                 <p>
@@ -260,7 +260,7 @@ export function OfferForm({ slug, projects, initialProject, initialUnit, initial
               <span className="mt-1 block text-xs text-slate-500">Needed to email the offer and requirement reminders.</span>
             </label>
           </div>
-          <div className="border border-[#e0dcd5] bg-[#faf8f5] p-4 sm:p-5">
+          <div className="rounded-xl border border-[#e0dcd5] bg-[#faf8f5] p-4 sm:p-5">
             <p className="flex items-center gap-2 text-sm font-bold text-[#17150f]">
               <KeyRound className="h-4 w-4 text-[var(--accent)]" /> Buyer&apos;s login
             </p>
@@ -302,14 +302,14 @@ export function OfferForm({ slug, projects, initialProject, initialUnit, initial
             </label>
           </div>
           {state.error && <Alert kind="error">{state.error}</Alert>}
-          <button type="submit" disabled={pending || !unit || !termsOk} className="inline-flex items-center gap-2 bg-[var(--accent)] px-6 py-3.5 text-[15px] font-bold text-white transition hover:brightness-110 disabled:opacity-60">
+          <button type="submit" disabled={pending || !unit || !termsOk} className="inline-flex items-center gap-2 rounded-xl bg-[var(--accent)] px-6 py-3.5 text-[15px] font-bold text-white transition hover:brightness-110 disabled:opacity-60">
             {pending ? <LoaderCircle className="h-4 w-4 animate-spin" /> : <Send className="h-4 w-4" />}
             {custom && !isStaff ? "Send for approval" : "Create offer link"}
           </button>
           {custom && !termsOk && <p className="text-xs font-semibold text-amber-700">The payments need a name and an amount each, and must add up to the price.</p>}
         </div>
 
-        <aside className="h-fit border border-[#e0dcd5] bg-white p-5 lg:sticky lg:top-6">
+        <aside className="h-fit rounded-2xl border border-[#e8eaed] bg-white shadow-[0_2px_12px_-2px_rgba(23,21,15,0.06)] p-5 lg:sticky lg:top-6">
           <p className="text-xs font-semibold uppercase tracking-[0.14em] text-slate-500">Preview{custom ? " · custom terms" : ""}</p>
           {unit ? (
             <>

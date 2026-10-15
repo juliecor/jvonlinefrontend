@@ -17,7 +17,7 @@ export function UnitCards({ slug, cards }: { slug: string; cards: UnitCard[] }) 
     <div className="@container mt-4">
       <ul className="grid gap-3 @lg:grid-cols-2">
         {cards.map((c) => (
-          <li key={c.id} className="flex flex-col overflow-hidden border border-[#e0dcd5] bg-white">
+          <li key={c.id} className="flex flex-col overflow-hidden rounded-2xl border border-[#e8eaed] bg-white shadow-[0_2px_12px_-2px_rgba(23,21,15,0.06)]">
             <div className="flex flex-1 @lg:flex-col">
               <div className="relative min-h-28 w-24 shrink-0 bg-[#f1eee9] @lg:aspect-[16/10] @lg:min-h-0 @lg:w-full">
                 {c.photo ? (
@@ -25,7 +25,7 @@ export function UnitCards({ slug, cards }: { slug: string; cards: UnitCard[] }) 
                 ) : (
                   <Building2 className="absolute left-1/2 top-1/2 h-8 w-8 -translate-x-1/2 -translate-y-1/2 text-[#c9c3b8]" />
                 )}
-                <span className={`absolute left-2 top-2 px-2 py-0.5 text-[11px] font-bold uppercase tracking-[0.08em] text-white ${TONE[c.status]}`}>{c.status}</span>
+                <span className={`rounded-md absolute left-2 top-2 px-2 py-0.5 text-[11px] font-bold uppercase tracking-[0.08em] text-white ${TONE[c.status]}`}>{c.status}</span>
               </div>
               <div className="min-w-0 flex-1 p-3 @lg:p-4">
                 <p className="truncate text-xs font-bold uppercase tracking-[0.1em] text-[var(--accent)]">{c.project.name}</p>
@@ -36,11 +36,11 @@ export function UnitCards({ slug, cards }: { slug: string; cards: UnitCard[] }) 
             </div>
             <div className="flex gap-2 border-t border-[#efebe5] p-2.5 @lg:px-4 @lg:py-3">
               {c.can_offer && (
-                <Link href={`/${slug}/dashboard/offers/new?project=${c.project.id}&unit=${c.id}`} className="inline-flex flex-1 items-center justify-center gap-1.5 bg-[var(--accent)] px-3 py-2 text-sm font-bold text-white transition hover:brightness-110 @lg:flex-none">
+                <Link href={`/${slug}/dashboard/offers/new?project=${c.project.id}&unit=${c.id}`} className="inline-flex flex-1 items-center justify-center gap-1.5 rounded-xl bg-[var(--accent)] px-3 py-2 text-sm font-bold text-white transition hover:brightness-110 @lg:flex-none">
                   <FilePlus2 className="h-4 w-4" /> Make offer
                 </Link>
               )}
-              <Link href={`/${slug}/dashboard/projects/${c.project.id}?unit=${encodeURIComponent(c.name)}#units`} className="inline-flex flex-1 items-center justify-center gap-1.5 border border-[#d9d4cb] px-3 py-2 text-sm font-bold text-[#17150f] transition hover:border-[#17150f] @lg:flex-none">
+              <Link href={`/${slug}/dashboard/projects/${c.project.id}?unit=${encodeURIComponent(c.name)}#units`} className="rounded-xl inline-flex flex-1 items-center justify-center gap-1.5 border border-[#d9d4cb] px-3 py-2 text-sm font-bold text-[#17150f] transition hover:border-[#17150f] @lg:flex-none">
                 View <ArrowRight className="h-3.5 w-3.5" />
               </Link>
             </div>

@@ -34,7 +34,7 @@ export function Modal({ open, onClose, eyebrow, title, children }: { open: boole
       onClose={onClose}
       onClick={(e) => e.target === e.currentTarget && onClose()}
       aria-labelledby={heading}
-      className="fixed inset-0 m-auto h-fit max-h-[calc(100dvh-2rem)] w-[calc(100%-2rem)] max-w-2xl overflow-y-auto border-t-4 border-[var(--accent)] bg-white p-0 text-[#17150f] shadow-2xl backdrop:bg-[#17150f]/55"
+      className="rounded-2xl fixed inset-0 m-auto h-fit max-h-[calc(100dvh-2rem)] w-[calc(100%-2rem)] max-w-2xl overflow-y-auto border-t-4 border-[var(--accent)] bg-white p-0 text-[#17150f] shadow-2xl backdrop:bg-[#17150f]/55"
     >
       <div className="flex items-start justify-between gap-4 border-b border-[#e6e2db] px-5 py-4 sm:px-7 sm:py-5">
         <div>

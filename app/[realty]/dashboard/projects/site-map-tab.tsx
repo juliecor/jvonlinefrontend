@@ -23,7 +23,7 @@ type Props = {
   canOffer: boolean
 }
 
-const field = "block w-full border border-[#d9d4cb] bg-white px-3 py-2 text-[15px] outline-none focus:border-[var(--accent)] focus:ring-2 focus:ring-[var(--accent)]/15"
+const field = "block w-full rounded-xl border border-[#d9d4cb] bg-white px-3 py-2 text-[15px] outline-none focus:border-[var(--accent)] focus:ring-2 focus:ring-[var(--accent)]/15"
 const label = "mb-1 block text-xs font-bold uppercase tracking-[0.1em] text-[#5a554d]"
 const num = (v: string) => (v.trim() === "" ? null : Number(v))
 /** "36 sqm" → 36, for a model's floor area. */
@@ -53,7 +53,7 @@ const clickHint = (n: number) =>
 export function SiteMapTab(p: Props) {
   if (!p.map) {
     return (
-      <div className="mt-6 border-2 border-dashed border-[#d9d4cb] px-6 py-12 text-center">
+      <div className="rounded-xl mt-6 border-2 border-dashed border-[#d9d4cb] px-6 py-12 text-center">
         <p className="text-lg font-bold">No site development plan yet</p>
         <p className="mx-auto mt-2 max-w-md text-[15px] text-[#5a554d]">{p.staff ? "Upload the plan in the Website tab, under Site development plan. Then come back here to draw the lots on it." : "Johndorf hasn't uploaded this project's site plan yet."}</p>
       </div>
@@ -78,7 +78,7 @@ function Browser({ slug, projectId, projectName, map, models, canOffer }: Props 
     <LotDetails key={sel.id} lot={sel} modelPhotos={photosFor(sel, modelPhotos)} modelNames={Object.keys(modelPhotos)} noPrice="Not priced yet" onClose={() => setSel(null)}>
       <LotHolder lot={sel} offerHref={(id) => `/${slug}/dashboard/offers/${id}`} />
       {canOffer && sel.status === "available" && sel.price && (
-        <Link href={`/${slug}/dashboard/offers/new?project=${projectId}&unit=${sel.id}`} className="inline-flex w-full items-center justify-center gap-2 bg-[var(--accent)] px-4 py-3 text-[15px] font-bold text-white hover:brightness-110">
+        <Link href={`/${slug}/dashboard/offers/new?project=${projectId}&unit=${sel.id}`} className="inline-flex w-full items-center justify-center gap-2 rounded-xl bg-[var(--accent)] px-4 py-3 text-[15px] font-bold text-white hover:brightness-110">
           <Plus className="h-4 w-4" strokeWidth={2.5} /> Make an offer for this lot
         </Link>
       )}
@@ -103,7 +103,7 @@ function Browser({ slug, projectId, projectName, map, models, canOffer }: Props 
         />
         {map.lots.length === 0 && <p className="text-sm text-[#6b665d]">The lots haven&apos;t been drawn on this plan yet.</p>}
       </div>
-      <aside className="border border-[#e6e2db] bg-white p-5 lg:self-start">{panel}</aside>
+      <aside className="rounded-2xl border border-[#e8eaed] bg-white shadow-[0_2px_12px_-2px_rgba(23,21,15,0.06)] p-5 lg:self-start">{panel}</aside>
     </div>
   )
 }
@@ -241,7 +241,7 @@ function Editor({ slug, projectId, projectName, map: initial, sitePlans, models 
         >
           <p className="text-xs font-bold uppercase tracking-[0.14em] text-[#1d4ed8]">New row of lots</p>
           {halfPair ? (
-            <p className="border-l-4 border-[#1d4ed8] bg-[#eff4ff] px-3 py-2 text-sm font-semibold text-[#1e3a8a]">{clickHint(points.length)} That finishes this bend.</p>
+            <p className="rounded-xl border-l-4 border-[#1d4ed8] bg-[#eff4ff] px-3 py-2 text-sm font-semibold text-[#1e3a8a]">{clickHint(points.length)} That finishes this bend.</p>
           ) : (
             <p className="text-xs text-[#6b665d]">
               Drag the blue points if a line is off. Row bends? Keep clicking in pairs: the road side, then straight across.{points.length >= MAX_CORNERS ? ` That's the most (${MAX_CORNERS / 2} pairs).` : ""}
@@ -285,7 +285,7 @@ function Editor({ slug, projectId, projectName, map: initial, sitePlans, models 
           </label>
           <PhotoPicker files={rowPhotos} onChange={setRowPhotos} hint="Photos for every lot in this row (optional)" />
           <div className="flex flex-wrap gap-2 pt-1">
-            <button type="submit" disabled={pending || halfPair || !row.block.trim() || !Number(row.lot_count)} className="inline-flex items-center gap-2 bg-[var(--accent)] px-4 py-2.5 text-sm font-bold text-white hover:brightness-110 disabled:opacity-50">
+            <button type="submit" disabled={pending || halfPair || !row.block.trim() || !Number(row.lot_count)} className="inline-flex items-center gap-2 rounded-xl bg-[var(--accent)] px-4 py-2.5 text-sm font-bold text-white hover:brightness-110 disabled:opacity-50">
               {pending ? <LoaderCircle className="h-4 w-4 animate-spin" /> : <Check className="h-4 w-4" strokeWidth={3} />} Add {Number(row.lot_count) || ""} lots
             </button>
             <button type="button" onClick={() => setMode({ kind: "draw", points: [] })} className="px-3 py-2.5 text-sm font-semibold text-[#8a847a] hover:text-[#17150f]">
@@ -362,7 +362,7 @@ function Editor({ slug, projectId, projectName, map: initial, sitePlans, models 
           </p>
           <p className="mt-2 text-[15px] text-[#3d3a34]">Drag the blue points until the lots sit on the drawing, then save.</p>
           <div className="mt-4 flex gap-2">
-            <button type="button" disabled={pending} onClick={() => run(() => moveSiteRow(slug, projectId, mode.rowId, mode.corners), "Row moved", () => setMode({ kind: "idle" }))} className="inline-flex items-center gap-2 bg-[var(--accent)] px-4 py-2.5 text-sm font-bold text-white hover:brightness-110 disabled:opacity-50">
+            <button type="button" disabled={pending} onClick={() => run(() => moveSiteRow(slug, projectId, mode.rowId, mode.corners), "Row moved", () => setMode({ kind: "idle" }))} className="inline-flex items-center gap-2 rounded-xl bg-[var(--accent)] px-4 py-2.5 text-sm font-bold text-white hover:brightness-110 disabled:opacity-50">
               {pending ? <LoaderCircle className="h-4 w-4 animate-spin" /> : <Check className="h-4 w-4" strokeWidth={3} />} Save position
             </button>
             <button type="button" onClick={() => setMode({ kind: "idle" })} className="px-3 py-2.5 text-sm font-semibold text-[#8a847a] hover:text-[#17150f]">
@@ -377,11 +377,11 @@ function Editor({ slug, projectId, projectName, map: initial, sitePlans, models 
   )
 
   const drawButton = drawing ? (
-    <button type="button" onClick={() => setMode({ kind: "idle" })} className="inline-flex items-center gap-2 border border-[#17150f] bg-white px-4 py-2.5 text-sm font-bold hover:bg-[#f6f4f0]">
+    <button type="button" onClick={() => setMode({ kind: "idle" })} className="inline-flex items-center gap-2 rounded-xl border border-[#17150f] bg-white px-4 py-2.5 text-sm font-bold hover:bg-[#f6f4f0]">
       <X className="h-4 w-4" /> Done drawing
     </button>
   ) : (
-    <button type="button" onClick={() => setMode({ kind: "draw", points: [] })} disabled={adjusting} className="inline-flex items-center gap-2 bg-[var(--accent)] px-4 py-2.5 text-sm font-bold text-white hover:brightness-110 disabled:opacity-50">
+    <button type="button" onClick={() => setMode({ kind: "draw", points: [] })} disabled={adjusting} className="inline-flex items-center gap-2 rounded-xl bg-[var(--accent)] px-4 py-2.5 text-sm font-bold text-white hover:brightness-110 disabled:opacity-50">
       <PencilRuler className="h-4 w-4" /> Draw a row of lots
     </button>
   )
@@ -401,7 +401,7 @@ function Editor({ slug, projectId, projectName, map: initial, sitePlans, models 
                 run(() => setSiteMapImage(slug, projectId, image), "Plan changed")
               }}
               aria-label="Which site plan to draw on"
-              className="border border-[#d9d4cb] bg-white px-3 py-2 text-sm font-semibold"
+              className="rounded-xl border border-[#d9d4cb] bg-white px-3 py-2 text-sm font-semibold"
             >
               {sitePlans.map((s, i) => (
                 <option key={s} value={s}>
@@ -487,7 +487,7 @@ function Editor({ slug, projectId, projectName, map: initial, sitePlans, models 
                     </span>
                   ))}
                 {drawing && shaped && previewCount > 0 && (
-                  <span className="pointer-events-none absolute z-10 -translate-x-1/2 -translate-y-[160%] bg-[#1d4ed8] px-2 py-0.5 text-xs font-bold text-white" style={{ left: `${points[0][0] * 100}%`, top: `${points[0][1] * 100}%` }}>
+                  <span className="rounded-full pointer-events-none absolute z-10 -translate-x-1/2 -translate-y-[160%] bg-[#1d4ed8] px-2 py-0.5 text-xs font-bold text-white" style={{ left: `${points[0][0] * 100}%`, top: `${points[0][1] * 100}%` }}>
                     Lot {row.first_lot || 1}
                   </span>
                 )}
@@ -497,7 +497,7 @@ function Editor({ slug, projectId, projectName, map: initial, sitePlans, models 
           />
         </div>
 
-        {!full && <aside className="border border-[#e6e2db] bg-white p-5 lg:self-start">{panel}</aside>}
+        {!full && <aside className="rounded-2xl border border-[#e8eaed] bg-white shadow-[0_2px_12px_-2px_rgba(23,21,15,0.06)] p-5 lg:self-start">{panel}</aside>}
       </div>
     </div>
   )
@@ -556,7 +556,7 @@ function PhotoPicker({ files, onChange, hint }: { files: File[]; onChange: (f: F
             </button>
           </span>
         ))}
-        <button type="button" onClick={() => input.current?.click()} className="inline-flex h-14 items-center gap-1.5 border border-dashed border-[#a39d92] px-3 text-xs font-bold text-[#3d3a34] hover:border-[#17150f]">
+        <button type="button" onClick={() => input.current?.click()} className="rounded-xl inline-flex h-14 items-center gap-1.5 border border-dashed border-[#a39d92] px-3 text-xs font-bold text-[#3d3a34] hover:border-[#17150f]">
           <ImagePlus className="h-4 w-4" /> Add photos
         </button>
       </div>
@@ -609,7 +609,7 @@ function LotPhotoManager({ lot, modelPhotos, onUpload, onRemove }: { lot: SiteMa
           </span>
         ))}
         {room > 0 && (
-          <button type="button" disabled={busy} onClick={() => input.current?.click()} className="inline-flex h-16 items-center gap-1.5 border border-dashed border-[#a39d92] px-3 text-xs font-bold text-[#3d3a34] hover:border-[#17150f] disabled:opacity-50">
+          <button type="button" disabled={busy} onClick={() => input.current?.click()} className="rounded-xl inline-flex h-16 items-center gap-1.5 border border-dashed border-[#a39d92] px-3 text-xs font-bold text-[#3d3a34] hover:border-[#17150f] disabled:opacity-50">
             {busy ? <LoaderCircle className="h-4 w-4 animate-spin" /> : <ImagePlus className="h-4 w-4" />} {busy ? "Uploading…" : "Add photos"}
           </button>
         )}
@@ -688,7 +688,7 @@ function LotEditor({ lot, models, pending, onSave, onClose }: { lot: SiteMapLot;
           {Object.entries(LOT_TAGS).map(([k, name]) => {
             const on = v.tags.includes(k)
             return (
-              <label key={k} className={`inline-flex cursor-pointer items-center gap-2 border px-3 py-2 text-sm font-semibold ${on ? "border-[var(--accent)] bg-[#fff4f3] text-[#17150f]" : "border-[#d9d4cb] text-[#5a554d]"}`}>
+              <label key={k} className={`rounded-xl inline-flex cursor-pointer items-center gap-2 border px-3 py-2 text-sm font-semibold ${on ? "border-[var(--accent)] bg-[#fff4f3] text-[#17150f]" : "border-[#d9d4cb] text-[#5a554d]"}`}>
                 <input type="checkbox" checked={on} onChange={() => setV({ ...v, tags: on ? v.tags.filter((t) => t !== k) : [...v.tags, k] })} className="h-4 w-4 accent-[var(--accent)]" />
                 {name}
               </label>
@@ -696,7 +696,7 @@ function LotEditor({ lot, models, pending, onSave, onClose }: { lot: SiteMapLot;
           })}
         </div>
       </fieldset>
-      <button type="submit" disabled={pending} className="inline-flex items-center gap-2 bg-[var(--accent)] px-4 py-2.5 text-sm font-bold text-white hover:brightness-110 disabled:opacity-50">
+      <button type="submit" disabled={pending} className="inline-flex items-center gap-2 rounded-xl bg-[var(--accent)] px-4 py-2.5 text-sm font-bold text-white hover:brightness-110 disabled:opacity-50">
         {pending ? <LoaderCircle className="h-4 w-4 animate-spin" /> : <Check className="h-4 w-4" strokeWidth={3} />} Save lot
       </button>
     </form>
@@ -738,16 +738,16 @@ function RowPanel({
         Block {row.block} · lots {row.first_lot}–{row.first_lot + row.lot_count - 1}
       </p>
       <div className="mt-3 flex flex-wrap gap-2">
-        <button type="button" onClick={onAdjust} className="inline-flex items-center gap-1.5 border border-[#d9d4cb] bg-white px-3 py-2 text-xs font-bold hover:border-[#17150f]">
+        <button type="button" onClick={onAdjust} className="inline-flex items-center gap-1.5 rounded-xl border border-[#d9d4cb] bg-white px-3 py-2 text-xs font-bold hover:border-[#17150f]">
           <Move className="h-3.5 w-3.5" /> Adjust position
         </button>
-        <button type="button" onClick={() => setOpen((o) => !o)} className="inline-flex items-center gap-1.5 border border-[#d9d4cb] bg-white px-3 py-2 text-xs font-bold hover:border-[#17150f]">
+        <button type="button" onClick={() => setOpen((o) => !o)} className="inline-flex items-center gap-1.5 rounded-xl border border-[#d9d4cb] bg-white px-3 py-2 text-xs font-bold hover:border-[#17150f]">
           Fill in every lot
         </button>
-        <button type="button" disabled={pending} onClick={() => photoInput.current?.click()} className="inline-flex items-center gap-1.5 border border-[#d9d4cb] bg-white px-3 py-2 text-xs font-bold hover:border-[#17150f] disabled:opacity-50">
+        <button type="button" disabled={pending} onClick={() => photoInput.current?.click()} className="inline-flex items-center gap-1.5 rounded-xl border border-[#d9d4cb] bg-white px-3 py-2 text-xs font-bold hover:border-[#17150f] disabled:opacity-50">
           {pending ? <LoaderCircle className="h-3.5 w-3.5 animate-spin" /> : <ImagePlus className="h-3.5 w-3.5" />} Photos for every lot
         </button>
-        <button type="button" onClick={onRemove} disabled={pending} className="inline-flex items-center gap-1.5 border border-[#d9d4cb] bg-white px-3 py-2 text-xs font-bold hover:border-red-400 hover:text-red-700">
+        <button type="button" onClick={onRemove} disabled={pending} className="inline-flex items-center gap-1.5 rounded-xl border border-[#d9d4cb] bg-white px-3 py-2 text-xs font-bold hover:border-red-400 hover:text-red-700">
           <Trash2 className="h-3.5 w-3.5" /> Remove row
         </button>
       </div>
@@ -768,7 +768,7 @@ function RowPanel({
       />
       {open && (
         <form
-          className="mt-3 space-y-2 border border-[#e6e2db] bg-[#faf8f5] p-3"
+          className="rounded-xl mt-3 space-y-2 border border-[#e6e2db] bg-[#faf8f5] p-3"
           onSubmit={(e) => {
             e.preventDefault()
             onApply(values)
@@ -790,7 +790,7 @@ function RowPanel({
               <input type="number" min={0} value={v.price} onChange={(e) => setV({ ...v, price: e.target.value })} className={field} />
             </label>
           </div>
-          <button type="submit" disabled={pending || Object.keys(values).length === 0} className="inline-flex items-center gap-2 bg-[#17150f] px-3 py-2 text-xs font-bold text-white disabled:opacity-40">
+          <button type="submit" disabled={pending || Object.keys(values).length === 0} className="inline-flex items-center gap-2 rounded-xl bg-[#17150f] px-3 py-2 text-xs font-bold text-white disabled:opacity-40">
             Apply to all {row.lot_count} lots
           </button>
         </form>

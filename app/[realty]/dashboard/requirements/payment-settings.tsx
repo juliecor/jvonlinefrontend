@@ -43,10 +43,10 @@ export function PaymentSettings({ slug, initial, online }: { slug: string; initi
           rows={4}
           maxLength={2000}
           placeholder={"e.g.\nBPI · Johndorf Ventures Corporation · 1234-5678-90\nGCash · 0917 000 0000 (Johndorf)"}
-          className="block w-full border border-[#d9d4cb] bg-white px-3.5 py-3 text-[15px] outline-none focus:border-[var(--accent)] focus:ring-2 focus:ring-[var(--accent)]/15"
+          className="block w-full rounded-xl border border-[#d9d4cb] bg-white px-3.5 py-3 text-[15px] outline-none focus:border-[var(--accent)] focus:ring-2 focus:ring-[var(--accent)]/15"
         />
         <div className="flex items-center gap-3">
-          <button type="submit" disabled={pending} className="inline-flex items-center gap-2 bg-[var(--accent)] px-4 py-2.5 text-sm font-bold text-white hover:brightness-110 disabled:opacity-60">
+          <button type="submit" disabled={pending} className="inline-flex items-center gap-2 rounded-xl bg-[var(--accent)] px-4 py-2.5 text-sm font-bold text-white hover:brightness-110 disabled:opacity-60">
             {pending ? <LoaderCircle className="h-4 w-4 animate-spin" /> : <Check className="h-4 w-4" strokeWidth={3} />} Save
           </button>
           {msg.ok && <span className="text-sm font-semibold text-emerald-700">Saved</span>}

@@ -18,7 +18,7 @@ export function RequirementsEditor({ slug, types, applies }: { slug: string; typ
         title={`Checklist · ${types.filter((t) => t.active).length} shown to buyers`}
         aside={
           !adding && (
-            <button type="button" onClick={() => setAdding(true)} className="inline-flex items-center gap-1.5 bg-[var(--accent)] px-3 py-1.5 text-xs font-bold text-white hover:brightness-110">
+            <button type="button" onClick={() => setAdding(true)} className="inline-flex items-center gap-1.5 rounded-xl bg-[var(--accent)] px-3 py-1.5 text-xs font-bold text-white hover:brightness-110">
               <Plus className="h-3.5 w-3.5" /> Add requirement
             </button>
           )
@@ -45,7 +45,7 @@ function Item({ slug, item, applies, first, last }: { slug: string; item: ReqTyp
   const [editing, setEditing] = useState(false)
   const [pending, start] = useTransition()
   const [error, setError] = useState<string | null>(null)
-  const icon = "flex h-9 w-9 items-center justify-center text-[#6b665d] transition hover:bg-[#f1eee9] hover:text-[#17150f] disabled:opacity-30"
+  const icon = "rounded-xl flex h-9 w-9 items-center justify-center text-[#6b665d] transition hover:bg-[#f1eee9] hover:text-[#17150f] disabled:opacity-30"
 
   return (
     <li className={`py-5 ${item.active ? "" : "opacity-60"}`}>
@@ -56,10 +56,10 @@ function Item({ slug, item, applies, first, last }: { slug: string; item: ReqTyp
           <div className="min-w-0 flex-1">
             <div className="flex flex-wrap items-center gap-2">
               <p className="text-lg font-bold">{item.name}</p>
-              <span className={`border px-1.5 py-0.5 text-[10px] font-bold uppercase tracking-[0.12em] ${item.applies === "all" ? "border-[var(--accent)] text-[var(--accent)]" : "border-[#d9d4cb] text-[#5a554d]"}`}>
+              <span className={`rounded-md border px-1.5 py-0.5 text-[10px] font-bold uppercase tracking-[0.12em] ${item.applies === "all" ? "border-[var(--accent)] text-[var(--accent)]" : "border-[#d9d4cb] text-[#5a554d]"}`}>
                 {applies[item.applies] ?? item.applies}
               </span>
-              {!item.active && <span className="border border-[#d9d4cb] px-1.5 py-0.5 text-[10px] font-bold uppercase tracking-[0.12em] text-[#8a847a]">Hidden</span>}
+              {!item.active && <span className="rounded-md border border-[#d9d4cb] px-1.5 py-0.5 text-[10px] font-bold uppercase tracking-[0.12em] text-[#8a847a]">Hidden</span>}
             </div>
             {item.help && <p className="mt-1 max-w-2xl text-sm text-[#5a554d]">{item.help}</p>}
             <p className="mt-1 text-xs text-[#8a847a]">{item.documents_count ? `${item.documents_count} file${item.documents_count === 1 ? "" : "s"} received` : "No files yet"}</p>

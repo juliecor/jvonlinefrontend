@@ -13,7 +13,7 @@ export function ExtendOffer({ slug, id, expired }: { slug: string; id: number; e
 
   return (
     <span className="inline-flex items-center gap-1.5">
-      <select value={hours} onChange={(e) => setHours(Number(e.target.value))} disabled={pending} aria-label="Open the offer for" className="border border-[#d9d4cb] bg-white px-2 py-1.5 text-xs font-semibold text-[#17150f]">
+      <select value={hours} onChange={(e) => setHours(Number(e.target.value))} disabled={pending} aria-label="Open the offer for" className="rounded-xl border border-[#d9d4cb] bg-white px-2 py-1.5 text-xs font-semibold text-[#17150f]">
         {VALIDITY.map((v) => (
           <option key={v.hours} value={v.hours}>
             {v.label}
@@ -30,7 +30,7 @@ export function ExtendOffer({ slug, id, expired }: { slug: string; id: number; e
             else toast("Offer open again. The same link works.")
           })
         }
-        className={`inline-flex items-center gap-1.5 px-3 py-1.5 text-xs font-bold disabled:opacity-60 ${expired ? "bg-[var(--accent)] text-white hover:brightness-110" : "border border-[#d9d4cb] bg-white text-[#17150f] hover:border-[#17150f]"}`}
+        className={`inline-flex items-center gap-1.5 rounded-lg px-3 py-1.5 text-xs font-bold disabled:opacity-60 ${expired ? "bg-[var(--accent)] text-white hover:brightness-110" : "border border-[#d9d4cb] bg-white text-[#17150f] hover:border-[#17150f]"}`}
       >
         {pending && <LoaderCircle className="h-3.5 w-3.5 animate-spin" />}
         {expired ? "Reopen" : "Extend"}

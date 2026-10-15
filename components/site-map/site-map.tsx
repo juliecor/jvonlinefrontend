@@ -343,7 +343,7 @@ export function SiteMapCanvas({
         </div>
       </div>
       {!full && tapZoom && (
-        <span className="pointer-events-none absolute bottom-12 left-1/2 hidden -translate-x-1/2 items-center gap-2 whitespace-nowrap bg-[#17150f]/85 px-4 py-2.5 text-sm font-bold text-white shadow-lg pointer-coarse:flex">
+        <span className="rounded-xl pointer-events-none absolute bottom-12 left-1/2 hidden -translate-x-1/2 items-center gap-2 whitespace-nowrap bg-[#17150f]/85 px-4 py-2.5 text-sm font-bold text-white shadow-lg pointer-coarse:flex">
           <Maximize2 className="h-4 w-4" /> Tap to explore the map
         </span>
       )}
@@ -356,11 +356,11 @@ export function SiteMapCanvas({
 
   if (!full) return plan
   return (
-    <div className="fixed inset-0 z-[90] flex flex-col gap-3 bg-white p-3 sm:flex-row sm:p-4">
+    <div className="rounded-2xl fixed inset-0 z-[90] flex flex-col gap-3 bg-white p-3 sm:flex-row sm:p-4">
       {plan}
-      {side && <div className="max-h-[45vh] shrink-0 overflow-y-auto border border-[#e6e2db] bg-white p-5 sm:max-h-none sm:w-[360px]">{side}</div>}
+      {side && <div className="max-h-[45vh] shrink-0 overflow-y-auto rounded-2xl border border-[#e8eaed] bg-white shadow-[0_2px_12px_-2px_rgba(23,21,15,0.06)] p-5 sm:max-h-none sm:w-[360px]">{side}</div>}
       {!side && (
-        <button type="button" onClick={() => setFull(false)} aria-label="Close" className="absolute left-5 top-5 z-30 bg-white p-2 shadow">
+        <button type="button" onClick={() => setFull(false)} aria-label="Close" className="rounded-xl absolute left-5 top-5 z-30 bg-white p-2 shadow">
           <X className="h-5 w-5" />
         </button>
       )}
@@ -419,7 +419,7 @@ export function LotTip({ lot, quad, photo }: { lot: SiteMapLot; quad: Point[]; p
   const y = below ? Math.max(...quad.map((p) => p[1])) : top
   return (
     <div
-      className={`pointer-events-none absolute z-10 -translate-x-1/2 whitespace-nowrap bg-[#17150f] px-3 py-2 text-xs text-white shadow-lg ${below ? "translate-y-[10px]" : "-translate-y-[calc(100%+10px)]"}`}
+      className={`rounded-xl pointer-events-none absolute z-10 -translate-x-1/2 whitespace-nowrap bg-[#17150f] px-3 py-2 text-xs text-white shadow-lg ${below ? "translate-y-[10px]" : "-translate-y-[calc(100%+10px)]"}`}
       style={{ left: `${centroid(quad)[0] * 100}%`, top: `${y * 100}%` }}
     >
       {/* eslint-disable-next-line @next/next/no-img-element */}
@@ -454,7 +454,7 @@ export function LotHolder({ lot, offerHref }: { lot: SiteMapLot; offerHref?: (of
     </>
   )
   return (
-    <p className="border-l-4 bg-[#faf8f5] px-3 py-2 text-sm text-[#17150f]" style={{ borderColor: STATUS_STYLE[lot.status].fill }}>
+    <p className="rounded-xl border-l-4 bg-[#faf8f5] px-3 py-2 text-sm text-[#17150f]" style={{ borderColor: STATUS_STYLE[lot.status].fill }}>
       {body}
       {h.offer_id && offerHref && (
         <>
@@ -534,7 +534,7 @@ export function LotDetails({ lot, modelPhotos = [], modelNames = [], noPrice = "
       {lot.tags.length > 0 && (
         <div className="flex flex-wrap gap-2">
           {lot.tags.map((t) => (
-            <span key={t} className="border border-[#d9d4cb] px-2 py-1 text-xs font-bold text-[#3d3a34]">
+            <span key={t} className="rounded-xl border border-[#d9d4cb] px-2 py-1 text-xs font-bold text-[#3d3a34]">
               {LOT_TAGS[t] ?? t}
             </span>
           ))}
@@ -652,7 +652,7 @@ export function SiteMapViewer({
               <>
                 {mine && (
                   <div className="pointer-events-none absolute z-10 flex -translate-x-1/2 -translate-y-[calc(100%+4px)] flex-col items-center" style={{ left: `${centroid(mine.quad)[0] * 100}%`, top: `${Math.min(...mine.quad.map((p) => p[1])) * 100}%` }}>
-                    <span className="whitespace-nowrap bg-[#b4241c] px-3 py-1.5 text-sm font-bold text-white shadow-lg">Your home · {lotName(mine.lot)}</span>
+                    <span className="rounded-xl whitespace-nowrap bg-[#b4241c] px-3 py-1.5 text-sm font-bold text-white shadow-lg">Your home · {lotName(mine.lot)}</span>
                     <span aria-hidden className="h-0 w-0 border-x-8 border-t-8 border-x-transparent border-t-[#b4241c]" />
                     <span aria-hidden className="relative mt-1 flex h-5 w-5 items-center justify-center">
                       <span className="absolute inline-flex h-full w-full animate-ping rounded-full bg-[#b4241c] opacity-60" />
@@ -665,7 +665,7 @@ export function SiteMapViewer({
             }
           />
         </div>
-        {details && opened && <aside className="border border-[#e6e2db] bg-white p-4 lg:self-start">{card}</aside>}
+        {details && opened && <aside className="rounded-2xl border border-[#e8eaed] bg-white shadow-[0_2px_12px_-2px_rgba(23,21,15,0.06)] p-4 lg:self-start">{card}</aside>}
       </div>
     </div>
   )

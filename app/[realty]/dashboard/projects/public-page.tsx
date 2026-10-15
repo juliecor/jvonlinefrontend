@@ -154,7 +154,7 @@ function MediaGrid({ slug, projectId, kind, urls }: { slug: string; projectId: n
                 onSubmit={confirmSubmit({ title: kind === "hero" ? "Remove this photo from the page?" : "Remove this site plan?", body: kind === "hero" ? "It stops showing at the top of the project's page." : "It stops showing on the project's page and on offers.", confirm: "Remove", danger: true })}
                 className="absolute right-2 top-2"
               >
-                <button type="submit" aria-label="Remove image" className="flex h-8 w-8 items-center justify-center bg-white/90 text-[#17150f] hover:bg-red-600 hover:text-white">
+                <button type="submit" aria-label="Remove image" className="rounded-xl flex h-8 w-8 items-center justify-center bg-white/90 text-[#17150f] hover:bg-red-600 hover:text-white">
                   <X className="h-4 w-4" />
                 </button>
               </form>

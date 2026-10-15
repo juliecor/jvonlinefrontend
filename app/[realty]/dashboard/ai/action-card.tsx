@@ -27,7 +27,7 @@ function ConfirmReservation({ slug, card }: { slug: string; card: Extract<Action
       setState({ done: r.emailed ? `Reserved for ${card.offer.buyer}. They were emailed at ${r.emailed}.` : `Reserved for ${card.offer.buyer}. They have no email on file, so tell them yourself.` })
     })
   return (
-    <div className="mt-4 border-2 border-[var(--accent)] bg-white p-4">
+    <div className="rounded-xl mt-4 border-2 border-[var(--accent)] bg-white p-4">
       <p className="flex items-center gap-2 text-xs font-bold uppercase tracking-[0.14em] text-[var(--accent)]">
         <Wallet className="h-4 w-4" /> Confirm reservation
       </p>
@@ -47,11 +47,11 @@ function ConfirmReservation({ slug, card }: { slug: string; card: Extract<Action
           <p className="mt-2 text-sm text-[#6b665d]">Pressing Confirm marks {card.offer.unit} reserved for {card.offer.buyer} and emails them. Open the receipt first if you haven&apos;t.</p>
           <div className="mt-3 flex flex-wrap gap-2">
             {card.can_confirm && (
-              <button type="button" onClick={confirm} disabled={pending} className="inline-flex items-center gap-2 bg-emerald-700 px-4 py-2.5 text-sm font-bold text-white hover:brightness-110 disabled:opacity-60">
+              <button type="button" onClick={confirm} disabled={pending} className="rounded-xl inline-flex items-center gap-2 bg-emerald-700 px-4 py-2.5 text-sm font-bold text-white hover:brightness-110 disabled:opacity-60">
                 {pending ? <LoaderCircle className="h-4 w-4 animate-spin" /> : <ShieldCheck className="h-4 w-4" />} Confirm reservation
               </button>
             )}
-            <Link href={`/${slug}/dashboard/offers/${card.offer.id}`} className="inline-flex items-center gap-1.5 border border-[#d9d4cb] bg-white px-4 py-2.5 text-sm font-bold text-[#17150f] hover:border-[#17150f]">
+            <Link href={`/${slug}/dashboard/offers/${card.offer.id}`} className="inline-flex items-center gap-1.5 rounded-xl border border-[#d9d4cb] bg-white px-4 py-2.5 text-sm font-bold text-[#17150f] hover:border-[#17150f]">
               Open the offer <ArrowRight className="h-4 w-4" />
             </Link>
           </div>
@@ -69,7 +69,7 @@ function NewOffer({ slug, card }: { slug: string; card: Extract<ActionCardData, 
   if (card.phone) q.set("phone", card.phone)
   if (card.fee) q.set("fee", String(card.fee))
   return (
-    <div className="mt-4 border-2 border-[var(--accent)] bg-white p-4">
+    <div className="rounded-xl mt-4 border-2 border-[var(--accent)] bg-white p-4">
       <p className="flex items-center gap-2 text-xs font-bold uppercase tracking-[0.14em] text-[var(--accent)]">
         <FilePlus2 className="h-4 w-4" /> New offer, filled in
       </p>
@@ -94,7 +94,7 @@ function NewOffer({ slug, card }: { slug: string; card: Extract<ActionCardData, 
       {card.can_offer ? (
         <>
           <p className="mt-2 text-sm text-[#6b665d]">Opens the New offer form with this typed in. Pick the payment terms, press the password&apos;s refresh button, check everything, then create the offer link.</p>
-          <Link href={`/${slug}/dashboard/offers/new?${q}`} className="mt-3 inline-flex items-center gap-2 bg-[var(--accent)] px-4 py-2.5 text-sm font-bold text-white hover:brightness-110">
+          <Link href={`/${slug}/dashboard/offers/new?${q}`} className="mt-3 inline-flex items-center gap-2 rounded-xl bg-[var(--accent)] px-4 py-2.5 text-sm font-bold text-white hover:brightness-110">
             <FilePlus2 className="h-4 w-4" /> Open New offer
           </Link>
         </>

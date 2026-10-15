@@ -71,15 +71,15 @@ export function AgreementDocument({ doc, fill, signing = true }: { doc: Agreemen
               <table className="mx-auto my-4 w-full max-w-md border-collapse border border-[#17150f] text-left text-[14px] print:text-[10.5pt]">
                 <thead>
                   <tr>
-                    <th className="border border-[#17150f] px-3 py-2 text-center font-bold">CLASSIFICATION</th>
-                    <th className="border border-[#17150f] px-3 py-2 text-center font-bold">COMMISSION RATE</th>
+                    <th className="rounded-xl border border-[#17150f] px-3 py-2 text-center font-bold">CLASSIFICATION</th>
+                    <th className="rounded-xl border border-[#17150f] px-3 py-2 text-center font-bold">COMMISSION RATE</th>
                   </tr>
                 </thead>
                 <tbody>
                   {doc.commission.map((c, j) => (
                     <tr key={j}>
-                      <td className="border border-[#17150f] px-3 py-2">{c.classification}</td>
-                      <td className="border border-[#17150f] px-3 py-2 text-center">{c.rate}</td>
+                      <td className="rounded-xl border border-[#17150f] px-3 py-2">{c.classification}</td>
+                      <td className="rounded-xl border border-[#17150f] px-3 py-2 text-center">{c.rate}</td>
                     </tr>
                   ))}
                 </tbody>

@@ -19,7 +19,7 @@ export function OfferCards({ slug, cards, onAsk }: { slug: string; cards: OfferC
   return (
     <ul className="mt-4 space-y-3">
       {cards.map((o) => (
-        <li key={o.id} className="border border-[#e0dcd5] bg-white">
+        <li key={o.id} className="rounded-2xl border border-[#e8eaed] bg-white shadow-[0_2px_12px_-2px_rgba(23,21,15,0.06)]">
           <div className="flex gap-3 p-3 sm:gap-4">
             <Link href={`/${slug}/dashboard/offers/${o.id}`} className="relative h-20 w-20 shrink-0 overflow-hidden bg-[#f1eee9] sm:h-24 sm:w-28">
               {o.photo ? (
@@ -37,7 +37,7 @@ export function OfferCards({ slug, cards, onAsk }: { slug: string; cards: OfferC
               </p>
               <div className="mt-1 flex flex-wrap items-center gap-1.5">
                 {o.status === "void" && <Tag>Void</Tag>}
-                {o.unit_status === "sold" && <span className="bg-[#17150f] px-1.5 py-0.5 text-[10px] font-bold uppercase tracking-[0.14em] text-white">Sold</span>}
+                {o.unit_status === "sold" && <span className="rounded-xl bg-[#17150f] px-1.5 py-0.5 text-[10px] font-bold uppercase tracking-[0.14em] text-white">Sold</span>}
                 {o.unit_status === "reserved" && <Tag tone="warn">Reserved</Tag>}
                 {(o.reservation_status === "pending" || o.reservation_status === "paid") && <Tag tone="accent">Reservation to confirm</Tag>}
                 {o.status === "active" && o.approval_status === "pending" && <Tag tone="warn">Waiting for approval</Tag>}
@@ -62,16 +62,16 @@ export function OfferCards({ slug, cards, onAsk }: { slug: string; cards: OfferC
             </div>
           </div>
           <div className="flex flex-wrap gap-2 border-t border-[#efebe5] p-2.5 sm:px-3">
-            <Link href={`/${slug}/dashboard/offers/${o.id}`} className="inline-flex items-center gap-1.5 bg-[#17150f] px-3 py-2 text-sm font-bold text-white transition hover:bg-black">
+            <Link href={`/${slug}/dashboard/offers/${o.id}`} className="inline-flex items-center gap-1.5 rounded-xl bg-[#17150f] px-3 py-2 text-sm font-bold text-white transition hover:bg-black">
               Open offer <ArrowRight className="h-3.5 w-3.5" />
             </Link>
             {o.url && (
-              <button type="button" onClick={() => copyLink(o.url as string)} className="inline-flex items-center gap-1.5 border border-[#d9d4cb] bg-white px-3 py-2 text-sm font-bold text-[#17150f] transition hover:border-[#17150f]">
+              <button type="button" onClick={() => copyLink(o.url as string)} className="inline-flex items-center gap-1.5 rounded-xl border border-[#d9d4cb] bg-white px-3 py-2 text-sm font-bold text-[#17150f] transition hover:border-[#17150f]">
                 <Copy className="h-3.5 w-3.5" /> Copy link
               </button>
             )}
             {o.status === "active" && onAsk && (
-              <button type="button" onClick={() => onAsk(`Write a Viber follow-up for ${o.buyer} (offer ${o.code})`)} className="inline-flex items-center gap-1.5 border border-[var(--accent)] bg-white px-3 py-2 text-sm font-bold text-[var(--accent)] transition hover:bg-[color-mix(in_srgb,var(--accent)_8%,white)]">
+              <button type="button" onClick={() => onAsk(`Write a Viber follow-up for ${o.buyer} (offer ${o.code})`)} className="rounded-xl inline-flex items-center gap-1.5 border border-[var(--accent)] bg-white px-3 py-2 text-sm font-bold text-[var(--accent)] transition hover:bg-[color-mix(in_srgb,var(--accent)_8%,white)]">
                 <MessageSquareText className="h-3.5 w-3.5" /> Write follow-up
               </button>
             )}

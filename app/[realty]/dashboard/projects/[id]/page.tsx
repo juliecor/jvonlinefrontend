@@ -79,7 +79,7 @@ export default async function ProjectPage({ params, searchParams }: Props) {
       </Link>
 
       {/* The project at a glance */}
-      <section className="overflow-hidden border border-[#e6e2db] bg-white">
+      <section className="overflow-hidden rounded-2xl border border-[#e8eaed] bg-white shadow-[0_2px_12px_-2px_rgba(23,21,15,0.06)]">
         <div className="flex flex-col sm:flex-row">
           {photo ? (
             <Photo src={photo} alt="" sizes="(min-width: 1024px) 400px, (min-width: 640px) 288px, 100vw" loading="eager" className="aspect-[16/9] w-full object-cover sm:aspect-auto sm:w-72 sm:shrink-0 lg:w-[400px]" />
@@ -106,7 +106,7 @@ export default async function ProjectPage({ params, searchParams }: Props) {
             </div>
             <div className="flex flex-wrap gap-2">
               {priced > 0 && (
-                <Link href={`/${slug}/dashboard/offers/new?project=${project.id}`} className="inline-flex items-center gap-2 bg-[var(--accent)] px-5 py-3 text-[15px] font-bold text-white transition hover:brightness-110">
+                <Link href={`/${slug}/dashboard/offers/new?project=${project.id}`} className="inline-flex items-center gap-2 rounded-xl bg-[var(--accent)] px-5 py-3 text-[15px] font-bold text-white transition hover:brightness-110">
                   <Plus className="h-4 w-4" strokeWidth={2.5} /> New offer for this project
                 </Link>
               )}
@@ -129,7 +129,7 @@ export default async function ProjectPage({ params, searchParams }: Props) {
           { label: "Plans", value: project.payment_plans.length, href: "#plans", color: "#17150f" },
           { label: "Offers", value: project.offers_count ?? 0, href: `/${slug}/dashboard/offers`, color: "#17150f" },
         ].map((st) => (
-          <a key={st.label} href={st.href} className="block border border-[#e6e2db] bg-white px-4 py-3 outline-none transition hover:border-[#17150f] focus-visible:ring-2 focus-visible:ring-[var(--accent)] sm:px-5 sm:py-4" style={{ boxShadow: `inset 0 3px 0 ${st.color}` }}>
+          <a key={st.label} href={st.href} className="block rounded-2xl border border-[#e8eaed] bg-white shadow-[0_2px_12px_-2px_rgba(23,21,15,0.06)] px-4 py-3 outline-none transition hover:border-[#17150f] focus-visible:ring-2 focus-visible:ring-[var(--accent)] sm:px-5 sm:py-4" style={{ boxShadow: `inset 0 3px 0 ${st.color}` }}>
             <dd className="text-2xl font-bold tabular-nums tracking-tight sm:text-3xl" style={{ color: st.color }}>
               {st.value.toLocaleString("en-PH")}
             </dd>
