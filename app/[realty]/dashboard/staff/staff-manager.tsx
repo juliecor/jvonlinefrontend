@@ -1,8 +1,32 @@
 "use client"
 
-import { useState, useTransition } from "react"
-import { Check, Copy, Eye, EyeOff, KeyRound, LoaderCircle, Power, RefreshCw, ShieldCheck, SlidersHorizontal, Trash2, UserPlus } from "lucide-react"
-import { Tag } from "@/components/dashboard-ui"
+import Link from "next/link"
+import { useOptimistic, useState, useTransition } from "react"
+import {
+  BadgeCheck,
+  Building2,
+  Check,
+  ChevronDown,
+  ClipboardCheck,
+  Copy,
+  Eye,
+  EyeOff,
+  FileText,
+  Handshake,
+  KeyRound,
+  ListChecks,
+  LoaderCircle,
+  Mail,
+  Phone,
+  Power,
+  RefreshCw,
+  ShieldCheck,
+  Sparkles,
+  Trash2,
+  UserPlus,
+  Users,
+} from "lucide-react"
+import { Tag, display } from "@/components/dashboard-ui"
 import { confirmAction, toast } from "@/components/feedback"
 import { Modal } from "@/components/modal"
 import { timeAgo } from "@/lib/format"
@@ -14,6 +38,7 @@ export type StaffMember = {
   name: string
   email: string
   phone: string | null
+  photo: string | null
   full_admin: boolean
   sections: string[]
   status: "active" | "disabled"
@@ -25,9 +50,13 @@ export type StaffMember = {
 
 type Info = Record<string, { label: string; text: string }>
 
+/** Each section's icon, the same as in the menu. */
+const ICON: Record<string, typeof FileText> = { offers: FileText, approvals: BadgeCheck, projects: Building2, agents: Users, realties: Handshake, requirements: ClipboardCheck, ai: Sparkles, tasks: ListChecks }
+
 const box = "block w-full rounded-xl border border-[#d9d4cb] bg-white px-3.5 py-3 text-[15px] text-[#17150f] outline-none transition focus:border-[var(--accent)] focus:ring-2 focus:ring-[var(--accent)]/15"
 const input = `mt-1.5 ${box}`
 const label = "text-xs font-bold uppercase tracking-[0.12em] text-[#6b665d]"
+const action = "inline-flex items-center gap-1.5 rounded-xl border border-[#d9d4cb] bg-white px-2.5 py-2 text-sm sm:px-3 font-bold text-[#17150f] transition hover:border-[#17150f] disabled:opacity-50"
 const initials = (name: string) =>
   name
     .split(/\s+/)
@@ -35,32 +64,101 @@ const initials = (name: string) =>
     .slice(0, 2)
     .map((w) => w[0]?.toUpperCase())
     .join("")
+const firstName = (name: string) => name.split(" ")[0]
 
 /**
- * Team > Staff: everyone with a staff account, what each can open, when they
- * last signed in, and the admin's tools: add, edit access, reset password,
- * turn off or on, delete. Your own row is managed on My account.
+ * Team > Staff: everyone with a staff account as a card (photo, contact, when
+ * they last signed in) with what they can open as tiles the admin clicks on
+ * or off, saved right away. Add, reset password, turn off and delete too.
+ * Your own card is read-only: that's My account.
  */
 export function StaffManager({ slug, realty, loginUrl, sections, info, staff }: { slug: string; realty: string; loginUrl: string; sections: string[]; info: Info; staff: StaffMember[] }) {
   const [adding, setAdding] = useState(false)
-  const [editing, setEditing] = useState<StaffMember | null>(null)
   const [resetting, setResetting] = useState<StaffMember | null>(null)
-  const [busy, start] = useTransition()
+  const admins = staff.filter((m) => m.full_admin).length
 
-  const toggle = async (m: StaffMember) => {
-    const off = m.status === "active"
-    if (off) {
+  return (
+    <div>
+      <div className="flex flex-wrap items-end justify-between gap-3">
+        <div>
+          <h2 className={`${display} flex items-center gap-3 text-[21px] tracking-tight text-[#17150f] before:h-6 before:w-1 before:rounded-full before:bg-[var(--accent)]`}>
+            Staff accounts <span className="text-[#a39d92]">{staff.length}</span>
+          </h2>
+          <p className="mt-1 pl-4 text-sm text-[#6b665d]">
+            {admins} full admin{admins === 1 ? "" : "s"} · {staff.length - admins} with chosen sections. Click a person to see and change what they can open.
+          </p>
+        </div>
+        <button type="button" onClick={() => setAdding(true)} className="inline-flex items-center gap-1.5 rounded-xl bg-[var(--accent)] px-4 py-2.5 text-sm font-bold text-white transition hover:brightness-110">
+          <UserPlus className="h-4 w-4" /> Add staff
+        </button>
+      </div>
+
+      <ul className="mt-5 space-y-3">
+        {staff.map((m) => (
+          <StaffCard key={m.id} slug={slug} member={m} sections={sections} info={info} onReset={() => setResetting(m)} />
+        ))}
+      </ul>
+
+      <Modal open={adding} onClose={() => setAdding(false)} eyebrow={realty} title="Add a staff account">
+        <AddForm slug={slug} realty={realty} loginUrl={loginUrl} sections={sections} info={info} onDone={() => setAdding(false)} />
+      </Modal>
+      <Modal open={!!resetting} onClose={() => setResetting(null)} eyebrow={resetting?.name} title="Reset their password">
+        {resetting && <ResetForm slug={slug} realty={realty} loginUrl={loginUrl} member={resetting} onDone={() => setResetting(null)} />}
+      </Modal>
+    </div>
+  )
+}
+
+/** One person: who they are and, opened, what they can open (click to change) and the account's tools. */
+function StaffCard({ slug, member: m, sections, info, onReset }: { slug: string; member: StaffMember; sections: string[]; info: Info; onReset: () => void }) {
+  const [open, setOpen] = useState(false)
+  const [busy, start] = useTransition()
+  // The tiles change at the click; the saved access comes back with the page.
+  const [shown, show] = useOptimistic<Access>({ access: m.full_admin ? "full" : "sections", sections: m.sections })
+  const full = shown.access === "full"
+  const off = m.status === "disabled"
+  const locked = m.is_you || busy
+  const name = firstName(m.name)
+
+  const save = (next: Access, done: string) =>
+    start(async () => {
+      show(next)
+      const r = await setAccess(slug, m.id, next)
+      if (r.error || r.errors) toast(r.error ?? Object.values(r.errors ?? {})[0] ?? "Couldn't save.", "error")
+      else toast(done)
+    })
+
+  const tick = (s: string) => {
+    if (locked || full) return
+    const on = shown.sections.includes(s)
+    let next = on ? shown.sections.filter((x) => x !== s) : [...shown.sections, s]
+    // Approving works from the offers, so Approvals brings Offers and Offers takes Approvals along.
+    if (!on && s === "approvals" && !next.includes("offers")) next = [...next, "offers"]
+    if (on && s === "offers") next = next.filter((x) => x !== "approvals")
+    if (!next.length) return toast(`Leave ${name} at least one section, or turn the account off.`, "error")
+    save({ access: "sections", sections: sections.filter((x) => next.includes(x)) }, on ? `${name} can't open ${info[s]?.label ?? s} now` : `${name} can open ${info[s]?.label ?? s} now`)
+  }
+
+  const fullAdmin = async () => {
+    if (locked) return
+    if (full) return save({ access: "sections", sections }, `${name} isn't a full admin now. Untick what they shouldn't open.`)
+    const ok = await confirmAction({ title: `Make ${name} a full admin?`, body: "They can open everything, including Staff accounts: adding people, changing what they can open and resetting passwords.", confirm: "Make full admin" })
+    if (ok) save({ access: "full", sections: shown.sections }, `${name} is a full admin now`)
+  }
+
+  const toggle = async () => {
+    if (!off) {
       const ok = await confirmAction({ title: `Turn off ${m.name}'s account?`, body: "They're signed out right away and can't sign in until you turn it back on. Their offers and history stay.", confirm: "Turn off", danger: true })
       if (!ok) return
     }
     start(async () => {
-      const r = await setStatus(slug, m.id, off ? "disabled" : "active")
+      const r = await setStatus(slug, m.id, off ? "active" : "disabled")
       if (r.error) toast(r.error, "error")
-      else toast(off ? `${m.name} is turned off` : `${m.name} can sign in again`)
+      else toast(off ? `${m.name} can sign in again` : `${m.name} is turned off`)
     })
   }
 
-  const remove = async (m: StaffMember) => {
+  const remove = async () => {
     const ok = await confirmAction({ title: `Delete ${m.name}'s account?`, body: "The account is gone for good. Someone who sent offers can only be turned off, so their offers keep their name.", confirm: "Delete account", danger: true })
     if (!ok) return
     start(async () => {
@@ -70,79 +168,164 @@ export function StaffManager({ slug, realty, loginUrl, sections, info, staff }: 
     })
   }
 
-  return (
-    <div>
-      <div className="flex flex-wrap items-center justify-between gap-3 border-b border-[#17150f] pb-2">
-        <h2 className="text-xs font-bold uppercase tracking-[0.16em] text-[#17150f]">Staff accounts · {staff.length}</h2>
-        <button type="button" onClick={() => setAdding(true)} className="inline-flex items-center gap-1.5 rounded-xl bg-[var(--accent)] px-4 py-2.5 text-sm font-bold text-white transition hover:brightness-110">
-          <UserPlus className="h-4 w-4" /> Add staff
-        </button>
-      </div>
+  const count = full ? sections.length : shown.sections.length
 
-      <ul className="divide-y divide-[#e6e2db]">
-        {staff.map((m) => (
-          <li key={m.id} className={`flex flex-col gap-4 py-5 lg:flex-row lg:items-center lg:justify-between ${m.status === "disabled" ? "opacity-70" : ""}`}>
-            <div className="flex min-w-0 items-start gap-4">
-              <span aria-hidden className={`flex h-12 w-12 shrink-0 items-center justify-center text-base font-bold text-white ${m.full_admin ? "bg-[var(--accent)]" : "bg-[#17150f]"}`}>{initials(m.name)}</span>
-              <div className="min-w-0">
-                <p className="flex flex-wrap items-center gap-2">
-                  <span className="text-base font-bold text-[#17150f]">{m.name}</span>
-                  {m.is_you && <Tag>You</Tag>}
-                  {m.status === "disabled" && <Tag tone="bad">Turned off</Tag>}
-                  {m.must_change_password && m.status === "active" && <Tag tone="warn">Chooses a password at sign-in</Tag>}
-                </p>
-                <p className="truncate text-sm text-[#6b665d]">{[m.email, m.phone].filter(Boolean).join(" · ")}</p>
-                <div className="mt-2 flex flex-wrap gap-1.5">
-                  {m.full_admin ? (
-                    <span className="rounded-full inline-flex items-center gap-1 bg-[color-mix(in_srgb,var(--accent)_10%,white)] px-2 py-0.5 text-xs font-bold text-[var(--accent)]">
-                      <ShieldCheck className="h-3.5 w-3.5" /> Full admin: everything, including staff accounts
-                    </span>
-                  ) : (
-                    m.sections.map((s) => (
-                      <span key={s} className="rounded-xl border border-[#d9d4cb] bg-white px-2 py-0.5 text-xs font-semibold text-[#3d3a34]">
-                        {info[s]?.label ?? s}
-                      </span>
-                    ))
-                  )}
-                </div>
-                <p className="mt-2 text-xs font-medium text-[#8a847a]">
-                  {m.last_login_at ? `Last signed in ${timeAgo(m.last_login_at)}` : "Hasn't signed in yet"}
-                  {m.offers > 0 && ` · ${m.offers} offer${m.offers === 1 ? "" : "s"} sent`}
-                </p>
-              </div>
+  return (
+    <li className={`overflow-hidden rounded-2xl border border-[#e8eaed] bg-white shadow-[0_2px_12px_-2px_rgba(23,21,15,0.06)] ${off ? "opacity-75" : ""}`}>
+      {/* Who they are, and what they can open at a glance; a click opens the rest */}
+      <button
+        type="button"
+        onClick={() => setOpen((o) => !o)}
+        aria-expanded={open}
+        className="relative flex w-full flex-wrap items-center gap-x-4 gap-y-3 p-4 pr-12 text-left outline-none transition hover:bg-[#fbfaf8] focus-visible:ring-2 focus-visible:ring-inset focus-visible:ring-[var(--accent)] sm:flex-nowrap sm:p-6"
+      >
+        <span className="relative shrink-0">
+          {m.photo ? (
+            // eslint-disable-next-line @next/next/no-img-element
+            <img src={m.photo} alt="" className="h-12 w-12 rounded-full object-cover ring-4 ring-[#f3f1ed] sm:h-16 sm:w-16" />
+          ) : (
+            <span aria-hidden className={`flex h-12 w-12 items-center justify-center rounded-full text-base font-bold sm:h-16 sm:w-16 sm:text-lg text-white ring-4 ring-[#f3f1ed] ${full ? "bg-[var(--accent)]" : "bg-[#17150f]"}`}>
+              {initials(m.name)}
+            </span>
+          )}
+          <span title={off ? "Turned off" : "Active"} className={`absolute bottom-0.5 right-0.5 h-4 w-4 rounded-full border-[3px] border-white ${off ? "bg-[#a39d92]" : "bg-emerald-500"}`} />
+        </span>
+        <div className="min-w-0 flex-1">
+          <p className="flex flex-wrap items-center gap-2">
+            <span className={`${display} text-[20px] leading-tight tracking-tight text-[#17150f]`}>{m.name}</span>
+            {m.is_you && <Tag>You</Tag>}
+            {off && <Tag tone="bad">Turned off</Tag>}
+            {m.must_change_password && !off && <Tag tone="warn">Chooses a password at sign-in</Tag>}
+          </p>
+          <p className="mt-1 flex flex-wrap gap-x-4 gap-y-0.5 text-sm text-[#6b665d]">
+            <span className="inline-flex min-w-0 items-center gap-1.5">
+              <Mail className="h-3.5 w-3.5 shrink-0" /> <span className="truncate">{m.email}</span>
+            </span>
+            {m.phone && (
+              <span className="inline-flex items-center gap-1.5">
+                <Phone className="h-3.5 w-3.5" /> {m.phone}
+              </span>
+            )}
+          </p>
+          <p className="mt-1.5 text-xs font-medium text-[#8a847a]">
+            {m.last_login_at ? `Last signed in ${timeAgo(m.last_login_at)}` : "Hasn't signed in yet"}
+            {m.offers > 0 && ` · ${m.offers} offer${m.offers === 1 ? "" : "s"} sent`}
+          </p>
+        </div>
+        <span className="flex w-full shrink-0 flex-col items-start gap-2 pl-16 sm:w-auto sm:items-end sm:pl-0">
+          <span className={`inline-flex items-center gap-1.5 rounded-full px-3 py-1.5 text-xs font-bold ${full ? "bg-[color-mix(in_srgb,var(--accent)_10%,white)] text-[var(--accent)]" : "bg-[#f3f1ed] text-[#3d3a34]"}`}>
+            {full ? <ShieldCheck className="h-4 w-4" /> : <KeyRound className="h-3.5 w-3.5" />}
+            {full ? "Full admin" : `Staff · ${count} of ${sections.length} sections`}
+          </span>
+          <span
+            className="flex flex-wrap gap-1"
+            aria-label={`Can open: ${sections
+              .filter((x) => full || shown.sections.includes(x))
+              .map((x) => info[x]?.label ?? x)
+              .join(", ")}`}
+          >
+            {sections.map((x) => {
+              const Icon = ICON[x] ?? FileText
+              const can = full || shown.sections.includes(x)
+              return (
+                <span
+                  key={x}
+                  title={`${info[x]?.label ?? x}${can ? "" : ": not allowed"}`}
+                  className={`flex h-6 w-6 items-center justify-center rounded-md ${can ? "bg-[color-mix(in_srgb,var(--accent)_12%,white)] text-[var(--accent)]" : "bg-[#f3f1ed] text-[#c9c4bb]"}`}
+                >
+                  <Icon className="h-3.5 w-3.5" strokeWidth={2.25} />
+                </span>
+              )
+            })}
+          </span>
+        </span>
+        <ChevronDown aria-hidden className={`absolute right-4 top-4 h-5 w-5 shrink-0 text-[#8a847a] transition sm:static ${open ? "rotate-180" : ""}`} />
+      </button>
+
+      {open && (
+        <>
+          {/* What they can open */}
+          <div className="border-t border-[#f0eeea] bg-[#fbfaf8] px-5 py-4 sm:px-6">
+            <div className="flex flex-wrap items-center justify-between gap-3">
+              <p className="text-[11px] font-bold uppercase tracking-[0.1em] text-[#6b665d]">What {m.is_you ? "you" : name} can open</p>
+              <button type="button" role="switch" aria-checked={full} onClick={fullAdmin} disabled={locked} className="group inline-flex items-center gap-2.5 text-sm font-bold text-[#17150f] disabled:cursor-default">
+                <ShieldCheck className={`h-4 w-4 ${full ? "text-[var(--accent)]" : "text-[#a39d92]"}`} />
+                Full admin
+                <span className={`relative h-6 w-11 rounded-full transition ${full ? "bg-[var(--accent)]" : "bg-[#d9d4cb] group-enabled:group-hover:bg-[#c9c4bb]"} ${locked ? "opacity-60" : ""}`}>
+                  <span className={`absolute top-0.5 h-5 w-5 rounded-full bg-white shadow transition-all ${full ? "left-[22px]" : "left-0.5"}`} />
+                </span>
+              </button>
             </div>
+            <div className="mt-3 grid grid-cols-2 gap-2 md:grid-cols-3 xl:grid-cols-4">
+              {sections.map((s) => {
+                const on = full || shown.sections.includes(s)
+                const Icon = ICON[s] ?? FileText
+                return (
+                  <button
+                    key={s}
+                    type="button"
+                    aria-pressed={on}
+                    onClick={() => tick(s)}
+                    disabled={locked || full}
+                    title={info[s]?.text}
+                    className={`flex min-w-0 items-center gap-2 rounded-xl border p-2 text-left sm:gap-3 sm:p-2.5 transition disabled:cursor-default ${
+                      on ? "border-[color-mix(in_srgb,var(--accent)_30%,white)] bg-white shadow-[0_1px_3px_rgba(23,21,15,0.06)]" : "border-dashed border-[#d9d4cb] bg-transparent"
+                    } ${locked || full ? "" : on ? "hover:border-[var(--accent)]" : "hover:border-[#17150f] hover:bg-white"}`}
+                  >
+                    <span className={`flex h-8 w-8 shrink-0 items-center justify-center rounded-lg sm:h-9 sm:w-9 ${on ? "bg-[var(--accent)] text-white" : "bg-[#efece7] text-[#a39d92]"}`}>
+                      <Icon className="h-[18px] w-[18px]" strokeWidth={2} />
+                    </span>
+                    <span className={`min-w-0 flex-1 text-[13px] font-bold leading-tight sm:text-sm ${on ? "text-[#17150f]" : "text-[#8a847a]"}`}>{info[s]?.label ?? s}</span>
+                    <span className={`hidden h-5 w-5 shrink-0 items-center justify-center rounded-full min-[400px]:flex ${on ? "bg-emerald-500 text-white" : "border-2 border-[#d9d4cb]"}`}>
+                      {on && <Check className="h-3 w-3" strokeWidth={3.5} />}
+                    </span>
+                  </button>
+                )
+              })}
+            </div>
+            <p className="mt-3 text-xs text-[#8a847a]">
+              {m.is_you
+                ? "Your own access is changed by another full admin."
+                : full
+                  ? `A full admin opens everything here, plus Staff accounts. Turn off Full admin to choose.`
+                  : `Everyone sees the statistics and the projects. Changes apply on ${name}'s next click.`}
+            </p>
+          </div>
+
+          {/* The account */}
+          <div className="flex flex-wrap items-center justify-end gap-2 border-t border-[#f0eeea] px-5 py-3 sm:px-6">
             {m.is_you ? (
-              <p className="text-sm text-[#8a847a] lg:text-right">Change your own details on My account.</p>
+              <p className="mr-auto text-sm text-[#6b665d]">
+                Change your photo, name and password on{" "}
+                <Link href={`/${slug}/dashboard/account`} className="font-bold text-[var(--accent)] hover:underline">
+                  My account
+                </Link>
+                .
+              </p>
             ) : (
-              <div className="flex flex-wrap gap-2 lg:justify-end">
-                <button type="button" onClick={() => setEditing(m)} disabled={busy} className="inline-flex items-center gap-1.5 rounded-xl border border-[#d9d4cb] bg-white px-3 py-2 text-sm font-bold text-[#17150f] transition hover:border-[#17150f] disabled:opacity-50">
-                  <SlidersHorizontal className="h-4 w-4" /> Access
-                </button>
-                <button type="button" onClick={() => setResetting(m)} disabled={busy} className="inline-flex items-center gap-1.5 rounded-xl border border-[#d9d4cb] bg-white px-3 py-2 text-sm font-bold text-[#17150f] transition hover:border-[#17150f] disabled:opacity-50">
-                  <KeyRound className="h-4 w-4" /> Reset password
-                </button>
-                <button type="button" onClick={() => toggle(m)} disabled={busy} className="inline-flex items-center gap-1.5 rounded-xl border border-[#d9d4cb] bg-white px-3 py-2 text-sm font-bold text-[#17150f] transition hover:border-[#17150f] disabled:opacity-50">
-                  <Power className="h-4 w-4" /> {m.status === "active" ? "Turn off" : "Turn on"}
-                </button>
-                <button type="button" onClick={() => remove(m)} disabled={busy} aria-label={`Delete ${m.name}'s account`} className="inline-flex items-center px-2.5 py-2 text-[#a39d92] transition hover:bg-red-50 hover:text-red-700 disabled:opacity-50">
+              <>
+                <button
+                  type="button"
+                  onClick={remove}
+                  disabled={busy}
+                  aria-label={`Delete ${m.name}'s account`}
+                  className="mr-auto inline-flex items-center rounded-xl px-2.5 py-2 text-[#a39d92] transition hover:bg-red-50 hover:text-red-700 disabled:opacity-50"
+                >
                   <Trash2 className="h-4 w-4" />
                 </button>
-              </div>
+                {busy && <LoaderCircle className="h-4 w-4 animate-spin text-[#8a847a]" />}
+                <button type="button" onClick={onReset} disabled={busy} className={action}>
+                  <KeyRound className="h-4 w-4" /> Reset password
+                </button>
+                <button type="button" onClick={toggle} disabled={busy} className={action}>
+                  <Power className="h-4 w-4" /> {off ? "Turn on" : "Turn off"}
+                </button>
+              </>
             )}
-          </li>
-        ))}
-      </ul>
-
-      <Modal open={adding} onClose={() => setAdding(false)} eyebrow={realty} title="Add a staff account">
-        <AddForm slug={slug} realty={realty} loginUrl={loginUrl} sections={sections} info={info} onDone={() => setAdding(false)} />
-      </Modal>
-      <Modal open={!!editing} onClose={() => setEditing(null)} eyebrow={editing?.name} title="What can they open?">
-        {editing && <AccessForm slug={slug} member={editing} sections={sections} info={info} onDone={() => setEditing(null)} />}
-      </Modal>
-      <Modal open={!!resetting} onClose={() => setResetting(null)} eyebrow={resetting?.name} title="Reset their password">
-        {resetting && <ResetForm slug={slug} realty={realty} loginUrl={loginUrl} member={resetting} onDone={() => setResetting(null)} />}
-      </Modal>
-    </div>
+          </div>
+        </>
+      )}
+    </li>
   )
 }
 
@@ -302,35 +485,6 @@ function AddForm({ slug, realty, loginUrl, sections, info, onDone }: { slug: str
   )
 }
 
-function AccessForm({ slug, member, sections, info, onDone }: { slug: string; member: StaffMember; sections: string[]; info: Info; onDone: () => void }) {
-  const [access, setAccessValue] = useState<Access>({ access: member.full_admin ? "full" : "sections", sections: member.full_admin ? ["offers"] : member.sections })
-  const [error, setError] = useState("")
-  const [pending, start] = useTransition()
-
-  return (
-    <form
-      onSubmit={(e) => {
-        e.preventDefault()
-        setError("")
-        start(async () => {
-          const r = await setAccess(slug, member.id, access)
-          if (r.error || r.errors) return setError(r.error ?? Object.values(r.errors ?? {})[0] ?? "Couldn't save.")
-          toast(`${member.name}'s access is saved`)
-          onDone()
-        })
-      }}
-      className="space-y-5"
-    >
-      <AccessPicker value={access} onChange={setAccessValue} sections={sections} info={info} />
-      <p className="text-sm text-[#5a554d]">The change applies on their next click; they don&apos;t need to sign in again.</p>
-      {error && <p role="alert" className="text-sm font-bold text-red-700">{error}</p>}
-      <button type="submit" disabled={pending} className="inline-flex items-center gap-2 rounded-xl bg-[var(--accent)] px-5 py-3 text-[15px] font-bold text-white transition hover:brightness-110 disabled:opacity-60">
-        {pending && <LoaderCircle className="h-4 w-4 animate-spin" />} Save access
-      </button>
-    </form>
-  )
-}
-
 function ResetForm({ slug, realty, loginUrl, member, onDone }: { slug: string; realty: string; loginUrl: string; member: StaffMember; onDone: () => void }) {
   const [password, setPassword] = useState(() => suggestPassword(10))
   const [mustChange, setMustChange] = useState(true)
@@ -360,7 +514,11 @@ function ResetForm({ slug, realty, loginUrl, member, onDone }: { slug: string; r
         <input type="checkbox" checked={mustChange} onChange={(e) => setMustChange(e.target.checked)} className="mt-0.5 h-4 w-4 accent-[var(--accent)]" />
         Ask them to choose their own password when they sign in
       </label>
-      {error && <p role="alert" className="text-sm font-bold text-red-700">{error}</p>}
+      {error && (
+        <p role="alert" className="text-sm font-bold text-red-700">
+          {error}
+        </p>
+      )}
       <button type="submit" disabled={pending} className="inline-flex items-center gap-2 rounded-xl bg-[var(--accent)] px-5 py-3 text-[15px] font-bold text-white transition hover:brightness-110 disabled:opacity-60">
         {pending ? <LoaderCircle className="h-4 w-4 animate-spin" /> : <KeyRound className="h-4 w-4" />} Set new password
       </button>
