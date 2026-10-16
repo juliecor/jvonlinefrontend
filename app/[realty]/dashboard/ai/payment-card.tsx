@@ -1,6 +1,7 @@
 import Link from "next/link"
-import { FilePlus2 } from "lucide-react"
+import { FilePlus2, FileText } from "lucide-react"
 import { php, phpExact, shortDate } from "@/lib/format"
+import { quotationHref } from "@/lib/quotation"
 import type { PaymentCard as Payment } from "./actions"
 
 /**
@@ -23,7 +24,7 @@ function offerLink(slug: string, p: Payment): string {
 /**
  * A payment schedule the AI worked out (the same math as the offers): the
  * monthly amount up front, the split of the price as a bar, every payment
- * with its date, and Make offer with these terms.
+ * with its date, a Quotation PDF for the buyer, and Make offer with these terms.
  */
 export function PaymentCard({ slug, card: p }: { slug: string; card: Payment }) {
   const monthly = p.payments.find((r) => r.months && r.monthly)
@@ -93,13 +94,21 @@ export function PaymentCard({ slug, card: p }: { slug: string; card: Payment }) 
           The price is now {php(p.price_now)}. A new offer uses today&apos;s price.
         </p>
       )}
-      {p.can_offer && p.unit && p.project && (
-        <div className="border-t border-[#efebe5] p-2.5 sm:px-4">
-          <Link href={offerLink(slug, p)} className="inline-flex w-full items-center justify-center gap-1.5 rounded-xl bg-[var(--accent)] px-4 py-2.5 text-sm font-bold text-white transition hover:brightness-110 sm:w-auto">
+      <div className="flex flex-wrap gap-2 border-t border-[#efebe5] p-2.5 sm:px-4">
+        <a
+          href={quotationHref(slug, { unit_id: p.unit?.id, project_id: p.unit ? undefined : p.project?.id, price: p.unit ? undefined : p.price, plan_id: p.plan_id ?? undefined, milestones: p.plan_id ? undefined : p.milestones, purchase_date: p.purchase_date, buyer: p.buyer ?? undefined })}
+          target="_blank"
+          rel="noreferrer"
+          className="inline-flex flex-1 items-center justify-center gap-1.5 rounded-xl border border-[#d9d4cb] bg-white px-4 py-2.5 text-sm font-bold text-[#17150f] transition hover:border-[#17150f] sm:flex-none"
+        >
+          <FileText className="h-4 w-4" /> Quotation PDF
+        </a>
+        {p.can_offer && p.unit && p.project && (
+          <Link href={offerLink(slug, p)} className="inline-flex flex-1 items-center justify-center gap-1.5 rounded-xl bg-[var(--accent)] px-4 py-2.5 text-sm font-bold text-white transition hover:brightness-110 sm:flex-none">
             <FilePlus2 className="h-4 w-4" /> Make offer with these terms
           </Link>
-        </div>
-      )}
+        )}
+      </div>
     </div>
   )
 }

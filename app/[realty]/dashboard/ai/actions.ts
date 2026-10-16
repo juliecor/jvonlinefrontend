@@ -75,6 +75,8 @@ export type PaymentCard = {
   terms: string
   plan_id: number | null
   purchase_date: string
+  /** Who it's for, when the person named the buyer (it goes on the quotation). */
+  buyer: string | null
   payments: { label: string; percent: number; amount: number; date: string | null; months: number | null; monthly: number | null; end_date: string | null; last_month: number | null }[]
   milestones: MilestoneInput[]
   can_offer: boolean
