@@ -6,6 +6,7 @@ import type { LeadKind } from "@/components/leads"
 import type { RequirementSummary } from "@/lib/requirements-types"
 import type { MilestoneInput } from "@/lib/schedule"
 import type { SiteMapData } from "@/components/site-map/geometry"
+import type { ReportAgent, ReportPeriod, ReportProject, ReportTotals } from "@/lib/sales-report"
 
 /** A unit the AI showed under its answer, from the live units (so its price and status are current). */
 export type UnitCard = {
@@ -94,7 +95,20 @@ export type ActionCard =
   | { type: "action"; kind: "confirm_reservation"; offer: { id: number; code: string; buyer: string; unit: string | null; project: string | null }; fee: number; how: string; reference: string | null; status: "pending" | "paid" | "confirmed" | "declined" | null; can_confirm: boolean }
   | { type: "action"; kind: "new_offer"; unit: { id: number; name: string; status: string }; project: { id: number; name: string | null }; price: number | null; buyer: string | null; email: string | null; phone: string | null; fee: number | null; can_offer: boolean }
 
-export type Card = UnitCard | OfferCard | ProjectCard | PaymentCard | MapCard | ActionCard
+/** A sales report for a period: the headline numbers and the top projects and agents; the full report is its own page and PDF. */
+export type ReportCard = {
+  type: "report"
+  period: ReportPeriod
+  scope: string
+  totals: ReportTotals
+  previous: ReportTotals
+  highlights: string[]
+  projects: ReportProject[]
+  agents: ReportAgent[]
+  counts: { projects: number; agents: number; deals: number; offers: number }
+}
+
+export type Card = UnitCard | OfferCard | ProjectCard | PaymentCard | MapCard | ActionCard | ReportCard
 
 export type ChatMessage = { id: number; role: "user" | "assistant"; content: string; created_at: string; cards?: Card[] }
 export type ChatSummary = { id: number; title: string; updated_at: string }
