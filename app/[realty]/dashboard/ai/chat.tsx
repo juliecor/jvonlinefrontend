@@ -1,6 +1,6 @@
 "use client"
 
-import { useEffect, useRef, useState } from "react"
+import { useState } from "react"
 import Link from "next/link"
 import { useRouter } from "next/navigation"
 import { ArrowRight, BellRing, MessageSquare, Plus, Sparkles, Trash2, X } from "lucide-react"
@@ -10,6 +10,7 @@ import { timeAgo } from "@/lib/format"
 import { type ChatMessage, type ChatSummary, deleteChat } from "./actions"
 import { AskBox, Thread } from "./messages"
 import { useAssistant } from "./use-assistant"
+import { useFollow } from "./use-follow"
 
 const TODAY = "What needs my attention today?"
 const STAFF_IDEAS = [
@@ -34,7 +35,7 @@ export function AssistantChat({ slug, name, firstName, isAgent, chats: initialCh
   const router = useRouter()
   const [chats, setChats] = useState(initialChats)
   const [showList, setShowList] = useState(false)
-  const scroller = useRef<HTMLDivElement>(null)
+  const { ref: scroller, follow } = useFollow<HTMLDivElement>()
   const base = `/${slug}/dashboard/ai`
   const { chat: chatId, messages, pending, status, error, streaming, cards, ask: send } = useAssistant({
     slug,
@@ -46,14 +47,8 @@ export function AssistantChat({ slug, name, firstName, isAgent, chats: initialCh
     },
   })
 
-  // Follow the answer as it grows, unless the person scrolled up to read something.
-  useEffect(() => {
-    const el = scroller.current
-    if (el && messages.length > 0 && el.scrollHeight - el.scrollTop - el.clientHeight < 160) el.scrollTop = el.scrollHeight
-  }, [messages.length, pending, streaming, cards])
-
   const ask = (question: string) => {
-    requestAnimationFrame(() => scroller.current?.scrollTo({ top: scroller.current.scrollHeight }))
+    follow()
     return send(question)
   }
 

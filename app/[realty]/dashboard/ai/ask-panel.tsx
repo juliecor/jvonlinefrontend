@@ -1,11 +1,12 @@
 "use client"
 
-import { useEffect, useRef, useState } from "react"
+import { useEffect, useState } from "react"
 import Link from "next/link"
 import { usePathname } from "next/navigation"
 import { Maximize2, Plus, Sparkles, X } from "lucide-react"
 import { AskBox, Thread } from "./messages"
 import { useAssistant } from "./use-assistant"
+import { useFollow } from "./use-follow"
 
 /** What the panel offers to ask, by the page it's opened on. */
 function aboutPage(path: string, slug: string, isAgent: boolean): { label: string; ideas: string[] } {
@@ -62,17 +63,12 @@ export function AskPanel({ slug, name, isAgent }: { slug: string; name: string; 
 }
 
 function Panel({ slug, name, isAgent, page, hidden, onClose, onNew }: { slug: string; name: string; isAgent: boolean; page: string; hidden: boolean; onClose: () => void; onNew: () => void }) {
-  const scroller = useRef<HTMLDivElement>(null)
+  const { ref: scroller, follow } = useFollow<HTMLDivElement>()
   const { chat, messages, pending, status, error, streaming, cards, ask: send } = useAssistant({ slug, chatId: null, initial: [] })
   const { label, ideas } = aboutPage(page, slug, isAgent)
 
-  useEffect(() => {
-    const el = scroller.current
-    if (el && el.scrollHeight - el.scrollTop - el.clientHeight < 160) el.scrollTop = el.scrollHeight
-  }, [messages.length, pending, streaming, cards])
-
   const ask = (question: string) => {
-    requestAnimationFrame(() => scroller.current?.scrollTo({ top: scroller.current.scrollHeight }))
+    follow()
     return send(question, page)
   }
 
