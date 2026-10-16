@@ -37,7 +37,7 @@ export function AssistantChat({ slug, name, firstName, isAgent, chats: initialCh
   const [showList, setShowList] = useState(false)
   const { ref: scroller, follow } = useFollow<HTMLDivElement>()
   const base = `/${slug}/dashboard/ai`
-  const { chat: chatId, messages, pending, status, error, streaming, cards, ask: send } = useAssistant({
+  const { chat: chatId, messages, pending, status, error, streaming, cards, ask: send, reset } = useAssistant({
     slug,
     chatId: initialId,
     initial,
@@ -52,6 +52,16 @@ export function AssistantChat({ slug, name, firstName, isAgent, chats: initialCh
     return send(question)
   }
 
+  // A chat started here only changed the address (not the page), so the page alone wouldn't start over:
+  // clear it in place, then go to the plain address so the server's page matches.
+  const startNew = () => {
+    if (pending) return
+    reset()
+    setShowList(false)
+    follow()
+    router.push(base)
+  }
+
   const remove = async (id: number, title: string) => {
     const ok = await confirmAction({ title: "Delete this chat?", body: `"${title}" and its answers will be gone for good.`, confirm: "Delete chat", danger: true })
     if (!ok) return
@@ -59,7 +69,7 @@ export function AssistantChat({ slug, name, firstName, isAgent, chats: initialCh
     if (r.error) return toast(r.error, "error")
     setChats((list) => list.filter((c) => c.id !== id))
     toast("Chat deleted")
-    if (id === chatId) router.push(base)
+    if (id === chatId) startNew()
   }
 
   const list = (
@@ -73,9 +83,9 @@ export function AssistantChat({ slug, name, firstName, isAgent, chats: initialCh
         </button>
       </div>
       <div className="p-3">
-        <Link href={base} className="flex items-center justify-center gap-2 rounded-xl bg-[var(--accent)] px-4 py-2.5 text-sm font-bold text-white transition hover:brightness-110">
+        <button type="button" onClick={startNew} disabled={pending} className="flex w-full items-center justify-center gap-2 rounded-xl bg-[var(--accent)] px-4 py-2.5 text-sm font-bold text-white transition hover:brightness-110 disabled:opacity-50">
           <Plus className="h-4 w-4" strokeWidth={2.5} /> New chat
-        </Link>
+        </button>
       </div>
       <ul className="min-h-0 flex-1 space-y-0.5 overflow-y-auto px-2 pb-2">
         {chats.map((c) => (
@@ -124,9 +134,9 @@ export function AssistantChat({ slug, name, firstName, isAgent, chats: initialCh
             <MessageSquare className="h-4 w-4" /> Chats
           </button>
           {messages.length > 0 && (
-            <Link href={base} className="rounded-xl hidden items-center gap-1.5 border border-[#d9d4cb] px-3 py-2 text-sm font-bold transition hover:border-[#17150f] sm:inline-flex">
+            <button type="button" onClick={startNew} disabled={pending} className="hidden items-center gap-1.5 rounded-xl border border-[#d9d4cb] px-3 py-2 text-sm font-bold transition hover:border-[#17150f] disabled:opacity-50 sm:inline-flex">
               <Plus className="h-4 w-4" /> New chat
-            </Link>
+            </button>
           )}
         </header>
 

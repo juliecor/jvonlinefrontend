@@ -23,7 +23,8 @@ const STATUS: Record<string, string> = {
 /**
  * One conversation with the assistant: the messages, and ask(), which sends a
  * question and follows the answer as it streams in (status, words, unit
- * cards). Used by the AI page and by the Ask panel on every other page.
+ * cards); reset() starts over. Used by the AI page and by the Ask panel on
+ * every other page.
  */
 export function useAssistant({ slug, chatId, initial, onSaved }: { slug: string; chatId: number | null; initial: ChatMessage[]; onSaved?: (chat: ChatSummary, isNew: boolean) => void }) {
   const [chat, setChat] = useState(chatId)
@@ -107,5 +108,15 @@ export function useAssistant({ slug, chatId, initial, onSaved }: { slug: string;
     }
   }
 
-  return { chat, messages, pending, status, error, streaming, cards, ask }
+  /** A fresh conversation in place: the next question starts a new chat. */
+  const reset = () => {
+    setChat(null)
+    setMessages([])
+    setStatus("")
+    setError("")
+    setStreaming(null)
+    setCards([])
+  }
+
+  return { chat, messages, pending, status, error, streaming, cards, ask, reset }
 }
