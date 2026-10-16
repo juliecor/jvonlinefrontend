@@ -37,7 +37,7 @@ export function Thread({ slug, messages, pending, status, streaming, cards, onAs
  * by voice. onSend resolves false when the question didn't go through, and
  * the question comes back into the box to send again.
  */
-export function AskBox({ slug, name, pending, error, hint, onSend }: { slug: string; name: string; pending: boolean; error: string; hint?: string; onSend: (question: string) => Promise<boolean> }) {
+export function AskBox({ slug, name, pending, error, hint, inner = "", onSend }: { slug: string; name: string; pending: boolean; error: string; hint?: string; inner?: string; onSend: (question: string) => Promise<boolean> }) {
   const [text, setText] = useState("")
   const [recording, setRecording] = useState(false)
   const box = useRef<HTMLTextAreaElement>(null)
@@ -66,42 +66,44 @@ export function AskBox({ slug, name, pending, error, hint, onSend }: { slug: str
       }}
       className="border-t border-[#e6e2db] p-3 sm:p-4"
     >
-      {error && <p className="mb-2 text-sm font-bold text-red-700">{error}</p>}
-      <div className="rounded-xl flex items-end gap-2 border border-[#d9d4cb] bg-white p-1.5 focus-within:border-[var(--accent)]">
-        <textarea
-          ref={box}
-          value={text}
-          onChange={(e) => setText(e.target.value)}
-          onKeyDown={(e) => {
-            if (e.key === "Enter" && !e.shiftKey && !e.nativeEvent.isComposing) {
-              e.preventDefault()
-              void send()
-            }
-          }}
-          rows={1}
-          maxLength={2000}
-          readOnly={recording}
-          placeholder={recording ? "Listening… your words show here as you talk" : `Ask ${name}…`}
-          aria-label={`Ask ${name}`}
-          className={`max-h-40 min-h-[44px] min-w-0 flex-1 resize-none bg-transparent px-2.5 py-2.5 text-[15px] outline-none ${recording ? "text-[#6b665d]" : ""}`}
-        />
-        <VoiceButton
-          slug={slug}
-          disabled={pending}
-          onRecording={(on) => {
-            if (on) typed.current = text.trim()
-            setRecording(on)
-          }}
-          onText={(said, final) => {
-            setText(typed.current && said ? `${typed.current} ${said}` : typed.current || said)
-            if (final) box.current?.focus()
-          }}
-        />
-        <button type="submit" disabled={pending || recording || !text.trim()} aria-label="Send" className="rounded-xl flex h-11 w-11 shrink-0 items-center justify-center bg-[var(--accent)] text-white transition hover:brightness-110 disabled:opacity-40">
-          <ArrowUp className="h-5 w-5" strokeWidth={2.5} />
-        </button>
+      <div className={inner}>
+        {error && <p className="mb-2 text-sm font-bold text-red-700">{error}</p>}
+        <div className="rounded-xl flex items-end gap-2 border border-[#d9d4cb] bg-white p-1.5 focus-within:border-[var(--accent)]">
+          <textarea
+            ref={box}
+            value={text}
+            onChange={(e) => setText(e.target.value)}
+            onKeyDown={(e) => {
+              if (e.key === "Enter" && !e.shiftKey && !e.nativeEvent.isComposing) {
+                e.preventDefault()
+                void send()
+              }
+            }}
+            rows={1}
+            maxLength={2000}
+            readOnly={recording}
+            placeholder={recording ? "Listening… your words show here as you talk" : `Ask ${name}…`}
+            aria-label={`Ask ${name}`}
+            className={`max-h-40 min-h-[44px] min-w-0 flex-1 resize-none bg-transparent px-2.5 py-2.5 text-[15px] outline-none ${recording ? "text-[#6b665d]" : ""}`}
+          />
+          <VoiceButton
+            slug={slug}
+            disabled={pending}
+            onRecording={(on) => {
+              if (on) typed.current = text.trim()
+              setRecording(on)
+            }}
+            onText={(said, final) => {
+              setText(typed.current && said ? `${typed.current} ${said}` : typed.current || said)
+              if (final) box.current?.focus()
+            }}
+          />
+          <button type="submit" disabled={pending || recording || !text.trim()} aria-label="Send" className="rounded-xl flex h-11 w-11 shrink-0 items-center justify-center bg-[var(--accent)] text-white transition hover:brightness-110 disabled:opacity-40">
+            <ArrowUp className="h-5 w-5" strokeWidth={2.5} />
+          </button>
+        </div>
+        {hint && <p className="mt-2 text-center text-xs text-[#8a847a]">{hint}</p>}
       </div>
-      {hint && <p className="mt-2 text-center text-xs text-[#8a847a]">{hint}</p>}
     </form>
   )
 }

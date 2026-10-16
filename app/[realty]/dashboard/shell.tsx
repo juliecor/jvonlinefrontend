@@ -37,6 +37,8 @@ const initials = (name: string) =>
  */
 export function DashboardShell({ slug, user, counts, superAdmin, signOutAction, children }: { slug: string; user: RealtyUser; counts: ShellCounts | null; superAdmin: SuperAdminNav | null; signOutAction: () => Promise<void>; children: React.ReactNode }) {
   const path = usePathname()
+  // The AI chat takes the whole screen: no page width, no footer.
+  const wide = path === `/${slug}/dashboard/ai`
   const [open, setOpen] = useState(false)
   const account = `/${slug}/dashboard/account`
   const realty = user.realty
@@ -234,8 +236,8 @@ export function DashboardShell({ slug, user, counts, superAdmin, signOutAction, 
         </div>
       )}
 
-      <main className="min-w-0 px-5 py-8 sm:px-10 sm:py-12">
-        <div className="mx-auto max-w-5xl">
+      <main className={wide ? "min-w-0 px-3 py-3 sm:px-5 sm:py-5" : "min-w-0 px-5 py-8 sm:px-10 sm:py-12"}>
+        <div className={wide ? "" : "mx-auto max-w-5xl"}>
           {stopped && (
             <div role="status" className="rounded-xl mb-8 flex flex-col gap-2 border-l-4 border-red-600 bg-red-50 px-4 py-3 sm:flex-row sm:items-center sm:justify-between">
               <p className="flex items-start gap-2.5 text-[15px] font-semibold text-red-900">
@@ -253,9 +255,11 @@ export function DashboardShell({ slug, user, counts, superAdmin, signOutAction, 
           )}
           {children}
         </div>
-        <p className="mt-16 text-center text-xs text-[#a39d92]">
-          Powered by <Link href="/platform" className="font-medium text-[#8a847a] hover:text-[#17150f]">jvconline</Link>
-        </p>
+        {!wide && (
+          <p className="mt-16 text-center text-xs text-[#a39d92]">
+            Powered by <Link href="/platform" className="font-medium text-[#8a847a] hover:text-[#17150f]">jvconline</Link>
+          </p>
+        )}
       </main>
       {!broker && may("ai") && <AskPanel slug={slug} name={assistantName(realty.name)} isAgent={user.role === "agent"} />}
       <Feedback />
